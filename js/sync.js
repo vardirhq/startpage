@@ -21,13 +21,13 @@
   function payload() {
     const s = JSON.parse(JSON.stringify(S()));
     s.github.token = '';
-    delete s.sync; delete s.customBg; delete s.focusRun;
+    delete s.sync; delete s.customBg; delete s.focusRun; delete s.presence;
     return JSON.stringify({ app: 'startpage', v: 2, updatedAt: S().updatedAt, state: s }, null, 1);
   }
   function apply(remote) {
-    const st = S(), keep = { token: st.github.token, sync: st.sync, customBg: st.customBg, focusRun: st.focusRun };
+    const st = S(), keep = { token: st.github.token, sync: st.sync, customBg: st.customBg, focusRun: st.focusRun, presence: st.presence };
     Object.keys(remote).forEach((k) => { st[k] = remote[k]; });
-    st.github.token = keep.token; st.sync = keep.sync; st.customBg = keep.customBg; st.focusRun = keep.focusRun;
+    st.github.token = keep.token; st.sync = keep.sync; st.customBg = keep.customBg; st.focusRun = keep.focusRun; st.presence = keep.presence;
     SP.store.save({ quiet: true });
     SP.app.renderAll();
   }

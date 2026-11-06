@@ -74,7 +74,7 @@
     g.hidden = !s.showGreeting;
     if (s.showGreeting) {
       const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
-      g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(greet()) + ',<br>' + esc(s.name || 'friend') + '.<span class="caret" aria-hidden="true"></span></h1>' +
+      g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(greet()) + ',<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
         (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
         (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' : '');
     }
@@ -226,12 +226,16 @@
   SP.app = { renderWidget, renderMain, renderRail, renderHero, renderAll, applyTheme, space, switchSpace, LAYOUTS, download, focusSearch };
 
   document.addEventListener('DOMContentLoaded', () => {
+    SP.voice.markSeen();
+    setInterval(() => { if (document.visibilityState === 'visible') SP.voice.touch(); }, 60e3);
     applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts();
     setInterval(tick, 1000); tick();
     SP.sync.init();
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState !== 'visible') return;
+      if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }
+      const away = SP.voice.markSeen();
+      if (away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.t('welcomeBack'));
       renderHero();
       if (SP.widgets.weather.data) SP.widgets.weather.load();
       if (SP.widgets.github.data) SP.widgets.github.load();
