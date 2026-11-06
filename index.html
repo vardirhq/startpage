@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="midnight">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Tab</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="bg" aria-hidden="true">
+    <canvas id="bg-canvas" width="384" height="216"></canvas>
+    <div id="bg-image" hidden></div>
+    <div class="bg-shade"></div>
+  </div>
+
+  <nav id="rail" aria-label="Spaces"></nav>
+
+  <main id="main">
+    <header id="hero">
+      <div id="greeting"></div>
+      <div id="search-wrap"></div>
+    </header>
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <aside id="panel" aria-label="Customize" hidden></aside>
+  <dialog id="dlg"></dialog>
+
+  <script src="js/icons.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/widgets.js"></script>
+  <script src="js/panel.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
