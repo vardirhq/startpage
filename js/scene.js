@@ -70,11 +70,13 @@
         if (Math.hypot(x - cx, y - cy) <= r) b.set(x, y, c);
     }
   }
+  let META = null; // filled during render() for the animation layer
   function stars(b, R, n, maxY, c) {
     for (let i = 0; i < n; i++) {
       const x = R() * b.W, y = R() * maxY, br = R();
       const a = (0.35 + br * 0.65) * (1 - y / (maxY * 1.15));
       b.set(x, y, c, a);
+      if (META && br > 0.45) META.stars.push({ x: x | 0, y: y | 0, a, ph: R() * 6.28, sp: 0.6 + R() * 2.2 });
       if (br > 0.94) { b.set(x + 1, y, c, a * 0.45); b.set(x - 1, y, c, a * 0.45); b.set(x, y + 1, c, a * 0.45); b.set(x, y - 1, c, a * 0.45); }
     }
   }
@@ -152,7 +154,11 @@
       if (R() < 0.3) b.rect(x + (w >> 1), base - hh - 4, 1, 4, c);
       for (let wy = base - hh + 2; wy < base - 1; wy += 3)
         for (let wx = x + 1; wx < x + w - 1; wx += 2)
-          if (R() < density) b.set(wx, wy, wc[Math.floor(R() * wc.length)], 0.55 + R() * 0.45);
+          if (R() < density) {
+            const col = wc[Math.floor(R() * wc.length)];
+            b.set(wx, wy, col, 0.55 + R() * 0.45);
+            if (META && R() < 0.12) META.windows.push({ x: wx, y: wy, c: col, ph: R() * 100 });
+          }
       x += w + Math.floor(R() * 2);
     }
   }
@@ -250,7 +256,7 @@
         { height: 0.16, rough: 0.6, color: '#071c1e', lit: '#0b2526' },
       ],
       shore: '#031010', water: '#05161a', waterMix: 0.4, treeMin: 6, treeMax: 16,
-      fg: '#020a0a', fgMid: '#061616',
+      fg: '#020a0a', fgMid: '#061616', fx: 'fireflies',
     },
     cyber: {
       name: 'Cyber', tint: '#150a2c', horizon: 0.7,
@@ -275,7 +281,7 @@
         { height: 0.24, rough: 0.6, color: '#4c5f7d', lit: '#66799a', snow: '#b8c8de', snowLit: '#eef4fb', snowline: 0.5, lightLeft: true },
       ],
       shore: '#2a3a52', water: '#5c7ea8', waterMix: 0.45, treeMin: 5, treeMax: 13,
-      fg: '#15202f', fgMid: '#26364c', treeSnow: '#e9f0f8', sparkle: '#ffffff',
+      fg: '#15202f', fgMid: '#26364c', treeSnow: '#e9f0f8', sparkle: '#ffffff', fx: 'snow',
     },
     pixel: {
       name: 'Pixel', tint: '#1a1030', horizon: 0.66,
@@ -301,6 +307,7 @@
         { base: 0.72, a1: 0.05, f1: 0.016, a2: 0.015, f2: 0.05, color: '#a2a2ad', lit: '#c8c8d0' },
         { base: 0.85, a1: 0.04, f1: 0.02, a2: 0.012, f2: 0.06, color: '#8c8c99', lit: '#b2b2bc' },
       ],
+      fx: 'dust',
     },
   };
 
@@ -309,6 +316,9 @@
     const cfg = T[key] || T.midnight;
     const W = canvas.width, H = canvas.height, b = new Buf(W, H), R = rng((seed || 1) * 9973 + key.length * 131);
     const horizon = Math.round(H * cfg.horizon);
+    META = opts.meta ? { key, W, H, horizon, stars: [], windows: [], starColor: cfg.starColor ? hex(cfg.starColor) : null,
+      water: !!(cfg.water && horizon < H), sparkle: cfg.sparkle ? hex(cfg.sparkle) : null, sparkleX: W * ((cfg.sun || cfg.glow || { x: 0.5 }).x),
+      night: !!cfg.stars && cfg.stars >= 30, fx: cfg.fx || null } : null;
 
     sky(b, cfg.sky.map(hex), horizon, 28);
     if (cfg.stars) stars(b, R, Math.round(cfg.stars * W / 384), horizon * 0.75, hex(cfg.starColor));
@@ -328,6 +338,8 @@
 
     const ctx = canvas.getContext('2d');
     ctx.putImageData(new ImageData(b.d, W, H), 0, 0);
+    const m = META; META = null;
+    return m;
   }
 
   /* Transparent strip of pine silhouettes, used as card decoration. */

@@ -7,12 +7,11 @@
   const save = () => SP.store.save();
 
   const ACCENTS = ['#a78bfa', '#3b82f6', '#22d3ee', '#4ade80', '#facc15', '#fb923c', '#f472b6'];
-  const TABS = [['layout', 'Layout'], ['widgets', 'Widgets'], ['theme', 'Theme'], ['settings', 'Settings']];
-  const WIDGET_DESC = {
-    search: 'Search bar with bookmark suggestions and !bangs', bookmarks: 'Folders and quick-launch tiles', weather: 'Current conditions and 3-day forecast (Open-Meteo)',
-    clock: 'Local time and location', tasks: 'Simple to-do list', notes: 'Quick bullet notes', github: 'Recent repo activity and CI status',
-    music: 'Player for your own streams and audio files', quote: 'A new quote every day',
-  };
+  const TABS = ['layout', 'widgets', 'theme', 'settings'];
+  /* Voiced text. `T` escapes; `L` wraps it with the neutral wording as a tooltip so a
+     renamed control ("Sell the estate") is still understandable ("Reset all"). */
+  const T = (k, c) => esc(SP.voice.t(k, c));
+  const L = (k, c) => { const v = SP.voice.t(k, c), p = SP.voice.plain(k, c); return v === p ? esc(v) : '<span title="' + esc(p) + '">' + esc(v) + '</span>'; };
   let tab = 'layout';
   const thumbs = {};
 
@@ -25,8 +24,9 @@
     }
     return thumbs[k];
   }
-  const toggle = (name, label, on) => '<label class="switch-row"><span>' + esc(label) + '</span><input type="checkbox" role="switch" data-toggle="' + name + '"' + (on ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label>';
-  const section = (title, body, cls) => '<section class="p-sec ' + (cls || '') + '"><h3>' + esc(title) + '</h3>' + body + '</section>';
+  const toggle = (name, key, on) => '<label class="switch-row"><span>' + L(key) + '</span><input type="checkbox" role="switch" aria-label="' + esc(SP.voice.plain(key)) + '" data-toggle="' + name + '"' + (on ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label>';
+  const section = (key, body, cls) => '<section class="p-sec ' + (cls || '') + '"><h3>' + L(key) + '</h3>' + body + '</section>';
+  const field = (key, input) => '<label class="field"><span>' + L(key) + '</span>' + input + '</label>';
 
   function layoutPicker() {
     const shapes = {
@@ -40,7 +40,7 @@
   }
   function widgetTiles(ids) {
     const on = SP.app.space().widgets;
-    return '<div class="w-pick">' + ids.map((id) => '<button aria-pressed="' + on.includes(id) + '" data-widget="' + id + '"><span>' + I(SP.widgetMeta[id].icon, 22) + '</span>' + esc(SP.widgetMeta[id].title) + '</button>').join('') + '</div>';
+    return '<div class="w-pick">' + ids.map((id) => '<button aria-pressed="' + on.includes(id) + '" data-widget="' + id + '" title="' + T('desc_' + id) + '"><span>' + I(SP.widgetMeta[id].icon, 22) + '</span>' + esc(SP.widgetMeta[id].title) + '</button>').join('') + '</div>';
   }
   function themePicker() {
     return '<div class="theme-pick">' + Object.entries(SP.scene.themes).map(([k, t]) =>
@@ -49,9 +49,9 @@
   }
   function bgRow() {
     return '<div class="bg-row"><div class="bg-prev" id="bg-prev"><img src="' + thumb(S().theme, S().seed) + '" alt=""></div>' +
-      '<label class="btn">Change…<input type="file" accept="image/*" hidden data-bg-file></label>' +
+      '<label class="btn">' + L('btn_change') + '<input type="file" accept="image/*" hidden data-bg-file></label>' +
       '<button class="icon-btn boxed" data-bg-shuffle title="New random scene">' + I('shuffle', 18) + '</button></div>' +
-      (S().customBg ? '<p class="small muted">Using your own image. <button class="link" data-bg-reset>Back to the pixel scene</button></p>' : '');
+      (S().customBg ? '<p class="small muted">' + T('bgCustom') + ' <button class="link" data-bg-reset>' + L('bgBack') + '</button></p>' : '');
   }
   function accentRow(custom) {
     return '<div class="accent-pick" role="radiogroup" aria-label="Accent color">' + ACCENTS.map((c) =>
@@ -59,53 +59,73 @@
       (custom ? '<label class="accent-custom" title="Custom color" style="--c:' + S().accent + '"><input type="color" value="' + S().accent + '" data-accent-custom>' + I('plus', 14) + '</label>' : '') + '</div>';
   }
 
+  /* The picker is described by the *current* voice: every voice has opinions about the others. */
+  function voicePicker() {
+    const cur = SP.voice.current(), base = SP.voice.list.neutral;
+    return '<p class="small muted">' + T('voiceIntro') + '</p>' +
+      '<div class="voice-pick" role="radiogroup" aria-label="Voice">' + Object.entries(SP.voice.list).map(([k, v]) =>
+        '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-voice="' + k + '"><b>' + esc(v.name) + '</b><span>' + esc((cur.blurb && cur.blurb[k]) || base.blurb[k]) + '</span></button>').join('') + '</div>';
+  }
+
   const VIEWS = {
     layout() {
-      return section('Layout', layoutPicker()) +
-        section('Widgets', widgetTiles(['search', 'bookmarks', 'weather', 'clock', 'tasks', 'notes', 'github', 'music']) +
-          '<button class="more-btn" data-tab="widgets">' + I('plus', 14) + ' More widgets</button>') +
-        section('Theme', themePicker()) +
-        section('Background', bgRow()) +
-        section('Accent color', accentRow(false)) +
-        '<section class="p-sec">' + toggle('showGreeting', 'Show greeting', S().showGreeting) + toggle('showQuote', 'Show daily quote', SP.app.space().widgets.includes('quote')) + '</section>';
+      return section('sec_layout', layoutPicker()) +
+        section('sec_widgets', widgetTiles(['search', 'bookmarks', 'weather', 'clock', 'tasks', 'notes', 'github', 'music']) +
+          '<button class="more-btn" data-tab="widgets">' + I('plus', 14) + ' ' + L('moreWidgets') + '</button>') +
+        section('sec_theme', themePicker()) +
+        section('sec_background', bgRow()) +
+        section('sec_accent', accentRow(false)) +
+        section('sec_voice', voicePicker()) +
+        '<section class="p-sec">' + toggle('showGreeting', 'tgl_greeting', S().showGreeting) + toggle('showQuote', 'tgl_quote', SP.app.space().widgets.includes('quote')) +
+          toggle('animate', 'tgl_animate', S().animate) + '</section>';
     },
     widgets() {
       const on = SP.app.space().widgets;
-      return '<p class="small muted">Widgets for the <b>' + esc(SP.app.space().name) + '</b> space. While this panel is open, drag cards by their ' + I('grip', 12) + ' handle to reorder them.</p>' +
-        '<ul class="w-list">' + SP.widgetOrder.map((id) => '<li><span class="wl-ic">' + I(SP.widgetMeta[id].icon, 20) + '</span><span class="wl-t"><b>' + esc(SP.widgetMeta[id].title) + '</b><small>' + esc(WIDGET_DESC[id]) + '</small></span>' +
+      return '<p class="small muted">' + T('widgetsIntro', { space: SP.app.space().name }) + '</p>' +
+        '<ul class="w-list">' + SP.widgetOrder.map((id) => '<li><span class="wl-ic">' + I(SP.widgetMeta[id].icon, 20) + '</span><span class="wl-t"><b>' + esc(SP.widgetMeta[id].title) + '</b><small>' + T('desc_' + id) + '</small></span>' +
           '<label class="switch-row bare"><input type="checkbox" role="switch" aria-label="Show ' + esc(SP.widgetMeta[id].title) + '" data-wtoggle="' + id + '"' + (on.includes(id) ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label></li>').join('') + '</ul>';
     },
     theme() {
-      return section('Theme', themePicker()) + section('Background', bgRow()) + section('Accent color', accentRow(true));
+      return section('sec_theme', themePicker()) + section('sec_background', bgRow() + toggle('animate', 'tgl_animate', S().animate)) +
+        section('sec_accent', accentRow(true)) + section('sec_voice', voicePicker() + toggle('showSummary', 'tgl_summary', S().showSummary));
     },
     settings() {
       const s = S();
       const engines = Object.entries(SP.search.engines).map(([k, e]) => '<option value="' + k + '"' + (s.engine === k ? ' selected' : '') + '>' + e.name + '</option>').join('');
-      return section('Profile',
-          '<label class="field"><span>Your name</span><input data-set="name" value="' + esc(s.name) + '"></label>' +
-          '<label class="field"><span>Tagline</span><input data-set="tagline" value="' + esc(s.tagline) + '"></label>') +
-        section('Location',
-          '<p class="small muted">Used for the weather and clock. Currently <b>' + esc(s.location.name) + '</b>.</p>' +
-          '<form class="loc-search" data-loc-form><input name="city" placeholder="Search for a city…" aria-label="City"><button class="btn">Find</button></form>' +
-          '<ul class="loc-results" data-loc-results></ul><button class="link" data-geo>' + I('pin', 14) + ' Use my current location</button>' +
+      return section('sec_profile',
+          field('fld_name', '<input data-set="name" value="' + esc(s.name) + '">') +
+          field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">')) +
+        section('sec_location',
+          '<p class="small muted">' + T('locIntro', { name: s.location.name }) + '</p>' +
+          '<form class="loc-search" data-loc-form><input name="city" placeholder="' + T('locPlaceholder') + '" aria-label="City"><button class="btn">' + L('btn_find') + '</button></form>' +
+          '<ul class="loc-results" data-loc-results></ul><button class="link" data-geo>' + I('pin', 14) + ' ' + L('btn_geo') + '</button>' +
           '<div class="seg" role="radiogroup" aria-label="Units"><button data-units="celsius" aria-checked="' + (s.units === 'celsius') + '" role="radio">°C</button><button data-units="fahrenheit" aria-checked="' + (s.units === 'fahrenheit') + '" role="radio">°F</button></div>' +
-          toggle('clock24', '24-hour clock', s.clock24)) +
-        section('Search', '<label class="field"><span>Search engine</span><select data-set="engine">' + engines + '</select></label>' +
-          '<p class="small muted">Shortcuts: <kbd>Ctrl</kbd> <kbd>K</kbd> or <kbd>/</kbd> to focus. Bangs: ' + Object.keys(SP.search.bangs).map((b) => '<code>!' + b + '</code>').join(' ') + '</p>' +
-          toggle('favicons', 'Load bookmark icons (via Google’s favicon service)', s.favicons)) +
-        section('GitHub', '<div id="gh-settings"><label class="field"><span>Username</span><input data-gh="user" value="' + esc(s.github.user) + '" placeholder="octocat" autocomplete="off"></label>' +
+          toggle('clock24', 'tgl_24h', s.clock24) +
+          field('fld_weekStart', '<select data-weekstart><option value="1"' + (s.weekStart === 1 ? ' selected' : '') + '>Monday</option><option value="0"' + (s.weekStart === 0 ? ' selected' : '') + '>Sunday</option></select>')) +
+        section('sec_voice', voicePicker() + toggle('showSummary', 'tgl_summary', s.showSummary)) +
+        section('sec_search', field('fld_engine', '<select data-set="engine">' + engines + '</select>') +
+          '<p class="small muted">Shortcuts: <kbd>Ctrl</kbd> <kbd>K</kbd> or <kbd>/</kbd> to focus, <code>&gt;</code> for commands, math and unit conversion inline. Bangs: ' + Object.keys(SP.search.bangs).map((b) => '<code>!' + b + '</code>').join(' ') + '</p>' +
+          toggle('favicons', 'tgl_favicons', s.favicons)) +
+        section('sec_github', '<div id="gh-settings"><label class="field"><span>Username</span><input data-gh="user" value="' + esc(s.github.user) + '" placeholder="octocat" autocomplete="off"></label>' +
           '<label class="field"><span>Token (optional)</span><input data-gh="token" type="password" value="' + esc(s.github.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
-          '<p class="small muted">Without a token you get public activity (60 API calls/hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge. The token is stored only in this browser.</p></div>') +
-        section('Data', '<div class="btn-row"><button class="btn" data-export>' + I('download', 16) + ' Export</button><label class="btn">' + I('upload', 16) + ' Import<input type="file" accept="application/json" hidden data-import></label>' +
-          '<button class="btn ghost danger" data-reset>Reset all</button></div><p class="small muted">Everything is stored locally in this browser. Export to move it to another device.</p>');
+          '<p class="small muted">Without a token you get public activity (60 API calls/hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge, and <code>gist</code> enables sync. The token is stored only in this browser.</p></div>') +
+        section('sec_sync', s.github.token
+          ? '<p class="small muted">' + T('syncIntro') + '</p>' +
+            '<div class="btn-row"><button class="btn" data-sync-now>' + I('cloudSync', 16) + ' ' + L(s.sync.gistId ? 'btn_syncNow' : 'btn_syncOn') + '</button>' +
+            (s.sync.gistId ? '<a class="btn ghost" href="https://gist.github.com/' + esc(s.sync.gistId) + '">' + L('btn_viewGist') + '</a>' : '') + '</div>' +
+            '<p class="small muted" data-sync-status>' + esc(SP.sync.label()) + '</p>' + (s.sync.gistId ? toggle('syncAuto', 'tgl_syncAuto', s.sync.auto) : '')
+          : '<p class="small muted">Add a GitHub token above (with the <code>gist</code> scope, or Gists read/write for fine-grained tokens) to sync across devices, e.g. between this site and the browser extension.</p>') +
+        section('sec_data', '<div class="btn-row"><button class="btn" data-export>' + I('download', 16) + ' ' + L('btn_export') + '</button><label class="btn">' + I('upload', 16) + ' ' + L('btn_import') + '<input type="file" accept="application/json" hidden data-import></label>' +
+          '<button class="btn ghost danger" data-reset>' + L('btn_reset') + '</button></div><p class="small muted">' + T('dataHelp') + '</p>');
     },
   };
 
   function render() {
-    const p = $('#panel');
-    p.innerHTML = '<header class="p-head"><h2>' + I('customize', 20) + ' Customize</h2><button class="icon-btn" data-close aria-label="Close customize panel">' + I('x', 20) + '</button></header>' +
-      '<nav class="p-tabs" role="tablist">' + TABS.map(([k, l]) => '<button role="tab" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + l + '</button>').join('') + '</nav>' +
+    const p = $('#panel'), y = p.querySelector('.p-body') ? p.querySelector('.p-body').scrollTop : 0;
+    p.innerHTML = '<header class="p-head"><h2>' + I('customize', 20) + ' ' + L('panelTitle') + '</h2><button class="icon-btn" data-close aria-label="Close customize panel">' + I('x', 20) + '</button></header>' +
+      '<nav class="p-tabs" role="tablist">' + TABS.map((k) => '<button role="tab" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + L('tab_' + k) + '</button>').join('') + '</nav>' +
       '<div class="p-body">' + VIEWS[tab]() + '</div>';
+    p.querySelector('.p-body').scrollTop = y; // switching voice re-renders; don't jump to the top
     bind(p);
   }
 
@@ -135,9 +155,19 @@
       try { await SP.store.files.set('bg', f); S().customBg = true; save(); await SP.app.applyTheme(); render(); }
       catch (err) { toast('Couldn’t save that image'); }
     });
+    on('[data-voice]', 'click', (e) => {
+      const v = e.currentTarget.dataset.voice;
+      if (v !== 'neutral' && S().voice === 'neutral') S().showSummary = true; // a voice is mostly heard in the summary line
+      S().voice = v; save(); SP.app.renderAll();
+    });
+    on('[data-weekstart]', 'change', (e) => { S().weekStart = +e.target.value; save(); SP.app.renderWidget('calendar'); SP.app.renderWidget('habits'); });
+    on('[data-sync-now]', 'click', async () => { await SP.sync.now(); render(); });
     on('[data-toggle]', 'change', (e) => {
       const k = e.target.dataset.toggle, v = e.target.checked;
       if (k === 'showQuote') return setWidget('quote', v);
+      if (k === 'syncAuto') { S().sync.auto = v; save(); return; }
+      if (k === 'animate') { S().animate = v; save(); SP.app.applyTheme(); render(); return; }
+      if (k === 'showSummary') { S().showSummary = v; save(); SP.app.renderHero(); return; }
       S()[k] = v; save();
       if (k === 'showGreeting') SP.app.renderHero();
       if (k === 'clock24') SP.app.renderWidget('clock');
@@ -147,8 +177,10 @@
     on('[data-gh]', 'change', (e) => {
       S().github[e.target.dataset.gh] = e.target.value.trim(); save();
       SP.widgets.github.reset(); SP.app.renderWidget('github');
+      SP.widgets.vitals.reset(); SP.app.renderWidget('vitals');
+      if (e.target.dataset.gh === 'token') render();
     });
-    on('[data-units]', 'click', (e) => { S().units = e.currentTarget.dataset.units; save(); SP.widgets.weather.reset(); SP.app.renderWidget('weather'); render(); });
+    on('[data-units]', 'click', (e) => { S().units = e.currentTarget.dataset.units; save(); SP.widgets.weather.reset(); SP.app.renderWidget('weather'); SP.app.renderWidget('forecast'); render(); });
     on('[data-loc-form]', 'submit', async (e) => {
       e.preventDefault();
       const q = e.target.city.value.trim(), ul = $('[data-loc-results]', p);
@@ -173,16 +205,16 @@
     });
     on('[data-import]', 'change', async (e) => {
       const f = e.target.files[0]; if (!f) return;
-      try { const obj = JSON.parse(await f.text()); if (await confirm('Import settings?', 'This replaces your current startpage data.', 'Import')) SP.store.replace(obj); }
+      try { const obj = JSON.parse(await f.text()); if (await confirm(SP.voice.t('import_title'), SP.voice.t('import_body'), SP.voice.t('import_ok'))) SP.store.replace(obj); }
       catch (err) { toast('That file isn’t a valid backup'); }
     });
-    on('[data-reset]', 'click', async () => { if (await confirm('Reset everything?', 'All spaces, bookmarks, tasks, notes and settings go back to defaults.', 'Reset')) SP.store.reset(); });
+    on('[data-reset]', 'click', async () => { if (await confirm(SP.voice.t('reset_title'), SP.voice.t('reset_body'), SP.voice.t('reset_ok'))) SP.store.reset(); });
   }
 
   function setLocation(name, lat, lon) {
     S().location = { name, lat, lon }; save();
-    SP.widgets.weather.reset(); SP.app.renderWidget('weather'); SP.app.renderWidget('clock'); render();
-    toast('Location set to ' + name);
+    SP.widgets.weather.reset(); SP.widgets.forecast.reset(); SP.app.renderWidget('weather'); SP.app.renderWidget('forecast'); SP.app.renderWidget('clock'); render();
+    toast(SP.voice.t('toast_location', { name }));
   }
 
   function open(t, focus) {

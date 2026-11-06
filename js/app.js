@@ -10,8 +10,9 @@
   const LAYOUTS = {
     focus: { label: 'Focus', spans: {} },
     split: { label: 'Two columns', spans: { bookmarks: 24, music: 24 } },
-    grid: { label: 'Classic', spans: { clock: 7, weather: 8, github: 9, bookmarks: 11, tasks: 6.5, notes: 6.5, music: 13, quote: 11 } },
-    dense: { label: 'Dense', spans: { bookmarks: 12, github: 12, music: 12, quote: 12 } },
+    grid: { label: 'Classic', spans: { clock: 7, weather: 8, github: 9, bookmarks: 11, tasks: 6.5, notes: 6.5, music: 13, quote: 11,
+      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8 } },
+    dense: { label: 'Dense', spans: { bookmarks: 12, github: 12, music: 12, quote: 12, forecast: 12, news: 12, habits: 12 } },
   };
   const DEFAULT_SPAN = { focus: 24, split: 12, grid: 8, dense: 6 };
   const space = () => S().spaces.find((s) => s.id === S().activeSpace) || S().spaces[0];
@@ -23,8 +24,8 @@
       '<div class="spaces" role="tablist" aria-label="Spaces">' + S().spaces.map((s, i) =>
         '<button role="tab" class="space' + (s.id === space().id ? ' active' : '') + '" data-space="' + s.id + '" aria-selected="' + (s.id === space().id) + '" title="' + esc(s.name) + (i < 9 ? ' (Alt+' + (i + 1) + ')' : '') + '">' +
         '<span class="space-ic">' + I(s.icon, 22) + '</span><span class="space-l">' + esc(s.name) + '</span></button>').join('') +
-      '<button class="space-add" data-add-space title="New space" aria-label="New space">' + I('plus', 20) + '</button></div>' +
-      '<button class="rail-btn" data-customize title="Customize" aria-label="Customize">' + I('customize', 22) + '</button>';
+      '<button class="space-add" data-add-space title="' + esc(SP.voice.t('rail_newSpace')) + '" aria-label="New space">' + I('plus', 20) + '</button></div>' +
+      '<button class="rail-btn" data-customize title="' + esc(SP.voice.t('rail_customize')) + '" aria-label="Customize">' + I('customize', 22) + '</button>';
     rail.querySelectorAll('[data-space]').forEach((b) => {
       b.onclick = () => switchSpace(b.dataset.space);
       b.oncontextmenu = (e) => { e.preventDefault(); spaceMenu(b, b.dataset.space); };
@@ -65,7 +66,7 @@
   /* ---------- hero ---------- */
   function greet() {
     const h = new Date().getHours();
-    return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
+    return SP.voice.t('greet', h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
   }
   function renderHero() {
     const s = S(), sp = space();
@@ -74,30 +75,49 @@
     if (s.showGreeting) {
       const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
       g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(greet()) + ',<br>' + esc(s.name || 'friend') + '.<span class="caret" aria-hidden="true"></span></h1>' +
-        (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '');
+        (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
+        (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' : '');
     }
     const sw = $('#search-wrap');
     const want = sp.widgets.includes('search');
     sw.hidden = !want;
     if (want && !sw.querySelector('form')) { sw.innerHTML = SP.search.render(); SP.search.mount(sw); }
+    if (want) sw.querySelector('input').placeholder = SP.voice.t('search_placeholder');
     $('#hero').classList.toggle('compact', !s.showGreeting);
   }
 
+  const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
   /* ---------- grid ---------- */
+  const SIZES = { s: { label: 'Small', mult: 0.7 }, m: { label: 'Medium', mult: 1 }, l: { label: 'Large', mult: 1.6 } };
+  const SCROLLERS = '.task-list, .news-list, .notes-list, .cd-list, .wc-list, .habit-list, .bm-tiles';
+  function sizeOf(id) { const sp = space(); return (sp.sizes && sp.sizes[id]) || 'm'; }
+  function applySpan(el, id) {
+    const L = S().layout, base = (LAYOUTS[L].spans[id] || DEFAULT_SPAN[L]), sz = sizeOf(id);
+    const span = L === 'focus' ? 24 : L === 'split' && sz === 'l' ? 24 : Math.min(24, base * SIZES[sz].mult);
+    el.style.setProperty('--span', span);
+    el.dataset.size = sz;
+  }
   function cardFor(id) {
     const el = document.createElement('section');
     el.className = 'card w-' + id;
     el.dataset.w = id;
     el.setAttribute('aria-label', SP.widgetMeta[id].title);
-    const L = S().layout, span = (LAYOUTS[L].spans[id] || DEFAULT_SPAN[L]);
-    el.style.setProperty('--span', span);
+    applySpan(el, id);
     return el;
   }
   function renderWidget(id) {
     $$('.card[data-w="' + id + '"]').forEach((el) => {
       const W = SP.widgets[id];
+      const keep = $$(SCROLLERS, el).map((n) => n.scrollTop); // re-renders shouldn't jump lists to the top
       el.innerHTML = W.render();
+      el.insertAdjacentHTML('beforeend', '<div class="card-tools"><button class="size-btn" data-size-btn title="Card size" aria-label="Card size: ' + SIZES[sizeOf(id)].label + '">' + I('resize', 13) + '<span>' + sizeOf(id).toUpperCase() + '</span></button></div>');
+      el.querySelector('[data-size-btn]').onclick = () => {
+        const sp = space(), order = ['s', 'm', 'l'], next = order[(order.indexOf(sizeOf(id)) + 1) % 3];
+        sp.sizes = sp.sizes || {}; sp.sizes[id] = next; save(); applySpan(el, id); renderWidget(id);
+      };
       if (W.mount) W.mount(el);
+      $$(SCROLLERS, el).forEach((n, i) => { if (keep[i]) n.scrollTop = keep[i]; });
     });
   }
   function renderMain() {
@@ -109,7 +129,7 @@
       grid.appendChild(cardFor(id));
       renderWidget(id);
     });
-    if (!grid.children.length) grid.innerHTML = '<div class="grid-empty">This space has no widgets yet. <button class="btn small" data-open-widgets>Add widgets</button></div>';
+    if (!grid.children.length) grid.innerHTML = '<div class="grid-empty">' + esc(SP.voice.t('grid_empty')) + ' <button class="btn small" data-open-widgets>' + esc(SP.voice.t('grid_emptyBtn')) + '</button></div>';
     const b = grid.querySelector('[data-open-widgets]');
     if (b) b.onclick = () => SP.panel.open('widgets');
   }
@@ -159,7 +179,8 @@
     root.setProperty('--accent-rgb', hexToRgb(s.accent));
     root.setProperty('--tint-rgb', hexToRgb(t.tint));
     document.documentElement.dataset.theme = s.theme;
-    SP.scene.render($('#bg-canvas'), s.theme, s.seed);
+    const meta = SP.scene.render($('#bg-canvas'), s.theme, s.seed, { meta: true });
+    SP.anim.start(s.animate && !s.customBg ? meta : null);
     const img = $('#bg-image');
     if (s.customBg) {
       try {
@@ -193,7 +214,8 @@
 
   let lastMinute = -1;
   function tick() {
-    SP.widgets.clock.tick();
+    const on = space().widgets;
+    Object.keys(SP.widgets).forEach((k) => { const w = SP.widgets[k]; if (w.tick && (on.includes(k) || k === 'focus')) w.tick(); }); // the timer keeps running on other spaces
     const m = new Date().getMinutes();
     if (m !== lastMinute) {
       if (lastMinute !== -1) renderHero();
@@ -201,17 +223,19 @@
     }
   }
 
-  SP.app = { renderWidget, renderMain, renderRail, renderHero, renderAll, applyTheme, space, LAYOUTS, download, focusSearch };
+  SP.app = { renderWidget, renderMain, renderRail, renderHero, renderAll, applyTheme, space, switchSpace, LAYOUTS, download, focusSearch };
 
   document.addEventListener('DOMContentLoaded', () => {
     applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts();
     setInterval(tick, 1000); tick();
+    SP.sync.init();
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') return;
       renderHero();
       if (SP.widgets.weather.data) SP.widgets.weather.load();
       if (SP.widgets.github.data) SP.widgets.github.load();
+      if (space().widgets.includes('news')) SP.widgets.news.load();
     });
   });
 })(window.SP = window.SP || {});

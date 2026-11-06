@@ -33,8 +33,8 @@
       '<header class="dlg-head"><h2>' + esc(title) + '</h2><button type="button" class="icon-btn" data-close aria-label="Close">' + SP.icon('x', 18) + '</button></header>' +
       '<div class="dlg-body">' + bodyHtml + '</div>' +
       (opts.actions === false ? '' : '<footer class="dlg-foot">' + (opts.extra || '') +
-        '<button type="button" class="btn ghost" data-close>' + esc(opts.cancelText || 'Cancel') + '</button>' +
-        '<button type="submit" class="btn primary" value="ok">' + esc(opts.okText || 'Save') + '</button></footer>') +
+        '<button type="button" class="btn ghost" data-close>' + esc(opts.cancelText || (SP.voice ? SP.voice.t('dlg_cancel') : 'Cancel')) + '</button>' +
+        '<button type="submit" class="btn primary" value="ok">' + esc(opts.okText || (SP.voice ? SP.voice.t('dlg_save') : 'Save')) + '</button></footer>') +
       '</form>';
     return new Promise((resolve) => {
       const form = d.querySelector('form');
