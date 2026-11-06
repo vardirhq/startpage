@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Startpage",
-  "version": "0.1.0",
-  "description": "Pixel-scenery new tab with spaces, weather, GitHub, bookmarks, tasks and notes.",
+  "name": "Startpage: a new tab with opinions",
+  "short_name": "Startpage",
+  "version": "1.0.0",
+  "description": "Pixel-art new tab with spaces, widgets and personality voices that comment on your tasks, streaks and 3am visits.",
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
   "chrome_url_overrides": { "newtab": "index.html" },
-  "host_permissions": ["https://api.open-meteo.com/*", "https://geocoding-api.open-meteo.com/*", "https://api.github.com/*"]
+  "minimum_chrome_version": "110",
+  "offline_enabled": true
 }

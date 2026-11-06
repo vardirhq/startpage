@@ -68,6 +68,11 @@
     const h = new Date().getHours();
     return SP.voice.t('greet', h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
   }
+  /* Now and then another voice butts in on the summary line. */
+  function heckleHtml() {
+    const h = SP.react.heckle();
+    return h ? '<p class="g-heckle"><b>' + esc(h.who) + ':</b> ' + esc(h.text) + '</p>' : '';
+  }
   function renderHero() {
     const s = S(), sp = space();
     const g = $('#greeting');
@@ -77,7 +82,7 @@
       const hello = greet(); // no comma after a greeting that ends in "?" or "!"
       g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
         (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
-        (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' : '');
+        (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' + heckleHtml() : '');
     }
     const sw = $('#search-wrap');
     const want = sp.widgets.includes('search');
@@ -107,17 +112,29 @@
     applySpan(el, id);
     return el;
   }
+  /* Chaos mode: every card gets its own voice, reshuffled daily (or with >shuffle voices). */
+  function chaosVoice(id) {
+    const s = S();
+    if (!s.chaos) return null;
+    const pool = SP.voice.available().filter((k) => k !== 'neutral');
+    let h = (s.chaosSeed || 0) + Math.floor(Date.now() / 864e5) * 7919;
+    for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return pool[h % pool.length];
+  }
   function renderWidget(id) {
     $$('.card[data-w="' + id + '"]').forEach((el) => {
       const W = SP.widgets[id];
       const keep = $$(SCROLLERS, el).map((n) => n.scrollTop); // re-renders shouldn't jump lists to the top
-      el.innerHTML = W.render();
+      const vk = chaosVoice(id), as = (fn) => (vk ? SP.voice.as(vk, fn) : fn());
+      el.innerHTML = as(() => W.render());
+      el.classList.toggle('chaos', !!vk);
+      if (vk) { const h = el.querySelector('.card-head h3'), tag = '<span class="chaos-tag' + (h ? '' : ' float') + '" title="Chaos mode: this card has its own voice">' + esc(SP.voice.list[vk].name) + '</span>'; if (h) h.insertAdjacentHTML('afterend', tag); else el.insertAdjacentHTML('afterbegin', tag); }
       el.insertAdjacentHTML('beforeend', '<div class="card-tools"><button class="size-btn" data-size-btn title="Card size" aria-label="Card size: ' + SIZES[sizeOf(id)].label + '">' + I('resize', 13) + '<span>' + sizeOf(id).toUpperCase() + '</span></button></div>');
       el.querySelector('[data-size-btn]').onclick = () => {
         const sp = space(), order = ['s', 'm', 'l'], next = order[(order.indexOf(sizeOf(id)) + 1) % 3];
         sp.sizes = sp.sizes || {}; sp.sizes[id] = next; save(); applySpan(el, id); renderWidget(id);
       };
-      if (W.mount) W.mount(el);
+      if (W.mount) as(() => W.mount(el));
       $$(SCROLLERS, el).forEach((n, i) => { if (keep[i]) n.scrollTop = keep[i]; });
     });
   }
@@ -227,17 +244,18 @@
   SP.app = { renderWidget, renderMain, renderRail, renderHero, renderAll, applyTheme, space, switchSpace, LAYOUTS, download, focusSearch };
 
   document.addEventListener('DOMContentLoaded', () => {
-    SP.voice.markSeen();
+    const away0 = SP.voice.markSeen();
     setInterval(() => { if (document.visibilityState === 'visible') SP.voice.touch(); }, 60e3);
     applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts();
     setInterval(tick, 1000); tick();
     SP.sync.init();
     SP.onboarding.maybeStart();
+    if (!SP.wrapped.maybeShow()) setTimeout(() => SP.react.visit(away0, true), 900);
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }
       const away = SP.voice.markSeen();
-      if (away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.t('welcomeBack'));
+      if (!SP.react.visit(away) && away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.t('welcomeBack'), { who: SP.voice.current().name });
       renderHero();
       if (SP.widgets.weather.data) SP.widgets.weather.load();
       if (SP.widgets.github.data) SP.widgets.github.load();

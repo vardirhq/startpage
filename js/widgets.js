@@ -333,17 +333,17 @@
         const inp = li.querySelector('input');
         inp.focus();
         inp.onkeydown = (e) => {
-          if (e.key === 'Enter' && inp.value.trim()) { tasks.unshift({ id: uid(), text: inp.value.trim(), done: false }); save(); rerender('tasks'); setTimeout(() => { const b = document.querySelector('.w-tasks [data-add]'); b && b.click(); }); }
+          if (e.key === 'Enter' && inp.value.trim()) { const text = inp.value.trim(); tasks.unshift({ id: uid(), text, done: false }); save(); rerender('tasks'); SP.react.on.taskAdd(text); setTimeout(() => { const b = document.querySelector('.w-tasks [data-add]'); b && b.click(); }); }
           if (e.key === 'Escape') li.remove();
         };
         inp.onblur = () => setTimeout(() => li.isConnected && !inp.value.trim() && li.remove(), 100);
       };
       const clr = el.querySelector('[data-clear]');
-      if (clr) clr.onclick = () => { S().tasks = tasks.filter((x) => !x.done); save(); rerender('tasks'); };
-      list.addEventListener('change', (e) => { const li = e.target.closest('li'); const t = find(li); if (t) { t.done = e.target.checked; li.classList.toggle('done', t.done); save(); rerender('tasks'); } });
+      if (clr) clr.onclick = () => { const n = tasks.filter((x) => x.done).length; S().tasks = tasks.filter((x) => !x.done); save(); rerender('tasks'); SP.react.on.taskClear(n); };
+      list.addEventListener('change', (e) => { const li = e.target.closest('li'); const t = find(li); if (t) { t.done = e.target.checked; li.classList.toggle('done', t.done); save(); rerender('tasks'); SP.react.on[t.done ? 'taskDone' : 'taskUndo'](t.text); } });
       list.addEventListener('click', (e) => {
         if (!e.target.closest('.del')) return;
-        const li = e.target.closest('li'); S().tasks = tasks.filter((x) => x.id !== li.dataset.id); save(); rerender('tasks');
+        const li = e.target.closest('li'), gone = find(li); S().tasks = tasks.filter((x) => x.id !== li.dataset.id); save(); rerender('tasks'); if (gone) SP.react.on.taskDelete(gone);
       });
       list.addEventListener('dblclick', (e) => {
         const span = e.target.closest('.task-t'); if (!span) return;
@@ -577,7 +577,10 @@
         const v = q.value.trim();
         if (!v) { ul.hidden = true; return; }
         items = [];
-        if (v.startsWith('>')) {
+        if (v.startsWith('?')) {
+          const qq = v.slice(1).trim(), nm = SP.voice.current().name;
+          items = [{ icon: 'chat', label: qq ? SP.voice.t('ask_label', { name: nm }) + ': ' + qq : SP.voice.t('ask_label', { name: nm }) + '…', sub: SP.ask.hasKey() ? 'Enter' : 'needs your Claude API key', run: () => SP.ask.open(qq) }];
+        } else if (v.startsWith('>')) {
           items = SP.palette.commands(v.slice(1).trim());
         } else if (v === '!' || /^!\w*$/.test(v)) {
           Object.entries(BANGS).filter(([k]) => ('!' + k).startsWith(v)).forEach(([k, [n]]) => items.push({ label: '!' + k, sub: n, fill: '!' + k + ' ' }));
@@ -591,7 +594,7 @@
         sel = 0;
         ul.innerHTML = items.map((it, i) => '<li role="option" data-i="' + i + '"' + (i === sel ? ' aria-selected="true"' : '') + '>' +
           (it.icon ? I(it.icon, 16) : it.bm ? I('bookmark', 16) : it.fill ? I('code', 16) : it.go ? I('link', 16) : I('search', 16)) + '<span' + (it.answer ? ' class="answer"' : '') + '>' + esc(it.label) + '</span>' + (it.sub ? '<small>' + esc(it.sub) + '</small>' : '') + '</li>').join('') +
-          (v.startsWith('!') || v.startsWith('>') ? '' : '<li class="hint" aria-hidden="true">Tip: <b>&gt;</b> for commands, <b>!gh</b> <b>!mdn</b> <b>!yt</b> for sites, or type math like <b>12*7</b> or <b>5 km to mi</b></li>');
+          (v.startsWith('!') || v.startsWith('>') || v.startsWith('?') ? '' : '<li class="hint" aria-hidden="true">Tip: <b>&gt;</b> for commands, <b>?</b> to ask the voice, <b>!gh</b> <b>!mdn</b> <b>!yt</b> for sites, or type math like <b>12*7</b> or <b>5 km to mi</b></li>');
         if (v.startsWith('>') && !items.length) { ul.innerHTML = '<li class="hint">No matching command</li>'; ul.hidden = false; return; }
         ul.hidden = !items.length;
       };
