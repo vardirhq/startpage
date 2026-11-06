@@ -372,7 +372,7 @@
   const AQI = [[20, 'Good', '#4ade80'], [40, 'Fair', '#a3e635'], [60, 'Moderate', '#facc15'], [80, 'Poor', '#fb923c'], [100, 'Very poor', '#f87171'], [1e9, 'Extremely poor', '#c084fc']];
   let aq = { data: null, loading: false };
   async function loadAir() {
-    if (aq.loading) return;
+    if (aq.loading || !S().location) return;
     const s = S(), key = 'aq:' + s.location.lat.toFixed(2) + ',' + s.location.lon.toFixed(2);
     aq.loading = true;
     try {
@@ -412,6 +412,7 @@
     title: 'Forecast', icon: 'weather',
     render() {
       const d = W.weather.data;
+      if (!S().location) return head('weather', t('w_forecast')) + '<div class="empty">' + esc(t('wx_noLocation')) + '<button class="btn small" data-wx-setup>' + esc(t('wx_setLocation')) + '</button></div>';
       if (!d || !d.hourly) {
         const st = W.weather.state;
         return head('weather', t('w_forecast')) + '<div class="empty">' + (st && st.error ? '<span>' + esc(st.error) + '</span><button class="btn small" data-fc-retry>Retry</button>' : '<span class="muted">Loading forecast…</span>') + '</div>';
@@ -434,6 +435,8 @@
     },
     mount(el) {
       const r = el.querySelector('[data-fc-retry]'); if (r) r.onclick = () => W.weather.load(true);
+      const set = el.querySelector('[data-wx-setup]'); if (set) set.onclick = () => SP.panel.open('settings', 'location');
+      if (!S().location) return;
       if (!W.weather.data && !(W.weather.state && (W.weather.state.loading || W.weather.state.error))) W.weather.load();
       if (!aq.data && !aq.loading) loadAir();
     },

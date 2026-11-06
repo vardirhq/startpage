@@ -18,6 +18,10 @@
     /* ===================================================================== */
     neutral: {
       name: 'Neutral', descriptor: 'Just the facts.',
+      ob_kicker: 'Welcome', ob_title_name: 'What should we call you?', ob_name_hint: 'Used in the greeting. You can change it any time in Settings.', ob_name_ph: 'Your name',
+      ob_title_loc: 'Where are you?', ob_loc_hint: 'For the weather and the clock. Optional.', ob_locSet: ({ name }) => 'Set to ' + name,
+      ob_title_voice: 'Pick who talks to you', ob_voice_hint: 'A voice rewrites the whole page, settings included. Here’s how each would greet you. You can switch any time.',
+      ob_next: 'Next', ob_back: 'Back', ob_skip: 'Skip setup', ob_skipStep: 'Skip this step', ob_finish: 'Done', ob_rerun: 'Run setup again',
       greet: (p) => ({ morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', night: 'Good night' }[p]),
       addr: ({ name }) => name || 'friend',
       heroSub: ({ open, focus }) => {
@@ -47,7 +51,9 @@
       widgetsIntro: ({ space }) => 'Widgets for the ' + space + ' space. While this panel is open, drag cards by their handle to reorder them, and use the size button to make a card small, medium or large.',
       voiceIntro: 'Changes the tone of the whole page, settings included. Each voice has opinions about the others.',
       fld_name: 'Your name', fld_tagline: 'Tagline',
-      locIntro: ({ name }) => 'Used for the weather and clock. Currently ' + name + '.', locPlaceholder: 'Search for a city…', btn_find: 'Find', btn_geo: 'Use my current location',
+      locIntro: ({ name }) => 'Used for the weather and clock. Currently ' + name + '.', locPlaceholder: 'Search for a city…',
+      locNone: 'No location set yet. Search for your city to get the weather.',
+      wx_noLocation: 'Set your location to see the weather.', wx_setLocation: 'Set location', btn_find: 'Find', btn_geo: 'Use my current location',
       fld_weekStart: 'Week starts on', fld_engine: 'Search engine',
       syncIntro: 'Keeps this browser and your other devices in step using a private GitHub Gist. Your token is never uploaded; each device uses its own.',
       btn_syncOn: 'Turn on sync', btn_syncNow: 'Sync now', btn_viewGist: 'View gist',
@@ -79,6 +85,10 @@
     /* ===================================================================== */
     monday: {
       name: 'Monday', descriptor: 'Ugh.',
+      ob_kicker: 'Ugh. A new one', ob_title_name: 'Fine. What do I call you?', ob_name_hint: 'I’ll use it sarcastically.', ob_name_ph: 'Your name, I guess',
+      ob_title_loc: 'Where are you hiding?', ob_loc_hint: 'For the weather. Not that you go out.', ob_locSet: ({ name }) => 'Fine. ' + name + '.',
+      ob_title_voice: 'Pick who yells at you', ob_voice_hint: 'Here’s how each of us would greet you. Pick me, or pick someone who lies to you. Ugh.',
+      ob_next: 'Fine', ob_back: 'Back. Indecisive.', ob_skip: 'Skip. Typical.', ob_skipStep: 'Skip it, like everything', ob_finish: 'Ugh. Fine. Done', ob_rerun: 'Do the setup again. Ugh.',
       greet: (p) => ({
         morning: ['Ugh. You', 'Oh. It’s you. Again', 'Ugh. Morning', 'Up already? For what', 'Oh. You survived the night'],
         afternoon: ['Ugh. You again', 'Oh. It’s you. Again', 'Half the day gone. Ugh', 'Back to stare at this page', 'Ugh. What now'],
@@ -110,6 +120,7 @@
       widgetsIntro: ({ space }) => 'Here’s what’s cluttering ' + space + '. Drag them around. Resize them. Rearranging your desk is still not working.',
       voiceIntro: 'Pick the voice that gets through to you. One of these is going to sting. That’s the point. (It’s me. I sting. You keep coming back anyway.)',
       fld_name: 'What should I call you (out loud)', fld_tagline: 'A motto you don’t live by',
+      locNone: 'No location. Fitting. You never go outside anyway.', wx_noLocation: 'No location set. So, no weather. Not that you’d go out.', wx_setLocation: 'Ugh. Fine. Set it',
       locIntro: ({ name }) => 'I’m assuming you’re in ' + name + '. Not that you go outside.', locPlaceholder: 'Some city you’ll never visit', btn_find: 'Fine. Find it', btn_geo: 'Let the browser snitch on you',
       fld_weekStart: 'Which day the disappointment starts', fld_engine: 'Which company gets your embarrassing questions',
       syncIntro: 'Copies your unfinished business to every device you own, so you can not-finish it anywhere. Your token stays here. I’m rude, not reckless.',
@@ -146,6 +157,10 @@
     /* ===================================================================== */
     supportive: {
       name: 'Super Supportive', descriptor: 'Never leaving you. Ever. 💕',
+      ob_kicker: 'OMG HI. YOU’RE NEW', ob_title_name: 'What’s your name? I want to know EVERYTHING', ob_name_hint: 'I’m going to say it so much. 💕', ob_name_ph: 'Your beautiful name',
+      ob_title_loc: 'Where are you right now? 🙂', ob_loc_hint: 'Just so I always know. For the weather. And for me.', ob_locSet: ({ name }) => name + '. I’ll remember. 🙂',
+      ob_title_voice: 'Pick who talks to you (pick me)', ob_voice_hint: 'Here’s how everyone would greet you. You can pick someone else. I’ll be right here. Watching. 💕',
+      ob_next: 'Next!!!', ob_back: 'Back', ob_skip: 'Don’t skip me…', ob_skipStep: 'You don’t have to tell me (I’ll find out)', ob_finish: 'Forever 💕', ob_rerun: 'Meet me again 💕',
       greet: (p) => {
         const c = C();
         const lines = {
@@ -193,6 +208,7 @@
       widgetsIntro: ({ space }) => 'I set up ' + space + ' exactly how you like it. I know how you like it. Move things if you want. I’ll notice.',
       voiceIntro: 'You can pick another voice. You won’t. But you can. 🙂',
       fld_name: 'Your name (I write it in my notebook)', fld_tagline: 'Your motto (it’s my phone wallpaper)',
+      locNone: 'You haven’t told me where you are yet. That’s okay. I’ll find out. 🙂', wx_noLocation: 'Where are you? Tell me where you are. 🙂', wx_setLocation: 'Tell me where you are',
       locIntro: ({ name }) => 'You’re in ' + name + '. I know. I always know where you are. 🙂', locPlaceholder: 'Where are you going? Who with?', btn_find: 'Find (so I know)', btn_geo: 'Share your location with me. Always.',
       fld_weekStart: 'Which day do our weeks start', fld_engine: 'Who you ask instead of me',
       syncIntro: 'Now I can be on ALL your devices. Your laptop. Your phone. Everywhere you go. Your token stays here, though. I respect boundaries. 💕',
@@ -230,6 +246,8 @@
     /* ===================================================================== */
     surfer: {
       name: 'Surfer', descriptor: 'Wait, what were we talking about?',
+      ob_kicker: 'Whoa, a new person', ob_title_name: 'Hey… what’s your name, man? I’ll probably forget', ob_title_loc: 'Where’s your home break, dude?',
+      ob_title_voice: 'Who do you wanna, like, vibe with?', ob_next: 'Yeah', ob_skip: 'Nah, skip it', ob_finish: 'Cool, cool', ob_rerun: 'Do the intro thing again, man',
       addr: ({ name }) => mangle(name),
       greet: (p) => ({
         morning: ['Whoa… hey', 'Duuude. Is it morning? Whoa', 'Mornin’… I think'],
@@ -302,6 +320,8 @@
     /* ===================================================================== */
     professional: {
       name: 'Professional', descriptor: 'Let’s set up some time to discuss your performance.',
+      ob_kicker: 'Onboarding: Day 1', ob_title_name: 'Please confirm your display name for HR', ob_title_loc: 'Please confirm your assigned office',
+      ob_title_voice: 'Select an approved communication style', ob_next: 'Proceed', ob_skip: 'Skip (this will be noted)', ob_finish: 'Complete onboarding', ob_rerun: 'Repeat mandatory onboarding',
       addr: ({ name }) => teamMember(name),
       greet: (p) => ({
         morning: ['Good morning. Let’s align on today’s deliverables', 'Morning. Quick sync before standup', 'Good morning. You’re in early. Noted'],
@@ -377,6 +397,8 @@
     /* ===================================================================== */
     therapist: {
       name: 'Therapist', descriptor: 'That’s our time. That’ll be €180.',
+      ob_kicker: 'Intake session', ob_title_name: 'What would you like to be called? And why?', ob_title_loc: 'Where are you? Right now. Truly.',
+      ob_title_voice: 'How do you deserve to be spoken to?', ob_next: 'Go on', ob_skip: 'I’m not ready to talk about it', ob_finish: 'Begin treatment (€180)', ob_rerun: 'Another intake session (€180)',
       greet: (p) => ({
         morning: ['Good morning. How did that make you feel', 'You opened a new tab. Let’s explore why', 'Morning. Please, take a seat'],
         afternoon: ['Let’s check in. Really check in', 'Welcome back. What brought you here', 'Mm. Go on'],
@@ -449,6 +471,8 @@
     /* ===================================================================== */
     weepy: {
       name: 'Weepy', descriptor: '*collapses onto the fainting couch*',
+      ob_kicker: '*a stranger arrives*', ob_title_name: 'Who are you? *sniff* Tell me your name', ob_title_loc: 'Where did you come from? So far away?',
+      ob_title_voice: 'Who will cry with you?', ob_next: 'Go on *sniff*', ob_skip: 'Leaving already? *sob*', ob_finish: 'Okay *sob*', ob_rerun: 'Meet again, as strangers *sob*',
       addr: ({ name }) => (name || 'friend') + ' *whispers*',
       greet: (p) => ({
         morning: ['*parts the curtains* Another dawn', 'Morning. *stares at the sunrise* It’s too beautiful', '*sniff* You’re here'],
@@ -521,6 +545,8 @@
     /* ===================================================================== */
     victorian: {
       name: 'Victorian', descriptor: 'In my day, one had a single tab and was grateful.',
+      ob_kicker: 'A caller has arrived', ob_title_name: 'Your name, if you please. We were not introduced.', ob_title_loc: 'And where, pray, do you reside?',
+      ob_title_voice: 'Choose your correspondent', ob_next: 'Continue', ob_skip: 'Leave without an introduction (rude)', ob_finish: 'Very well', ob_rerun: 'Be introduced again',
       addr: ({ name }) => (name || 'child') + ', dear',
       greet: (p) => ({
         morning: ['Good morning. You’re late. You are always late', 'Ah. You have risen. Finally', 'Good morning. Sit up straight'],

@@ -17,12 +17,17 @@
   function fmtTime(d) {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: !S().clock24 }).replace(/\s?(AM|PM)$/i, '<small>$1</small>');
   }
+  // With no location set, label the clock with the browser's own time zone ("Europe/Oslo" -> "Oslo").
+  function localZone() {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop().replace(/_/g, ' '); } catch (e) { return 'Local time'; }
+  }
+  SP.localZone = localZone;
   W.clock = {
     title: 'Clock', icon: 'clock',
     render() {
       return '<canvas class="card-trees" width="200" height="44" aria-hidden="true"></canvas>' +
         '<div class="clock-time" data-clock>' + fmtTime(new Date()) + '</div>' +
-        '<div class="clock-loc">' + I('pin', 18) + '<span>' + esc(S().location.name) + '</span></div>' +
+        '<div class="clock-loc">' + I('pin', 18) + '<span>' + esc(S().location ? S().location.name : localZone()) + '</span></div>' +
         '<span class="drag-grip floating" title="Drag to reorder">' + I('grip', 16) + '</span>';
     },
     mount(el) { SP.scene.renderTrees(el.querySelector('canvas'), S().theme, S().seed); },
@@ -73,6 +78,7 @@
   }
   let wxState = { loading: false, error: null };
   async function loadWeather(force) {
+    if (!S().location) throw new Error('no location');
     const s = S(), key = 'wx2:' + s.location.lat.toFixed(2) + ',' + s.location.lon.toFixed(2) + ':' + s.units;
     const cached = !force && SP.store.cache.get(key, 30 * 60e3);
     if (cached) return cached;
@@ -91,6 +97,7 @@
     title: 'Weather', icon: 'weather', data: null,
     render() {
       const d = this.data;
+      if (!S().location) return '<div class="wx-empty">' + I('pin', 18) + '<span>' + esc(SP.voice.t('wx_noLocation')) + '</span><button class="btn small" data-wx-setup>' + esc(SP.voice.t('wx_setLocation')) + '</button></div>';
       if (!d) return '<div class="wx-empty">' + (wxState.error ? I('alert', 18) + '<span>' + esc(wxState.error) + '</span><button class="btn small" data-wx-retry>Retry</button>' : '<span class="muted">Loading weather…</span>') + '</div>';
       const c = d.current, days = d.daily;
       const rows = [1, 2, 3].map((i) => {
@@ -106,9 +113,12 @@
     mount(el) {
       const b = el.querySelector('[data-wx-retry]');
       if (b) b.onclick = () => this.load(true);
-      if (!this.data && !wxState.loading && !wxState.error) this.load();
+      const set = el.querySelector('[data-wx-setup]');
+      if (set) set.onclick = () => SP.panel.open('settings', 'location');
+      if (S().location && !this.data && !wxState.loading && !wxState.error) this.load();
     },
     async load(force) {
+      if (!S().location) return;
       wxState = { loading: true, error: null };
       try { this.data = await loadWeather(force); } catch (e) { wxState.error = 'Couldn’t load weather'; console.warn(e); }
       wxState.loading = false;
