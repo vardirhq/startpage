@@ -126,6 +126,7 @@
     list.push({ k: 'background shuffle random scene', label: 'Shuffle background', icon: 'shuffle', run: () => { S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); app.renderAll(); } });
     list.push({ k: 'animation animate motion background', label: (S().animate ? 'Disable' : 'Enable') + ' animated background', icon: 'sparkles', run: () => { S().animate = !S().animate; save(); app.applyTheme(); } });
     list.push({ k: 'customize settings preferences', label: 'Open Customize', icon: 'customize', run: () => SP.panel.open() });
+    list.push({ k: 'setup onboarding welcome intro', label: 'Run setup again', icon: 'sparkles', run: () => SP.onboarding.start() });
     list.push({ k: 'settings github token location', label: 'Open Settings', icon: 'customize', run: () => SP.panel.open('settings') });
     if (S().github.token) list.push({ k: 'sync gist cloud backup', label: 'Sync now', icon: 'cloudSync', run: () => SP.sync.now() });
     list.push({ k: 'refresh reload weather github news', label: 'Refresh data', icon: 'sync', run: () => { W.weather.load(true); if (S().github.user) W.github.load(true); W.news.load(true); } });

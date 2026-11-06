@@ -94,7 +94,8 @@
       const engines = Object.entries(SP.search.engines).map(([k, e]) => '<option value="' + k + '"' + (s.engine === k ? ' selected' : '') + '>' + e.name + '</option>').join('');
       return section('sec_profile',
           field('fld_name', '<input data-set="name" value="' + esc(s.name) + '">') +
-          field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">')) +
+          field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">') +
+          '<button class="link" data-onboard>' + I('sparkles', 14) + ' ' + L('ob_rerun') + '</button>') +
         section('sec_location',
           '<p class="small muted">' + (s.location ? T('locIntro', { name: s.location.name }) : T('locNone')) + '</p>' +
           '<form class="loc-search" data-loc-form><input name="city" placeholder="' + T('locPlaceholder') + '" aria-label="City"><button class="btn">' + L('btn_find') + '</button></form>' +
@@ -171,6 +172,7 @@
       S().voice = v; save(); SP.app.renderAll();
       if (V[v].welcomeVoice && cur !== 'neutral') toast(SP.voice.t('welcomeVoice', { prev: V[cur].name }));
     });
+    on('[data-onboard]', 'click', () => SP.onboarding.start());
     on('[data-weekstart]', 'change', (e) => { S().weekStart = +e.target.value; save(); SP.app.renderWidget('calendar'); SP.app.renderWidget('habits'); });
     on('[data-sync-now]', 'click', async () => { await SP.sync.now(); render(); });
     on('[data-toggle]', 'change', (e) => {

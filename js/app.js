@@ -74,7 +74,8 @@
     g.hidden = !s.showGreeting;
     if (s.showGreeting) {
       const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
-      g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(greet()) + ',<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
+      const hello = greet(); // no comma after a greeting that ends in "?" or "!"
+      g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
         (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
         (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' : '');
     }
@@ -231,6 +232,7 @@
     applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts();
     setInterval(tick, 1000); tick();
     SP.sync.init();
+    SP.onboarding.maybeStart();
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }

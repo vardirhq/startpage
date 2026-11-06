@@ -66,6 +66,7 @@
     ],
     sync: { gistId: '', auto: true, lastSync: 0 },
     presence: {},
+    onboarded: false,
     updatedAt: 0,
   };
 
@@ -91,16 +92,25 @@
     state.version = 2;
   }
 
+  // Anyone with saved data from before onboarding existed has already set the page up.
+  if (raw && raw.onboarded === undefined) state.onboarded = true;
+
   const listeners = [];
-  let timer;
+  let timer = null, frozen = false; // frozen: a reset/import is reloading the page; don't write the old state back
   function save(opts) {
     // Monotonic: an edit is always newer than whatever we last pulled, even if another device's clock runs ahead.
     if (!(opts && opts.quiet)) { state.updatedAt = Math.max(Date.now(), (state.updatedAt || 0) + 1); listeners.forEach((fn) => fn()); }
     clearTimeout(timer);
-    timer = setTimeout(() => {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { console.warn('startpage: could not save', e); }
-    }, 120);
+    timer = setTimeout(flush, 120);
   }
+  function flush() {
+    if (frozen || timer === null) return;
+    clearTimeout(timer); timer = null;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { console.warn('startpage: could not save', e); }
+  }
+  // Saves are debounced; write any pending change before the page goes away so nothing is lost.
+  addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 
   const cache = {
     get(key, maxAgeMs) {
@@ -132,7 +142,7 @@
   SP.store = {
     state, save, cache, files, DEFAULTS,
     onSave(fn) { listeners.push(fn); },
-    reset() { localStorage.removeItem(KEY); files.del('bg').finally(() => location.reload()); },
-    replace(obj) { localStorage.setItem(KEY, JSON.stringify(merge(clone(DEFAULTS), obj))); location.reload(); },
+    reset() { frozen = true; clearTimeout(timer); localStorage.removeItem(KEY); files.del('bg').finally(() => location.reload()); },
+    replace(obj) { frozen = true; clearTimeout(timer); localStorage.setItem(KEY, JSON.stringify(merge(clone(DEFAULTS), obj))); location.reload(); },
   };
 })(window.SP = window.SP || {});

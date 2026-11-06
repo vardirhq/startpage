@@ -12,7 +12,9 @@ Plain HTML/CSS/JS. No build step and no dependencies. All data stays in `localSt
 
 ## First run
 
-A fresh browser starts with no personal data: no name (the greeting says "friend"), no location (Weather and Forecast show a *Set location* button, and the clock uses your browser's time zone), and a few self-explaining example tasks, notes, habits and a New Year countdown. Replace or delete them as you like; **Reset all** in Settings brings these defaults back.
+A fresh browser opens a short, skippable setup: your name, your city (optional), and a voice. Each voice card previews how that voice would greet you, using your name, and the setup re-voices itself as you pick one. Skipping counts as done; run it again from Settings → Profile or with `>setup`. Browsers that already have saved data never see it.
+
+Whatever you skip stays empty, and the page starts with no personal data: no name (the greeting says "friend"), no location (Weather and Forecast show a *Set location* button, and the clock uses your browser's time zone), and a few self-explaining example tasks, notes, habits and a New Year countdown. Replace or delete them as you like; **Reset all** in Settings brings these defaults back.
 
 ## What's on it
 
