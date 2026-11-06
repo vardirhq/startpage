@@ -73,12 +73,14 @@
   }
   let wxState = { loading: false, error: null };
   async function loadWeather(force) {
-    const s = S(), key = 'wx:' + s.location.lat.toFixed(2) + ',' + s.location.lon.toFixed(2) + ':' + s.units;
+    const s = S(), key = 'wx2:' + s.location.lat.toFixed(2) + ',' + s.location.lon.toFixed(2) + ':' + s.units;
     const cached = !force && SP.store.cache.get(key, 30 * 60e3);
     if (cached) return cached;
     const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + s.location.lat + '&longitude=' + s.location.lon +
-      '&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4' +
-      (s.units === 'fahrenheit' ? '&temperature_unit=fahrenheit' : '');
+      '&current=temperature_2m,weather_code,is_day,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m' +
+      '&hourly=temperature_2m,precipitation_probability,weather_code,is_day' +
+      '&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=4' +
+      (s.units === 'fahrenheit' ? '&temperature_unit=fahrenheit&wind_speed_unit=mph' : '');
     const r = await fetch(url);
     if (!r.ok) throw new Error('Weather service returned ' + r.status);
     const d = await r.json();
@@ -111,7 +113,9 @@
       try { this.data = await loadWeather(force); } catch (e) { wxState.error = 'Couldn’t load weather'; console.warn(e); }
       wxState.loading = false;
       rerender('weather');
+      rerender('forecast');
     },
+    get state() { return wxState; },
     reset() { this.data = null; wxState = { loading: false, error: null }; },
   };
 
@@ -199,7 +203,7 @@
       else if (!d) body = '<div class="empty">' + (ghState.error ? '<span>' + esc(ghState.error) + '</span><button class="btn small" data-gh-retry>Retry</button>' : '<span class="muted">Loading activity…</span>') + '</div>';
       else if (!d.rows.length) body = '<div class="empty muted">No recent public activity.</div>';
       else body = '<ul class="gh-list">' + d.rows.map((r) => '<li><a href="' + esc(r.url) + '">' + GH_ICON[r.kind] + '<span class="gh-repo">' + esc(r.short) + '</span><span class="gh-sep">—</span><span class="gh-text">' + esc(r.text) + '</span><time>' + (r.time ? ago(r.time) : '') + '</time></a></li>').join('') + '</ul>';
-      return head('github', 'GitHub', badge + (user ? '<button class="icon-btn" data-gh-refresh title="Refresh">' + I('sync', 16) + '</button>' : '')) + body;
+      return head('github', SP.voice.t('w_github'), badge + (user ? '<button class="icon-btn" data-gh-refresh title="Refresh">' + I('sync', 16) + '</button>' : '')) + body;
     },
     mount(el) {
       const on = (sel, fn) => { const n = el.querySelector(sel); if (n) n.onclick = fn; };
@@ -237,7 +241,7 @@
     title: 'Bookmarks', icon: 'bookmark',
     render() {
       const bm = S().bookmarks;
-      return head('bookmarkFill', 'Bookmarks', '<button class="icon-btn" data-bm-more aria-label="Bookmark options">' + I('more', 18) + '</button>') +
+      return head('bookmarkFill', SP.voice.t('w_bookmarks'), '<button class="icon-btn" data-bm-more aria-label="Bookmark options">' + I('more', 18) + '</button>') +
         '<div class="bm">' +
         '<ul class="bm-folders">' + bm.folders.map((f, i) => '<li><button data-folder="' + i + '"><span class="bm-fi">' + I('folder', 18) + '</span><span>' + esc(f.name) + '</span>' + I('chev', 16) + '</button></li>').join('') + '</ul>' +
         '<div class="bm-tiles">' + bm.tiles.map(tileHtml).join('') + '<button class="tile add" data-bm-add><span class="tile-ic">' + I('plus', 22) + '</span><span class="tile-t">Add</span></button></div>' +
@@ -299,13 +303,13 @@
     title: 'Tasks', icon: 'tasks',
     render() {
       const t = S().tasks;
-      return head('tasks', 'Tasks', (t.some((x) => x.done) ? '<button class="icon-btn" data-clear title="Clear completed">' + I('trash', 16) + '</button>' : '') +
+      return head('tasks', SP.voice.t('w_tasks'), (t.some((x) => x.done) ? '<button class="icon-btn" data-clear title="Clear completed">' + I('trash', 16) + '</button>' : '') +
         '<button class="icon-btn" data-add aria-label="Add task">' + I('plus', 20) + '</button>') +
         '<ul class="task-list">' + t.map((x) => '<li class="' + (x.done ? 'done' : '') + '" data-id="' + x.id + '">' +
           '<label><input type="checkbox"' + (x.done ? ' checked' : '') + '><span class="box">' + I('check', 14) + '</span></label>' +
           '<span class="task-t" title="Double-click to edit">' + esc(x.text) + '</span>' +
           '<button class="icon-btn del" aria-label="Delete task">' + I('x', 14) + '</button></li>').join('') +
-        (t.length ? '' : '<li class="muted empty-li">Nothing to do. Nice.</li>') + '</ul>';
+        (t.length ? '' : '<li class="muted empty-li">' + esc(SP.voice.t('tasksEmpty')) + '</li>') + '</ul>';
     },
     mount(el) {
       const tasks = S().tasks, list = el.querySelector('.task-list');
@@ -314,7 +318,7 @@
         if (list.querySelector('.new')) return list.querySelector('.new input').focus();
         const li = document.createElement('li');
         li.className = 'new';
-        li.innerHTML = '<span class="box"></span><input class="task-input" placeholder="New task…" maxlength="200">';
+        li.innerHTML = '<span class="box"></span><input class="task-input" placeholder="' + esc(SP.voice.t('task_placeholder')) + '" maxlength="200">';
         list.prepend(li);
         const inp = li.querySelector('input');
         inp.focus();
@@ -350,8 +354,8 @@
       const lines = S().notes.split('\n').filter((l) => l.trim());
       const body = this.editing
         ? '<textarea class="notes-edit" spellcheck="true" aria-label="Notes">' + esc(S().notes) + '</textarea>'
-        : '<ul class="notes-list" tabindex="0" title="Click to edit">' + (lines.length ? lines.map((l) => '<li>' + esc(l.replace(/^[-*•]\s*/, '')) + '</li>').join('') : '<li class="muted plain">Click to write a note…</li>') + '</ul>';
-      return head('notes', 'Notes', '<button class="icon-btn" data-notes-more aria-label="Notes options">' + I('more', 18) + '</button>') + '<div class="notes-body">' + body + '</div>';
+        : '<ul class="notes-list" tabindex="0" title="Click to edit">' + (lines.length ? lines.map((l) => '<li>' + esc(l.replace(/^[-*•]\s*/, '')) + '</li>').join('') : '<li class="muted plain">' + esc(SP.voice.t('notes_placeholder')) + '</li>') + '</ul>';
+      return head('notes', SP.voice.t('w_notes'), '<button class="icon-btn" data-notes-more aria-label="Notes options">' + I('more', 18) + '</button>') + '<div class="notes-body">' + body + '</div>';
     },
     mount(el) {
       const ta = el.querySelector('textarea');
@@ -563,9 +567,12 @@
         const v = q.value.trim();
         if (!v) { ul.hidden = true; return; }
         items = [];
-        if (v === '!' || /^!\w*$/.test(v)) {
+        if (v.startsWith('>')) {
+          items = SP.palette.commands(v.slice(1).trim());
+        } else if (v === '!' || /^!\w*$/.test(v)) {
           Object.entries(BANGS).filter(([k]) => ('!' + k).startsWith(v)).forEach(([k, [n]]) => items.push({ label: '!' + k, sub: n, fill: '!' + k + ' ' }));
         } else {
+          items = SP.palette.instant(v);
           items.push(Object.assign({ main: true }, resolve(v)));
           const lv = v.toLowerCase(), seen = new Set();
           allBookmarks().filter((b) => (b.title.toLowerCase().includes(lv) || b.url.toLowerCase().includes(lv)) && !seen.has(b.url) && seen.add(b.url)).slice(0, 5)
@@ -573,13 +580,16 @@
         }
         sel = 0;
         ul.innerHTML = items.map((it, i) => '<li role="option" data-i="' + i + '"' + (i === sel ? ' aria-selected="true"' : '') + '>' +
-          (it.bm ? I('bookmark', 16) : it.fill ? I('code', 16) : it.go ? I('link', 16) : I('search', 16)) + '<span>' + esc(it.label) + '</span>' + (it.sub ? '<small>' + esc(it.sub) + '</small>' : '') + '</li>').join('') +
-          (v.startsWith('!') ? '' : '<li class="hint" aria-hidden="true">Tip: type <b>!gh</b>, <b>!mdn</b>, <b>!yt</b>, <b>!w</b> to search a specific site</li>');
+          (it.icon ? I(it.icon, 16) : it.bm ? I('bookmark', 16) : it.fill ? I('code', 16) : it.go ? I('link', 16) : I('search', 16)) + '<span' + (it.answer ? ' class="answer"' : '') + '>' + esc(it.label) + '</span>' + (it.sub ? '<small>' + esc(it.sub) + '</small>' : '') + '</li>').join('') +
+          (v.startsWith('!') || v.startsWith('>') ? '' : '<li class="hint" aria-hidden="true">Tip: <b>&gt;</b> for commands, <b>!gh</b> <b>!mdn</b> <b>!yt</b> for sites, or type math like <b>12*7</b> or <b>5 km to mi</b></li>');
+        if (v.startsWith('>') && !items.length) { ul.innerHTML = '<li class="hint">No matching command</li>'; ul.hidden = false; return; }
         ul.hidden = !items.length;
       };
       const go = (it) => {
         if (!it) return;
         if (it.fill) { q.value = it.fill; q.focus(); draw(); return; }
+        if (it.copy != null) { navigator.clipboard && navigator.clipboard.writeText(String(it.copy)).then(() => SP.ui.toast('Copied ' + it.copy), () => {}); return; }
+        if (it.run) { q.value = ''; ul.hidden = true; q.blur(); it.run(); return; }
         location.href = it.url;
       };
       q.addEventListener('input', draw);
@@ -601,6 +611,10 @@
   };
 
   SP.widgets = W;
+  SP.widgetHead = head;
+  SP.wxIcon = wxIcon;
+  SP.wxKind = wxKind;
+  SP.wxLabel = WX;
   SP.widgetOrder = ['search', 'bookmarks', 'weather', 'clock', 'tasks', 'notes', 'github', 'music', 'quote'];
   SP.widgetMeta = {
     search: { title: 'Search', icon: 'search' }, bookmarks: { title: 'Bookmarks', icon: 'bookmark' }, weather: { title: 'Weather', icon: 'weather' },

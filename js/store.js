@@ -15,9 +15,9 @@
     activeSpace: 'home',
     spaces: [
       { id: 'home', name: 'Home', icon: 'home', widgets: ['search', 'clock', 'weather', 'github', 'bookmarks', 'tasks', 'notes', 'music', 'quote'] },
-      { id: 'work', name: 'Work', icon: 'laptop', widgets: ['search', 'clock', 'weather', 'tasks', 'notes', 'bookmarks'] },
-      { id: 'gaming', name: 'Gaming', icon: 'gamepad', widgets: ['search', 'clock', 'bookmarks', 'music', 'quote'] },
-      { id: 'dev', name: 'Dev', icon: 'code', widgets: ['search', 'github', 'bookmarks', 'tasks', 'notes'] },
+      { id: 'work', name: 'Work', icon: 'laptop', widgets: ['search', 'clock', 'worldclock', 'calendar', 'focus', 'tasks', 'notes', 'forecast', 'countdown', 'bookmarks'] },
+      { id: 'gaming', name: 'Gaming', icon: 'gamepad', widgets: ['search', 'clock', 'countdown', 'bookmarks', 'music', 'quote'] },
+      { id: 'dev', name: 'Dev', icon: 'code', widgets: ['search', 'github', 'news', 'vitals', 'focus', 'habits', 'tasks', 'notes', 'bookmarks'] },
     ],
     bookmarks: {
       folders: [
@@ -38,6 +38,32 @@
     notes: 'Ideas: particle lab, normal map\nCall service (Kuga)\nPlan Denmark summer 2027\nUpdate CV',
     tracks: [],
     liked: [],
+    // v2 modules
+    version: 2,
+    animate: true,
+    voice: 'neutral',
+    showSummary: false,
+    weekStart: 1,
+    focus: { work: 25, short: 5, long: 15, every: 4, autoStart: false },
+    focusRun: { mode: 'work', endsAt: null, remaining: null, cycle: 0 },
+    focusLog: {},
+    countdowns: [
+      { id: 'c1', title: 'Christmas Eve', date: '2026-12-24', created: '2026-11-01' },
+      { id: 'c2', title: 'Denmark summer trip', date: '2027-07-01', created: '2026-11-01' },
+    ],
+    clocks: [
+      { tz: 'America/New_York', label: 'New York' },
+      { tz: 'Europe/London', label: 'London' },
+      { tz: 'Asia/Tokyo', label: 'Tokyo' },
+    ],
+    newsSource: 'hn',
+    habits: [
+      { id: 'h1', name: 'Code 30 min', days: {} },
+      { id: 'h2', name: 'Workout', days: {} },
+      { id: 'h3', name: 'Read', days: {} },
+    ],
+    sync: { gistId: '', auto: true, lastSync: 0 },
+    updatedAt: 0,
   };
 
   const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -51,11 +77,22 @@
     return base;
   }
 
-  let state;
-  try { state = merge(clone(DEFAULTS), JSON.parse(localStorage.getItem(KEY))); } catch (e) { state = clone(DEFAULTS); }
+  let state, raw = null;
+  try { raw = JSON.parse(localStorage.getItem(KEY)); } catch (e) { /* corrupt */ }
+  try { state = merge(clone(DEFAULTS), raw); } catch (e) { state = clone(DEFAULTS); }
 
+  /* One-time migration for people who used v1: add the new modules to the built-in spaces. */
+  if (raw && (raw.version || 1) < 2) {
+    const add = { work: ['worldclock', 'calendar', 'focus', 'forecast', 'countdown'], gaming: ['countdown'], dev: ['news', 'vitals', 'focus', 'habits'] };
+    state.spaces.forEach((sp) => (add[sp.id] || []).forEach((w) => { if (!sp.widgets.includes(w)) sp.widgets.push(w); }));
+    state.version = 2;
+  }
+
+  const listeners = [];
   let timer;
-  function save() {
+  function save(opts) {
+    // Monotonic: an edit is always newer than whatever we last pulled, even if another device's clock runs ahead.
+    if (!(opts && opts.quiet)) { state.updatedAt = Math.max(Date.now(), (state.updatedAt || 0) + 1); listeners.forEach((fn) => fn()); }
     clearTimeout(timer);
     timer = setTimeout(() => {
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { console.warn('startpage: could not save', e); }
@@ -91,6 +128,7 @@
 
   SP.store = {
     state, save, cache, files, DEFAULTS,
+    onSave(fn) { listeners.push(fn); },
     reset() { localStorage.removeItem(KEY); files.del('bg').finally(() => location.reload()); },
     replace(obj) { localStorage.setItem(KEY, JSON.stringify(merge(clone(DEFAULTS), obj))); location.reload(); },
   };

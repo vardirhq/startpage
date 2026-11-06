@@ -10,16 +10,39 @@ Plain HTML/CSS/JS. No build step and no dependencies. All data stays in `localSt
 - **GitHub Pages:** `.github/workflows/pages.yml` deploys every push to `main` to https://vardirhq.github.io/startpage/. One-time setup: *Settings → Pages → Build and deployment → Source: GitHub Actions*. Then set the URL as your homepage (Firefox: *Settings → Home → Homepage and new windows → Custom URLs*; Chrome: *Settings → On startup*). Chrome can't point the new tab at a URL without an extension; use the unpacked-extension route below for that.
 - **As a real new tab (Chrome / Edge / Brave):** `chrome://extensions` → enable *Developer mode* → *Load unpacked* → pick this folder. `manifest.json` overrides the new tab page.
 
+## What's on it
+
+**Modules:** search · clock · weather · forecast (24h chart, wind, UV, sunrise/sunset, air quality) · GitHub activity · repo vitals · bookmarks · tasks · notes · focus timer · calendar (ISO weeks) · countdowns · world clocks · habits (streaks + heatmap) · news (Hacker News / dev.to) · music · daily quote
+
+**Spaces:** each space (Home, Work, Gaming, Dev, your own) has its own widget set, order and card sizes.
+
+**Voices:** eight personalities rewrite *all* of the page's copy: greetings, widgets, the Customize panel, settings, dialogs, placeholders and toasts. Neutral is the baseline; Monday ("Ugh. It's you again"), Super Supportive, Surfer, Professional, Therapist, Weepy and Victorian are each pushed to the extreme of themselves, and each has opinions about the others in the voice picker. Wherever a voice renames a control, hovering shows the plain wording. Copy lives in `js/voices.js`; the concept comes from [Dead Repo](https://github.com/MadsenDev/dead-repo), as does the alive / fading / flatlined / dead classification used by *Repo vitals*.
+
+**Command palette:** in the search bar, type `>` for commands (`>task buy milk`, `>theme forest`, `>space dev`, `>timer`…), or just type math (`sqrt(2)*12^2`), unit conversions (`5 km to mi`, `100 c to f`), or date math (`days until 2027-07-01`, `week`).
+
+**Animated background:** twinkling stars, shooting stars, water shimmer, flickering city windows, snow (Nordic), fireflies (Forest), drifting dust (Minimal). It runs at ~12 fps on a 384×216 canvas, pauses when the tab is hidden, and is off when reduced motion is requested.
+
+**Sync:** with a GitHub token that has `gist` access, Settings → Sync keeps devices in step through a private Gist (e.g. this site and the browser extension). The token itself is never uploaded; the newest copy wins.
+
+## Tests
+
+```
+node --test test/*.test.js
+```
+
+Covers the search bar's math parser (no `eval`) and unit conversion. The Pages workflow runs them before every deploy.
+
 ## Keyboard
 
 | Key | Action |
 | --- | --- |
 | `Ctrl/⌘ K` or `/` | Focus search |
 | `!gh`, `!mdn`, `!yt`, `!w`, `!npm`, `!so`, `!r`, `!maps` | Search a specific site |
+| `>` in search | Command palette |
 | `Alt 1…9` | Switch space |
 | `Esc` | Close Customize |
 
-Right-click a bookmark tile or a space to edit it. With Customize open, drag cards by their grip to reorder them.
+Right-click a bookmark tile, world clock or space to edit it. With Customize open, drag cards by their grip to reorder them and use the size button to make a card small, medium or large.
 
 ## How each feature works
 
