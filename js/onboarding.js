@@ -49,6 +49,8 @@
       '<button class="btn primary" data-ob-next' + (STEPS[step] === 'location' && !S().location ? ' hidden' : '') + '>' + esc(last ? t('ob_finish') : t('ob_next')) + '</button></span></footer></div>';
     bind(el);
     entering = false;
+    const card = el.querySelector('.ob-card'), scroller = el.querySelector('.ob-body');
+    scroller.addEventListener('scroll', () => card.classList.toggle('scrolled', scroller.scrollTop > 4), { passive: true });
     const f = el.querySelector('.ob-input, [aria-checked="true"]');
     if (f) f.focus();
   }
