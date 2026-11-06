@@ -383,8 +383,8 @@ body.editing .card { outline: 1.5px dashed rgba(var(--accent-rgb), 0.35); outlin
 .wl-t { flex: 1; display: grid; gap: 2px; font-size: 14px; }
 .wl-t small { color: var(--faint); font-size: 12px; line-height: 1.35; }
 
-.field { display: grid; gap: 6px; margin: 0 0 12px; font-size: 13px; color: var(--muted); border: 0; padding: 0; }
-.field input, .field select, .loc-search input {
+.field { display: grid; gap: 6px; margin: 0 0 12px; font-size: 13px; color: var(--muted); border: 0; padding: 0; min-width: 0; }
+.field input:not([type=radio]):not([type=checkbox]), .field select, .loc-search input {
   width: 100%; height: 38px; padding: 0 12px; border-radius: 10px;
   background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line-strong); color: var(--text); font-size: 14px; outline: 0;
 }
@@ -400,8 +400,8 @@ body.editing .card { outline: 1.5px dashed rgba(var(--accent-rgb), 0.35); outlin
 .seg button { padding: 6px 16px; border-radius: 8px; font-size: 13px; color: var(--muted); }
 .seg button[aria-checked="true"] { background: rgba(var(--accent-rgb), 0.35); color: #fff; }
 .icon-pick { display: flex; flex-wrap: wrap; gap: 8px; }
-.icon-pick label { cursor: pointer; }
-.icon-pick input { position: absolute; opacity: 0; }
+.icon-pick label { position: relative; cursor: pointer; }
+.icon-pick input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .icon-pick span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line-strong); color: var(--muted); }
 .icon-pick input:checked + span { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.25); color: #fff; }
 .icon-pick input:focus-visible + span { outline: 2px solid var(--accent); }
