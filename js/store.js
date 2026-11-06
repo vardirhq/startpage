@@ -66,6 +66,10 @@
     ],
     sync: { gistId: '', auto: true, lastSync: 0 },
     presence: {},
+    stats: {},
+    unlocked: [],
+    heckles: true,
+    chaos: false,
     onboarded: false,
     updatedAt: 0,
   };

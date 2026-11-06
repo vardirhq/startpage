@@ -67,7 +67,7 @@
     },
     toggle() {
       const r = run();
-      if (r.endsAt) { r.remaining = remaining(); r.endsAt = null; }
+      if (r.endsAt) { r.remaining = remaining(); r.endsAt = null; if (r.mode === 'work') SP.react.on.focusPause(mmss(r.remaining)); }
       else {
         r.endsAt = Date.now() + remaining(); r.remaining = null;
         if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* none */ } }
@@ -75,7 +75,7 @@
       }
       save(); rerender('focus');
     },
-    reset() { const r = run(); r.endsAt = null; r.remaining = null; save(); rerender('focus'); this.title_(); },
+    reset() { const r = run(); if (r.mode === 'work' && (r.endsAt || r.remaining != null) && remaining() > 1000) SP.react.on.focusQuit(mmss(remaining())); r.endsAt = null; r.remaining = null; save(); rerender('focus'); this.title_(); },
     setMode(m) { const r = run(); r.mode = m; r.endsAt = null; r.remaining = null; save(); rerender('focus'); this.title_(); },
     complete(skipped) {
       const r = run(), was = r.mode;
@@ -88,7 +88,7 @@
         }
       }
       if (was === 'work') {
-        if (!skipped) { const k = dkey(new Date()); S().focusLog[k] = (S().focusLog[k] || 0) + 1; }
+        if (!skipped) { const k = dkey(new Date()); S().focusLog[k] = (S().focusLog[k] || 0) + 1; SP.react.on.focusDone(S().focus.work); }
         r.cycle = (r.cycle || 0) + 1;
         r.mode = r.cycle % S().focus.every === 0 ? 'long' : 'short';
       } else r.mode = 'work';
@@ -355,6 +355,7 @@
           save(); rerender('habits');
           const after = streak(h);
           if (after > before && after > 1 && [3, 7, 14, 30, 50, 100, 365].includes(after)) toast(t('streakToast', { n: after, name: h.name }));
+          SP.react.on.habit(!!h.days[b.dataset.k]);
         });
         li.querySelector('[data-h-menu]').onclick = (e) => menu(e.currentTarget, [
           { icon: 'edit', label: 'Rename', action: async () => { const v = await form('Rename habit', [{ name: 'name', label: 'Name', value: h.name, required: true }]); if (v) { h.name = v.name.trim(); save(); rerender('habits'); } } },
@@ -505,6 +506,7 @@
       rerender('vitals');
     },
     reset() { rv = { data: null, loading: false, error: null }; },
+    summary() { if (!rv.data) return null; const c = { total: rv.data.length, dead: 0, alive: 0 }; rv.data.forEach((r) => { if (r.state === 'dead' || r.state === 'flatlined') c.dead++; if (r.state === 'alive') c.alive++; }); return c; },
   };
 
   Object.assign(SP.widgetMeta, {

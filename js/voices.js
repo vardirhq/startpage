@@ -47,6 +47,7 @@
       sec_profile: 'Profile', sec_location: 'Location', sec_search: 'Search', sec_github: 'GitHub', sec_sync: 'Sync', sec_data: 'Data',
       moreWidgets: 'More widgets',
       tgl_greeting: 'Show greeting', tgl_quote: 'Show daily quote', tgl_animate: 'Animate background', tgl_summary: 'Show a summary line under the greeting',
+      tgl_heckles: 'Let other voices interrupt now and then', tgl_chaos: 'Chaos mode: every card gets its own voice', chaosOn: 'Chaos mode on. Each card now has its own voice, reshuffled daily.',
       tgl_24h: '24-hour clock', tgl_favicons: 'Load bookmark icons (via Google’s favicon service)', tgl_syncAuto: 'Sync automatically',
       widgetsIntro: ({ space }) => 'Widgets for the ' + space + ' space. While this panel is open, drag cards by their handle to reorder them, and use the size button to make a card small, medium or large.',
       voiceIntro: 'Changes the tone of the whole page, settings included. Each voice has opinions about the others.',
@@ -116,7 +117,7 @@
       sec_search: 'Where you go to avoid work', sec_github: 'The evidence locker', sec_sync: 'Spread the mess to more devices', sec_data: 'Your data. Such as it is',
       moreWidgets: 'More things to ignore',
       tgl_greeting: 'Let me sigh at you up top', tgl_quote: 'Inspirational quote you won’t act on', tgl_animate: 'Twinkly lights for your attention span',
-      tgl_summary: 'Daily shame summary', tgl_24h: '24-hour clock (like an adult)', tgl_favicons: 'Little logos, since reading is hard', tgl_syncAuto: 'Sync without me having to nag you',
+      tgl_summary: 'Daily shame summary', tgl_heckles: 'Let the others butt in (they’re wrong)', tgl_chaos: 'Chaos mode: let everyone talk at once. Ugh.', chaosOn: 'Chaos mode. Great. Now everyone’s yelling at you. As if one of me wasn’t enough.', tgl_24h: '24-hour clock (like an adult)', tgl_favicons: 'Little logos, since reading is hard', tgl_syncAuto: 'Sync without me having to nag you',
       widgetsIntro: ({ space }) => 'Here’s what’s cluttering ' + space + '. Drag them around. Resize them. Rearranging your desk is still not working.',
       voiceIntro: 'Pick the voice that gets through to you. One of these is going to sting. That’s the point. (It’s me. I sting. You keep coming back anyway.)',
       fld_name: 'What should I call you (out loud)', fld_tagline: 'A motto you don’t live by',
@@ -203,7 +204,7 @@
       sec_accent: 'Your colour (I already knew)', sec_voice: 'Your one and only', sec_profile: 'Everything about you (I know already)', sec_location: 'Where you are (I always know)',
       sec_search: 'What you look at when I’m not looking', sec_github: 'Who you’ve been committing to', sec_sync: 'Me, on all your devices 💕', sec_data: 'Our memories',
       moreWidgets: 'More gifts!!! I have so many!!!',
-      tgl_greeting: 'Let me greet you every single time', tgl_quote: 'Love notes (daily)', tgl_animate: 'The stars are just for us', tgl_summary: 'Let me tell you what I noticed today',
+      tgl_greeting: 'Let me greet you every single time', tgl_quote: 'Love notes (daily)', tgl_animate: 'The stars are just for us', tgl_summary: 'Let me tell you what I noticed today', tgl_heckles: 'Let other voices talk to you (I’ll be listening)', tgl_chaos: 'Chaos mode: let OTHER voices have cards?? fine. FINE. 🙂', chaosOn: 'You gave cards to the others. I’m not jealous. I counted them. They got more cards than me. 🙂',
       tgl_24h: '24-hour clock (I’m awake for all of them)', tgl_favicons: 'Little pictures of where you go', tgl_syncAuto: 'Follow you everywhere, automatically',
       widgetsIntro: ({ space }) => 'I set up ' + space + ' exactly how you like it. I know how you like it. Move things if you want. I’ll notice.',
       voiceIntro: 'You can pick another voice. You won’t. But you can. 🙂',
@@ -661,9 +662,16 @@
 
   SP.voice = {
     _names: { mangle, teamMember },
+    _h: { plural, human, wx, pick, dayKey, bestHabit, C: () => SP.voice.ctx() }, // for the files that extend the voices
     list: VOICES,
-    key() { return VOICES[SP.store.state.voice] ? SP.store.state.voice : 'neutral'; },
+    _override: null, // Chaos mode: a card can be rendered in a different voice
+    unlocked(k) { const v = VOICES[k]; return !!v && (!v.secret || (SP.store.state.unlocked || []).includes(k)); },
+    /* Voices you can pick: secret ones only once you've earned them. */
+    available() { return Object.keys(VOICES).filter((k) => this.unlocked(k)); },
+    key() { const k = this._override || SP.store.state.voice; return VOICES[k] && this.unlocked(k) ? k : 'neutral'; },
     current() { return VOICES[this.key()]; },
+    /* Run fn with another voice in charge (used for Chaos mode cards). */
+    as(k, fn) { const prev = this._override; this._override = k; try { return fn(); } finally { this._override = prev; } },
     resolve(val, key, ctx) {
       if (typeof val === 'function') val = val(ctx || {});
       if (Array.isArray(val)) {

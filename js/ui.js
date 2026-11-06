@@ -97,14 +97,27 @@
   document.addEventListener('pointerdown', (e) => { if (openMenu && !openMenu.contains(e.target)) closeMenu(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
 
-  function toast(msg) {
-    document.querySelectorAll('.toast').forEach((n) => n.remove()); // newest message wins instead of piling up
+  /* toast(msg, { who, action: { label, run }, ms }). Long lines stay up longer; the newest replaces the last. */
+  let toastTimers = [];
+  function toast(msg, o) {
+    o = o || {};
+    document.querySelectorAll('.toast').forEach((n) => n.remove());
+    toastTimers.forEach(clearTimeout);
     const t = document.createElement('div');
-    t.className = 'toast';
-    t.textContent = msg;
+    t.className = 'toast' + (o.who ? ' voiced' : '');
+    t.setAttribute('role', 'status');
+    if (o.who) { const w = document.createElement('b'); w.className = 'toast-who'; w.textContent = o.who; t.appendChild(w); }
+    const m = document.createElement('span'); m.textContent = msg; t.appendChild(m);
+    if (o.action) {
+      const b = document.createElement('button'); b.className = 'toast-act'; b.textContent = o.action.label;
+      b.onclick = () => { t.remove(); o.action.run(); }; t.appendChild(b);
+    }
     document.body.appendChild(t);
-    setTimeout(() => t.classList.add('out'), 2400);
-    setTimeout(() => t.remove(), 2800);
+    const ms = o.ms || Math.min(8000, Math.max(2400, String(msg).length * 55 + (o.action ? 2000 : 0)));
+    t.onmouseenter = () => toastTimers.forEach(clearTimeout); // hover to keep reading
+    t.onmouseleave = () => { toastTimers = [setTimeout(() => t.remove(), 1200)]; };
+    toastTimers = [setTimeout(() => t.classList.add('out'), ms), setTimeout(() => t.remove(), ms + 400)];
+    return t;
   }
 
   SP.ui = { $, $$, esc, uid, normalizeUrl, host, favicon, ago, dialog, form, confirm, menu, closeMenu, toast };

@@ -113,7 +113,7 @@
   function commandList() {
     const app = SP.app, list = [];
     const W = SP.widgets;
-    list.push({ k: 'task todo add', label: 'Add task', icon: 'tasks', arg: 'task', run: (a) => { S().tasks.unshift({ id: SP.ui.uid(), text: a, done: false }); save(); app.renderWidget('tasks'); SP.ui.toast('Task added'); } });
+    list.push({ k: 'task todo add', label: 'Add task', icon: 'tasks', arg: 'task', run: (a) => { S().tasks.unshift({ id: SP.ui.uid(), text: a, done: false }); save(); app.renderWidget('tasks'); if (!SP.react.on.taskAdd(a)) SP.ui.toast('Task added'); } });
     list.push({ k: 'note write', label: 'Add note', icon: 'notes', arg: 'note', run: (a) => { S().notes = (S().notes ? S().notes + '\n' : '') + a; save(); app.renderWidget('notes'); SP.ui.toast('Note added'); } });
     list.push({ k: 'countdown event', label: 'Add countdown', icon: 'flag', run: () => W.countdown.add() });
     list.push({ k: 'habit', label: 'Add habit', icon: 'activity', run: () => W.habits.add() });
@@ -126,6 +126,10 @@
     list.push({ k: 'background shuffle random scene', label: 'Shuffle background', icon: 'shuffle', run: () => { S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); app.renderAll(); } });
     list.push({ k: 'animation animate motion background', label: (S().animate ? 'Disable' : 'Enable') + ' animated background', icon: 'sparkles', run: () => { S().animate = !S().animate; save(); app.applyTheme(); } });
     list.push({ k: 'customize settings preferences', label: 'Open Customize', icon: 'customize', run: () => SP.panel.open() });
+    list.push({ k: 'chaos voices mode', label: (S().chaos ? 'Disable' : 'Enable') + ' Chaos mode (a voice per card)', icon: 'shuffle', run: () => { S().chaos = !S().chaos; save(); app.renderMain(); } });
+    if (S().chaos) list.push({ k: 'shuffle voices chaos', label: 'Shuffle voices', icon: 'shuffle', run: () => { S().chaosSeed = 1 + Math.floor(Math.random() * 1e6); save(); app.renderMain(); } });
+    list.push({ k: 'wrapped recap week summary review stats', label: 'Weekly recap (Wrapped)', icon: 'gift', run: () => SP.wrapped.open() });
+    list.push({ k: 'ask chat voice claude question', label: 'Ask ' + SP.voice.current().name + ' something', icon: 'chat', run: () => SP.ask.open() });
     list.push({ k: 'setup onboarding welcome intro', label: 'Run setup again', icon: 'sparkles', run: () => SP.onboarding.start() });
     list.push({ k: 'settings github token location', label: 'Open Settings', icon: 'customize', run: () => SP.panel.open('settings') });
     if (S().github.token) list.push({ k: 'sync gist cloud backup', label: 'Sync now', icon: 'cloudSync', run: () => SP.sync.now() });

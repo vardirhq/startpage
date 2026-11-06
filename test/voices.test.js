@@ -11,13 +11,18 @@ const rich = {
 };
 const empty = { voice: 'neutral', tasks: [], habits: [], presence: {} };
 
-global.window = { SP: { store: { state: rich, save() {} } } };
+global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {} }, icon: () => '' } };
+global.document = { body: { classList: { contains: () => false } }, addEventListener() {} };
 require('../js/voices.js');
+require('../js/react.js');
+require('../js/secrets.js');
+require('../js/wrapped.js');
+require('../js/ask.js');
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
-  code: 61, temp: 8, units: 'celsius' };
+  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday' };
 
 function render(state) {
   window.SP.store.state = state;
@@ -25,12 +30,12 @@ function render(state) {
   for (const [vk, voice] of Object.entries(V.list)) {
     state.voice = vk;
     for (const key of new Set([...Object.keys(V.list.neutral), ...Object.keys(voice)])) {
-      if (key === 'blurb' || key === 'name' || key === 'descriptor') continue;
+      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at'].includes(key)) continue;
       const ctx = key === 'greet' ? 'evening' : key === 'addr' ? { name: 'Christoffer' } : CTX;
       // Arrays rotate hourly; check every alternative, not just this hour's.
       let val = voice[key] !== undefined ? voice[key] : V.list.neutral[key];
       if (typeof val === 'function') val = val(ctx);
-      for (const v of [].concat(val)) out.push([vk, key, v]);
+      for (const v of [].concat(val)) out.push([vk, key, typeof v === 'function' ? v(ctx) : v]); // reaction arrays hold functions
     }
     for (const k of Object.keys(V.list)) out.push([vk, 'blurb.' + k, (voice.blurb || {})[k] || V.list.neutral.blurb[k]]);
   }
@@ -78,4 +83,51 @@ test('names: surfer mangles, professional formalises, any name works', () => {
     window.SP.store.state.voice = k;
     for (const n of ['Christoffer', '', 'Bo', 'Anne-Marie Olsen']) assert.ok(!/undefined|null/.test(V.t('addr', { name: n })), k + ' addr(' + n + ')');
   }
+});
+
+test('every voice has an opinion on every other voice, secret ones included', () => {
+  for (const [vk, voice] of Object.entries(V.list)) for (const k of Object.keys(V.list)) {
+    const b = (voice.blurb || {})[k] || V.list.neutral.blurb[k] || V.list[k].descriptor;
+    assert.ok(typeof b === 'string' && b.length, vk + ' on ' + k);
+  }
+});
+
+test('secret voices stay locked until earned', () => {
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'ghost', unlocked: [] });
+  assert.deepEqual(V.available().filter((k) => V.list[k].secret), []);
+  assert.equal(V.key(), 'neutral', 'a locked voice falls back to neutral');
+  window.SP.store.state.unlocked = ['ghost'];
+  assert.equal(V.key(), 'ghost');
+  assert.ok(V.available().includes('ghost') && !V.available().includes('owl'));
+  for (const k of ['owl', 'ghost', 'parent']) assert.ok(V.list[k].hint && V.list[k].unlockLine, k);
+});
+
+test('reactions: every event line renders for every voice', () => {
+  const evs = ['taskAdd', 'taskDone', 'taskAllDone', 'taskUndo', 'taskDelete', 'taskClear', 'focusPause', 'focusQuit', 'streakBreak', 'late', 'visits', 'unlock'];
+  window.SP.store.state = JSON.parse(JSON.stringify(rich));
+  for (const vk of Object.keys(V.list)) for (const ev of evs) {
+    for (let i = 0; i < 6; i++) { // arrays pick at random; sample a few
+      const out = window.SP.react.line(ev, CTX, vk);
+      assert.ok(!/undefined|NaN|\[object|null/.test(out), vk + '.' + ev + ': ' + out);
+    }
+  }
+  assert.match(window.SP.react.line('focusPause', { time: '23:41' }, 'monday'), /23:41|bailed|phone/);
+});
+
+test('heckles come from another unlocked voice and render cleanly', () => {
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(rich)), { voice: 'supportive', unlocked: [], _heckleAlways: true });
+  const h = window.SP.react.heckle();
+  assert.ok(h && h.who !== 'Super Supportive' && !V.list[h.key].secret, JSON.stringify(h));
+  assert.ok(typeof h.text === 'string' && !/undefined/.test(h.text));
+  window.SP.store.state.voice = 'neutral';
+  assert.equal(window.SP.react.heckle(), null, 'neutral is never heckled');
+});
+
+test('Ask: system prompt carries the persona and context', () => {
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(rich)), { voice: 'monday', name: 'Christoffer' });
+  const p = window.SP.ask._system();
+  assert.match(p, /"Monday"/);
+  assert.match(p, /Order roof box/);
+  assert.match(p, /Christoffer/);
+  assert.ok(!/undefined/.test(p));
 });

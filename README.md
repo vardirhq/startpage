@@ -9,6 +9,7 @@ Plain HTML/CSS/JS. No build step and no dependencies. All data stays in `localSt
 - **Locally:** open `index.html`, or serve the folder (`npx serve .`).
 - **GitHub Pages:** `.github/workflows/pages.yml` deploys every push to `main` to https://vardirhq.github.io/startpage/. One-time setup: *Settings → Pages → Build and deployment → Source: GitHub Actions*. Then set the URL as your homepage (Firefox: *Settings → Home → Homepage and new windows → Custom URLs*; Chrome: *Settings → On startup*). Chrome can't point the new tab at a URL without an extension; use the unpacked-extension route below for that.
 - **As a real new tab (Chrome / Edge / Brave):** `chrome://extensions` → enable *Developer mode* → *Load unpacked* → pick this folder. `manifest.json` overrides the new tab page.
+- **Chrome Web Store:** `scripts/package.sh` runs the tests and builds `dist/startpage-<version>.zip` (it also fails on inline scripts or `eval`, which MV3 forbids). Pushing a `v*` tag that matches `manifest.json`'s version runs `.github/workflows/extension.yml`, which attaches the zip to a GitHub release. Uploading to the store is manual: the listing copy is in `store/listing.md`, the screenshots and promo tile are in `store/`, and the privacy policy is `PRIVACY.md`. The extension needs no permissions: every API it calls allows cross-origin requests.
 
 ## First run
 
@@ -24,6 +25,16 @@ Whatever you skip stays empty, and the page starts with no personal data: no nam
 
 **Voices:** eight personalities rewrite *all* of the page's copy: greetings, widgets, the Customize panel, settings, dialogs, placeholders and toasts. Neutral is the baseline; Monday ("Ugh. It's you again"), Super Supportive, Surfer, Professional, Therapist, Weepy and Victorian are each pushed to the extreme of themselves, and each has opinions about the others in the voice picker. Wherever a voice renames a control, hovering shows the plain wording. Copy lives in `js/voices.js`; the concept comes from [Dead Repo](https://github.com/MadsenDev/dead-repo), as does the alive / fading / flatlined / dead classification used by *Repo vitals*.
 
+**Reactions:** voices react as things happen: a task ticked, added or deleted unfinished, the timer paused at 23:41 ("Paused at 23:41. Called it."), a streak that ended while you were away, a 3am visit, the 20th visit today. They come one at a time, and the frequent ones only now and then (`js/react.js`).
+
+**Secret voices:** three more voices sit locked in the picker until you earn them. **Night Owl**: open a tab after midnight on five nights. **Ghost**: stay away for a week ("oh. you're alive."). **Proud Parent**: keep a habit going for 30 days. Each one introduces itself when unlocked, and your current voice has something to say about it (`js/secrets.js`).
+
+**Voices arguing:** roughly one hour in three, another voice butts in under the summary line ("Monday: She counts your visits. That's not love. That's surveillance."). **Chaos mode** (Customize → Voice, or `>chaos`) gives every card its own voice, reshuffled daily or with `>shuffle voices`.
+
+**Wrapped:** the first tab each Sunday opens a weekly recap narrated by the current voice: tasks done and added, focus time, best streak, visits (and how many after midnight), tasks dropped, dead repos. **Save image** exports a 1080×1350 PNG over your pixel scene. Open it any time with `>wrapped` or from Settings (`js/wrapped.js`).
+
+**Ask a voice:** type `? anything` in the search bar and the current voice answers in character, using the Claude API with **your own key** (Settings → Ask a voice; Claude Opus 5.5 by default, with Sonnet 5.5 and Haiku 5.5 as cheaper options). The request goes straight from the browser to Anthropic, with the voice's persona and your open tasks as context. *Security trade-off:* the key is kept in this browser's `localStorage`, outside the synced and exported data, but any script on the page (or an extension with access to it) could read it. Use a key with a low spending limit (`js/ask.js`).
+
 **Command palette:** in the search bar, type `>` for commands (`>task buy milk`, `>theme forest`, `>space dev`, `>timer`…), or just type math (`sqrt(2)*12^2`), unit conversions (`5 km to mi`, `100 c to f`), or date math (`days until 2027-07-01`, `week`).
 
 **Animated background:** twinkling stars, shooting stars, water shimmer, flickering city windows, snow (Nordic), fireflies (Forest), drifting dust (Minimal). It runs at ~12 fps on a 384×216 canvas, pauses when the tab is hidden, and is off when reduced motion is requested.
@@ -36,7 +47,7 @@ Whatever you skip stays empty, and the page starts with no personal data: no nam
 node --test test/*.test.js
 ```
 
-Covers the search bar's math parser (no `eval`) and unit conversion. The Pages workflow runs them before every deploy.
+Covers the search bar's math parser (no `eval`) and unit conversion, and renders every line of every voice (reactions, heckles and Wrapped included) against rich and empty data to catch `undefined`, `NaN` and the like. It also checks secret-voice locking and the Ask persona prompt. The Pages workflow runs them before every deploy.
 
 ## Keyboard
 

@@ -33,7 +33,7 @@
       (s.location ? '<p class="ob-set">' + I('check', 16) + esc(t('ob_locSet', { name: s.location.name })) + '</p>' : '') +
       '<button class="link" data-ob-geo>' + I('pin', 14) + ' ' + esc(t('btn_geo')) + '</button>';
     return '<h2 id="ob-title">' + esc(t('ob_title_voice')) + '</h2><p class="muted">' + esc(t('ob_voice_hint')) + '</p>' +
-      '<div class="ob-voices" role="radiogroup" aria-labelledby="ob-title">' + Object.entries(SP.voice.list).map(([k, v]) =>
+      '<div class="ob-voices" role="radiogroup" aria-labelledby="ob-title">' + SP.voice.available().map((k) => [k, SP.voice.list[k]]).map(([k, v]) =>
         '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-ob-voice="' + k + '"><b>' + esc(v.name) + '</b><span>' + esc(preview(k)) + '</span></button>').join('') + '</div>';
   }
 
