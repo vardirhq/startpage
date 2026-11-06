@@ -10,6 +10,10 @@ Plain HTML/CSS/JS. No build step and no dependencies. All data stays in `localSt
 - **GitHub Pages:** `.github/workflows/pages.yml` deploys every push to `main` to https://vardirhq.github.io/startpage/. One-time setup: *Settings → Pages → Build and deployment → Source: GitHub Actions*. Then set the URL as your homepage (Firefox: *Settings → Home → Homepage and new windows → Custom URLs*; Chrome: *Settings → On startup*). Chrome can't point the new tab at a URL without an extension; use the unpacked-extension route below for that.
 - **As a real new tab (Chrome / Edge / Brave):** `chrome://extensions` → enable *Developer mode* → *Load unpacked* → pick this folder. `manifest.json` overrides the new tab page.
 
+## First run
+
+A fresh browser starts with no personal data: no name (the greeting says "friend"), no location (Weather and Forecast show a *Set location* button, and the clock uses your browser's time zone), and a few self-explaining example tasks, notes, habits and a New Year countdown. Replace or delete them as you like; **Reset all** in Settings brings these defaults back.
+
 ## What's on it
 
 **Modules:** search · clock · weather · forecast (24h chart, wind, UV, sunrise/sunset, air quality) · GitHub activity · repo vitals · bookmarks · tasks · notes · focus timer · calendar (ISO weeks) · countdowns · world clocks · habits (streaks + heatmap) · news (Hacker News / dev.to) · music · daily quote

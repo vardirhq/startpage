@@ -3,13 +3,16 @@
   'use strict';
   const KEY = 'startpage.state.v1';
   const bm = (title, url) => ({ title, url });
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const today = iso(new Date()), nextNewYear = (new Date().getFullYear() + 1) + '-01-01';
 
   const DEFAULTS = {
-    name: 'Christoffer',
-    tagline: 'Code · Create · Play · Repeat',
+    // Fresh installs get no personal data: an empty name, no location, and examples that explain themselves.
+    name: '',
+    tagline: '',
     theme: 'midnight', seed: 7, accent: '#a78bfa', layout: 'grid', customBg: false,
     showGreeting: true, clock24: true, units: 'celsius', favicons: true,
-    location: { name: 'Halden, Norway', lat: 59.1229, lon: 11.3875 },
+    location: null,
     engine: 'google',
     github: { user: '', token: '' },
     activeSpace: 'home',
@@ -30,12 +33,12 @@
         bm('Notion', 'https://www.notion.so'), bm('Blender', 'https://www.blender.org'), bm('Figma', 'https://www.figma.com')],
     },
     tasks: [
-      { id: 't1', text: 'Finish Lamplighter level', done: false },
-      { id: 't2', text: 'Review Sound Lab PR', done: true },
-      { id: 't3', text: 'Order roof box', done: false },
-      { id: 't4', text: 'Birthday gift for Alma', done: false },
+      { id: 't1', text: 'Set your name and location in Customize → Settings', done: false },
+      { id: 't2', text: 'Double-click a task to edit it', done: false },
+      { id: 't3', text: 'Tick this one off, then clear it with the bin', done: false },
+      { id: 't4', text: 'Open your new startpage', done: true },
     ],
-    notes: 'Ideas: particle lab, normal map\nCall service (Kuga)\nPlan Denmark summer 2027\nUpdate CV',
+    notes: 'Click here to edit your notes\nEach line becomes a bullet\nType > in the search bar for commands\nTry 12*7 or 5 km to mi in search too',
     tracks: [],
     liked: [],
     // v2 modules
@@ -48,8 +51,7 @@
     focusRun: { mode: 'work', endsAt: null, remaining: null, cycle: 0 },
     focusLog: {},
     countdowns: [
-      { id: 'c1', title: 'Christmas Eve', date: '2026-12-24', created: '2026-11-01' },
-      { id: 'c2', title: 'Denmark summer trip', date: '2027-07-01', created: '2026-11-01' },
+      { id: 'c1', title: 'New Year', date: nextNewYear, created: today },
     ],
     clocks: [
       { tz: 'America/New_York', label: 'New York' },
@@ -58,9 +60,9 @@
     ],
     newsSource: 'hn',
     habits: [
-      { id: 'h1', name: 'Code 30 min', days: {} },
-      { id: 'h2', name: 'Workout', days: {} },
-      { id: 'h3', name: 'Read', days: {} },
+      { id: 'h1', name: 'Read', days: {} },
+      { id: 'h2', name: 'Move', days: {} },
+      { id: 'h3', name: 'Drink water', days: {} },
     ],
     sync: { gistId: '', auto: true, lastSync: 0 },
     presence: {},

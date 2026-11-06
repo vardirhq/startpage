@@ -96,7 +96,7 @@
           field('fld_name', '<input data-set="name" value="' + esc(s.name) + '">') +
           field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">')) +
         section('sec_location',
-          '<p class="small muted">' + T('locIntro', { name: s.location.name }) + '</p>' +
+          '<p class="small muted">' + (s.location ? T('locIntro', { name: s.location.name }) : T('locNone')) + '</p>' +
           '<form class="loc-search" data-loc-form><input name="city" placeholder="' + T('locPlaceholder') + '" aria-label="City"><button class="btn">' + L('btn_find') + '</button></form>' +
           '<ul class="loc-results" data-loc-results></ul><button class="link" data-geo>' + I('pin', 14) + ' ' + L('btn_geo') + '</button>' +
           '<div class="seg" role="radiogroup" aria-label="Units"><button data-units="celsius" aria-checked="' + (s.units === 'celsius') + '" role="radio">°C</button><button data-units="fahrenheit" aria-checked="' + (s.units === 'fahrenheit') + '" role="radio">°F</button></div>' +
@@ -234,7 +234,8 @@
     p.hidden = false;
     document.body.classList.add('panel-open', 'editing');
     render();
-    if (focus === 'github') { const i = $('[data-gh="user"]', p); if (i) { i.scrollIntoView({ block: 'center' }); i.focus(); } }
+    const target = focus === 'github' ? $('[data-gh="user"]', p) : focus === 'location' ? $('[data-loc-form] input', p) : null;
+    if (target) { target.scrollIntoView({ block: 'center' }); target.focus(); }
   }
   function close() { $('#panel').hidden = true; document.body.classList.remove('panel-open', 'editing'); }
   const isOpen = () => !$('#panel').hidden;
