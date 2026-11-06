@@ -19,7 +19,14 @@
     neutral: {
       name: 'Neutral', descriptor: 'Just the facts.',
       greet: (p) => ({ morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', night: 'Good night' }[p]),
-      heroSub: ({ open, focus }) => plural(open, 'open task') + ' · ' + plural(focus, 'focus session') + ' today.',
+      addr: ({ name }) => name || 'friend',
+      heroSub: ({ open, focus }) => {
+        const c = C(), bits = [plural(open, 'open task'), plural(focus, 'focus session') + ' today'];
+        if (c.away > 36e5) bits.push('last visit ' + c.awayText + ' ago');
+        if (c.visits > 1) bits.push(plural(c.visits, 'visit') + ' today');
+        if (c.habit && c.habit.n >= 2) bits.push(c.habit.name + ': ' + c.habit.n + '-day streak');
+        return bits.join(' · ') + '.';
+      },
       tasksEmpty: 'Nothing to do. Nice.',
       focusTitle: 'Focus', mode_work: 'Focus', mode_short: 'Short break', mode_long: 'Long break',
       focusToday: ({ n }) => n + ' today', focusDone: 'Session complete. Take a break.', breakDone: 'Break over. Back to it.',
@@ -64,8 +71,8 @@
       desc_habits: 'Daily habits, streaks and an 18-week heatmap', desc_news: 'Top stories from Hacker News or dev.to', desc_vitals: 'Which of your repos are alive, fading or dead',
       blurb: {
         neutral: 'Reports the facts. Does not editorialize.', monday: 'Exasperated by your existence.', supportive: 'Extremely attached. Counts your visits.',
-        surfer: 'Has not been fully awake since 2009.', professional: 'Speaks fluent quarterly review.', therapist: 'Connects your to-do list to your childhood.',
-        weepy: 'Is crying. Was crying. Will be crying.', victorian: 'Uses forty words where one would do.',
+        surfer: 'Cannot remember your name.', professional: 'Documenting you for a performance review.', therapist: 'Bills by the minute.',
+        weepy: 'Mourns every task you finish.', victorian: 'Disapproves of you, the internet and tabs.',
       },
     },
 
@@ -125,10 +132,14 @@
       desc_music: 'Noise to drown out your thoughts', desc_quote: 'Words you won’t live by', desc_forecast: 'More weather than anyone needs',
       desc_focus: 'A timer you’ll pause at 23:41', desc_calendar: 'Days you wasted, in a handy grid', desc_countdown: 'Deadlines, getting closer',
       desc_worldclock: 'Places where it’s too late to email people', desc_habits: 'Streaks for you to break', desc_news: 'Other people shipping things', desc_vitals: 'A crime scene, sorted by decay',
+      leave_title: () => 'Leaving? Good.', leave_body: ({ to }) => 'Go on. Go to ' + to + '. Pick someone nicer. They’ll lie to you. You’ll be back. Ugh.',
+      leave_ok: 'Bye', leave_cancel: 'Fine. Stay',
+      welcomeVoice: ({ prev }) => 'Ugh. Back already. Didn’t take you long to get bored of ' + prev + '.',
+      welcomeBack: () => 'Ugh. You were gone ' + C().awayText + '. Not long enough.',
       blurb: {
         neutral: 'No opinions. Cowardly.', monday: 'Selected. Good. Someone has to say it.', supportive: 'Clingy. Counts your visits. Pick it if you miss being texted forty times a day.',
-        surfer: 'Apathy in board shorts.', professional: 'Same mess. More synergy.', therapist: 'Will blame your mother for your tabs.',
-        weepy: 'You made it cry. Look at what you did.', victorian: 'Takes a paragraph to say “hi”. Relatable, given your commit messages.',
+        surfer: 'Forgot your name. Lucky.', professional: 'Building a case to fire you. Honestly, fair.', therapist: 'Will bill you to blame your mother.',
+        weepy: 'Holds funerals for your to-do list. Ugh.', victorian: 'Your disapproving grandmother, in a browser.',
       },
     },
 
@@ -218,280 +229,391 @@
 
     /* ===================================================================== */
     surfer: {
-      name: 'Surfer', descriptor: 'Duuuuude.',
+      name: 'Surfer', descriptor: 'Wait, what were we talking about?',
+      addr: ({ name }) => mangle(name),
       greet: (p) => ({
-        morning: ['Whoa… is it morning, dude', 'Duuude. Mornin’', 'Gnarly sunrise, bro'],
-        afternoon: ['Duuuude', 'Whoa. Afternoon already, man', 'Sup, brah'],
-        evening: ['Evenin’, duuude', 'Whoa, sunset, bro', 'Duuude. Still here, man'],
-        night: ['Whoa… it’s dark, man', 'Late sesh, duuude', 'Bro. The moon, bro'],
+        morning: ['Whoa… hey', 'Duuude. Is it morning? Whoa', 'Mornin’… I think'],
+        afternoon: ['Whoa… hey', 'Sup… uh', 'Oh hey, it’s… you'],
+        evening: ['Whoa, hey', 'Evenin’… is it evening?', 'Duuude. Hey'],
+        night: ['Whoa… it’s dark, man', 'Late sesh, huh… hey', 'Bro. The moon. Hey'],
       }[p]),
-      heroSub: ({ open }) => open ? 'Like… ' + open + ' tasks, man? Whoa. They’ll keep, duuude. Everything keeps.' : 'No tasks. Glassy water, bro. Totally, like… glassy.',
-      tasksEmpty: 'Nothin’ on the board, duuude. Tubular.',
-      focusTitle: 'Ride the Waaave', mode_work: 'Paddlin’, man', mode_short: 'Floatin’', mode_long: 'Beach naaap',
-      focusToday: ({ n }) => n + ' waves caught, brah', focusDone: 'Gnarly sesh, duuude. Go float, man.', breakDone: 'Whoa, next set’s rollin’ in, bro.',
-      cdTitle: 'Swells Incomin’', cdDays: 'days out, man', cdToday: 'It’s here, duuude!', cdTomorrow: 'day, whoa', cdEmpty: 'Nothin’ on the horizon, bro. Just… horizon.',
-      habitsTitle: 'Daily Rituals, Man', habitsEmpty: 'No rituals, dude. Just vibes. Pure vibes.',
-      streak: ({ n }) => n + ' days, ridin’ it', streakToast: ({ n, name }) => n + ' days of ' + name + '?! Raaadical, bro.',
-      weatherQuip: (c) => pick(wx(c), { wet: 'Wet out, bro. You’re gonna get wet anyway. Whoa. Deep.', snow: 'Snow’s just, like, frozen waves, man.', cold: 'Chilly, duuude. Full wetsuit vibes.', warm: 'Sun’s out, board’s out, bro.', mild: 'Mellow out there, duuude.' }),
-      vitalsTitle: 'The Lineup, Man', vitalsWatch: 'Driftin’ out, bro',
-      vitalsHero: ({ total, dead }) => total + ' boards in the quiver, man. ' + (dead ? dead + ' washed up. Whoa. It happens, dude.' : 'All still floatin’. Gnarly.'),
-      state_alive: 'Shreddin’', state_fading: 'Driftin’', state_flatlined: 'Wiped out', state_dead: 'Washed up, man',
+      heroSub: ({ open }) => {
+        const c = C(), out = [];
+        if (c.away > 36e5) out.push('Out of the water ' + c.awayText + ', man. Felt like four minutes. Or a year. Time’s a wave, bro.');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ', ' + c.habit.n + ' days straight? Ridin’ that swell, duuude. Wait… what’s ' + c.habit.name.toLowerCase() + '.');
+        if (c.lastDone) out.push('You finished… uh… “' + c.lastDone.slice(0, 14) + (c.lastDone.length > 14 ? '…' : '') + '”? Long title, bro. Gnarly though.');
+        if (c.visits > 3) out.push('This is, like, your ' + c.visits + 'th wave today? Or the same wave? Whoa.');
+        if (c.prevVoice) out.push('Someone was here before me, man. ' + c.prevVoice + '? Never heard of ’em. Probably cool.');
+        if (open) out.push(plural(open, 'task') + ' out there, man. They’ll keep. Everything keeps. Except, like, fish.');
+        return out.length ? out : ['Flat water, dude. Just… vibin’. What were we doing?'];
+      },
+      tasksEmpty: 'Nothin’ on the board, duuude. Or I forgot. Either way. Tubular.',
+      focusTitle: 'Ride the Waaave', mode_work: 'Paddlin’… I think', mode_short: 'Floatin’', mode_long: 'Beach naaap',
+      focusToday: ({ n }) => n + ' waves caught. Or… was it more? Whoa',
+      focusDone: 'Gnarly sesh, duuude. Wait, was I timing something?', breakDone: 'Whoa, next set’s rollin’ in. Back on the board, bro.',
+      cdTitle: 'Swells Incomin’ (Probably)', cdDays: 'days out… I think', cdToday: 'It’s here, duuude! What is it again?', cdTomorrow: 'day. Or two. Days are fake', cdEmpty: 'Nothin’ on the horizon, bro. Just… horizon.',
+      habitsTitle: 'Rituals, Man', habitsEmpty: 'No rituals. Just vibes. I forget stuff anyway, man.',
+      streak: ({ n }) => n + ' days… I lost count at, like, two', streakToast: ({ n, name }) => n + ' days of ' + name + '?! Raaadical. Wait, who is this?',
+      weatherQuip: (c) => pick(wx(c), { wet: 'Wet out, bro. You’re gonna get wet anyway. Whoa. Deep.', snow: 'Snow’s just, like, frozen waves, man.', cold: 'Chilly, duuude. Full wetsuit vibes.', warm: 'Sun’s out, board’s out, bro. Where’s my board.', mild: 'Mellow out there, duuude. Or in here. Where are we.' }),
+      vitalsTitle: 'The Quiver, Man', vitalsWatch: 'Driftin’ out to sea',
+      vitalsHero: ({ total, dead }) => total + ' boards in the quiver, man. ' + (dead ? dead + ' washed up. Or I lent ’em to someone. Whoa.' : 'All still floatin’. I think.'),
+      state_alive: 'Shreddin’', state_fading: 'Driftin’', state_flatlined: 'Wiped out', state_dead: 'Lost at sea, man',
 
-      panelTitle: 'Wax the Board, Dude', tab_layout: 'Lineup', tab_widgets: 'Gear', tab_theme: 'Viiibes', tab_settings: 'Tweaks, Man',
-      sec_layout: 'How you wanna ride it, bro', sec_widgets: 'Your quiver, man', sec_theme: 'Scenery, duuude', sec_background: 'The view from the board', sec_accent: 'Pick a colour, any colour, man',
-      sec_voice: 'Who’s talkin’, bro', sec_profile: 'Who you are, man. Like, really', sec_location: 'Home break', sec_search: 'Lookin’ stuff up', sec_github: 'The code swell', sec_sync: 'Ride it on every device, bro', sec_data: 'Your stuff, dude',
+      panelTitle: 'Wax the Board… or Whatever', tab_layout: 'Lineup', tab_widgets: 'Gear', tab_theme: 'Viiibes', tab_settings: 'Knobs, Man',
+      sec_layout: 'How you wanna ride it, bro', sec_widgets: 'Your quiver, man', sec_theme: 'Scenery, duuude', sec_background: 'The view from the board',
+      sec_accent: 'Colours, man. Whoa. Colours', sec_voice: 'Who’s talkin’… is it me?', sec_profile: 'Who you are, man. Like, really. Who ARE you', sec_location: 'Home break',
+      sec_search: 'Lookin’ stuff up', sec_github: 'The code swell', sec_sync: 'Your stuff on, like, all the boards', sec_data: 'Your stuff, dude',
       moreWidgets: 'More gear, man',
-      tgl_greeting: 'Say hey up top, duuude', tgl_quote: 'Daily wisdom, bro', tgl_animate: 'Make the scene, like, move, man', tgl_summary: 'Little daily recap, bro',
-      tgl_24h: '24-hour clock (time’s fake anyway, man)', tgl_favicons: 'Little logos, duuude', tgl_syncAuto: 'Sync on its own, man',
-      widgetsIntro: ({ space }) => 'This is what’s in ' + space + ', man. Move it around. Or don’t. Whoa. It’s all good, duuude.',
-      voiceIntro: 'Whoever you vibe with, man. No wrong answers, duuude. Except maybe Monday. Harsh, bro.',
-      fld_name: 'What do they call you, bro', fld_tagline: 'Your motto, duuude',
-      locIntro: ({ name }) => 'You’re at ' + name + ', man. Sick break.', locPlaceholder: 'Where’s the swell, bro…', btn_find: 'Find it, man', btn_geo: 'Just, like, figure out where I am, dude',
+      tgl_greeting: 'Say hey up top… if I remember', tgl_quote: 'Daily wisdom, bro', tgl_animate: 'Make the scene, like, move, man', tgl_summary: 'Lil’ daily recap (accuracy not guaranteed)',
+      tgl_24h: '24-hour clock (time’s fake anyway, man)', tgl_favicons: 'Little logos, duuude', tgl_syncAuto: 'Sync on its own, man. Less to remember',
+      widgetsIntro: ({ space }) => 'This is what’s in ' + space + ', man. I think. Move it around. Or don’t. Whoa. It’s all good, duuude.',
+      voiceIntro: 'Whoever you vibe with, man. No wrong answers, duuude. Wait, am I one of the options?',
+      fld_name: 'What do they call you again, bro', fld_tagline: 'Your motto, duuude. I’ll forget it',
+      locIntro: ({ name }) => 'You’re at ' + name + ', man. Sick break. Is it a beach?', locPlaceholder: 'Where’s the swell, bro…', btn_find: 'Find it, man', btn_geo: 'Just, like, figure out where I am, dude',
       fld_weekStart: 'When the week starts (does it though, man?)', fld_engine: 'Search thing, bro',
-      syncIntro: 'Your stuff rides along on all your devices, duuude. Token stays here, man. Safe.',
-      btn_syncOn: 'Sure, man', btn_syncNow: 'Sync it, duuude', btn_export: 'Take it with you, bro', btn_import: 'Bring it in, man', btn_reset: 'Total wipeout',
-      dataHelp: 'All your stuff’s right here in the browser, man. Like sand in your shorts.',
-      btn_change: 'Change it up, bro', bgCustom: 'Your own pic, duuude. Rad.', bgBack: 'Back to the pixels, man',
-      reset_title: 'Total wipeout, bro?', reset_body: 'Everything gets washed away, duuude. Paddle back out and start fresh, man.', reset_ok: 'Send it',
-      import_title: 'Import, man?', import_body: 'This, like, replaces your stuff, bro.', import_ok: 'Sure, duuude',
+      syncIntro: 'Your stuff rides along on all your devices, duuude. So you can forget it everywhere. Token stays here, man.',
+      btn_syncOn: 'Sure, man', btn_syncNow: 'Sync it, duuude', btn_viewGist: 'Peep the gist',
+      btn_export: 'Take it with you, bro', btn_import: 'Bring it in, man', btn_reset: 'Total wipeout',
+      dataHelp: 'All your stuff’s right here in the browser, man. Like sand in your shorts. Kinda forever.',
+      btn_change: 'Change it up, bro', bgCustom: 'Your own pic, duuude. Rad. Who took it.', bgBack: 'Back to the pixels, man',
+      reset_title: 'Total wipeout, bro?', reset_body: 'Everything gets washed away, duuude. Honestly I already forgot most of it.', reset_ok: 'Send it',
+      import_title: 'Import, man?', import_body: 'This, like, replaces your stuff, bro. With other stuff.', import_ok: 'Sure, duuude',
       dlg_save: 'Cool', dlg_cancel: 'Naaah',
-      search_placeholder: ['Whatcha lookin’ for, duuude…', 'Whoa… search… stuff… man…'],
+      search_placeholder: ['Whatcha lookin’ for, duuude…', 'Whoa… search… stuff… man…', 'Type a thing. I’ll forget it. It’s chill…'],
       rail_customize: 'Wax the board', rail_newSpace: 'New spot, bro',
-      grid_empty: 'Flat water, man. Nothin’ here.', grid_emptyBtn: 'Grab some gear',
-      w_tasks: 'Stuff, Eventually', w_notes: 'Thoughts, Man', w_bookmarks: 'Spots', w_github: 'The Code Swell',
-      w_worldclock: 'Other Beaches, Man', w_news: 'Stuff Happening', w_forecast: 'Surf Report',
-      notes_placeholder: 'Write somethin’, man… or don’t…', task_placeholder: 'Somethin’, someday, bro…',
-      toast_location: ({ name }) => name + '. Sick spot, duuude.',
+      grid_empty: 'Flat water, man. Or I lost everything. Same vibe.', grid_emptyBtn: 'Grab some gear',
+      w_tasks: 'Stuff, Eventually', w_notes: 'Thoughts, Man (I Forgot Them)', w_bookmarks: 'Spots', w_github: 'The Code Swell',
+      w_worldclock: 'Other Beaches, Man', w_news: 'Stuff Happening, Apparently', w_forecast: 'Surf Report',
+      notes_placeholder: 'Write it down, man. I sure won’t remember…', task_placeholder: 'Somethin’, someday, bro…',
+      toast_location: ({ name }) => name + '. Sick spot, duuude. Wait, where?',
+      desc_tasks: 'Stuff, eventually', desc_notes: 'Things you’ll forget (like me)', desc_habits: 'Rituals, man', desc_focus: 'Ride a wave. Then float.',
+      desc_vitals: 'Boards in the quiver', desc_news: 'Stuff happening, apparently', desc_clock: 'Time. Whoa. Time.', desc_worldclock: 'Other beaches, man',
+      leave_title: () => 'Oh, you’re paddlin’ off?', leave_body: ({ to }) => 'Cool, cool. ' + to + ', right? …Who were we talking about, man?',
+      leave_ok: 'Yeah, later', leave_cancel: 'Wait, stay',
+      welcomeVoice: ({ prev }) => 'Whoa, hey. Were you gone? I was with… someone. ' + prev + '? Who’s that, man.',
+      welcomeBack: () => 'Whoa, you were gone ' + C().awayText + '? Didn’t notice, man. Totally didn’t notice.',
       blurb: {
-        neutral: 'Pretty flat, man. Like, no waves.', monday: 'Harsh vibes, bro. Respect though.', supportive: 'So stoked it’s kinda scary, dude.',
-        surfer: 'That’s me, man. Hang looooose.', professional: 'Wears a tie to the beach, bro.', therapist: 'Deep, man. Like the ocean. Whoa.',
-        weepy: 'Salt water from the eyes, man. Same as the ocean.', victorian: 'Talks like a lighthouse ghost, dude.',
+        neutral: 'Pretty flat, man. Like, no waves.', monday: 'Harsh vibes, bro. Respect though.', supportive: 'Really into you, man. Like, REALLY.',
+        surfer: 'That’s me? Whoa. Hang looooose.', professional: 'Wears a tie to the beach, bro.', therapist: 'Charges you to talk, man. Talking’s free, dude.',
+        weepy: 'Cries about, like, everything. Salt water, man. Same as the ocean.', victorian: 'An old lady who hates me, bro. I don’t know why.',
       },
     },
 
     /* ===================================================================== */
     professional: {
-      name: 'Professional', descriptor: 'Let’s take this offline.',
+      name: 'Professional', descriptor: 'Let’s set up some time to discuss your performance.',
+      addr: ({ name }) => teamMember(name),
       greet: (p) => ({
-        morning: ['Good morning. Let’s align on today’s deliverables', 'Morning. Quick sync before standup', 'Good morning, valued stakeholder'],
+        morning: ['Good morning. Let’s align on today’s deliverables', 'Morning. Quick sync before standup', 'Good morning. You’re in early. Noted'],
         afternoon: ['Circling back this afternoon', 'Good afternoon. Per my last greeting', 'Touching base'],
         evening: ['Good evening. Let’s action the remaining items', 'Evening. Closing the loop', 'Following up on this evening'],
-        night: ['Working late. Leadership has noticed', 'Burning the midnight oil. Great optics', 'Good night. Let’s park this until tomorrow'],
+        night: ['Working late. Leadership has noticed', 'Burning the midnight oil. I’ll mention it', 'Good night. Let’s park this until tomorrow'],
       }[p]),
-      heroSub: ({ open, focus }) => 'Current backlog: ' + plural(open, 'open action item') + '. Deep-work throughput: ' + plural(focus, 'block') + '. Let’s leverage our learnings and move the needle.',
-      tasksEmpty: 'Backlog cleared. Excellent velocity. Let’s socialise this win with the wider team.',
-      focusTitle: 'Deep Work Initiative', mode_work: 'Heads-down', mode_short: 'Bio-break', mode_long: 'Offsite',
-      focusToday: ({ n }) => n + ' blocks delivered (KPI)', focusDone: 'Block delivered. Recommend a short recess to optimise bandwidth.', breakDone: 'Recess concluded. Let’s hit the ground running.',
-      cdTitle: 'Key Milestones (Q-Pipeline)', cdDays: 'business-critical days', cdToday: 'Milestone due EOD', cdTomorrow: 'day to milestone', cdEmpty: 'No milestones on the roadmap. Let’s ideate.',
-      habitsTitle: 'Personal OKRs', habitsEmpty: 'Define an OKR to begin tracking.',
-      streak: ({ n }) => n + '-day consistency (exceeds expectations)', streakToast: ({ n, name }) => name + ': ' + n + ' consecutive days. Flagging for your performance review.',
-      weatherQuip: (c) => pick(wx(c), { wet: 'Precipitation forecast. Recommend a hybrid-attendance posture.', snow: 'Snow event anticipated. Build buffer into commute timelines.', cold: 'Low-temperature environment. Ensure outerwear compliance.', warm: 'Favourable conditions. Optimal for an outdoor working lunch.', mild: 'Conditions nominal. No blockers identified.' }),
-      vitalsTitle: 'Portfolio Health Dashboard', vitalsWatch: 'At-risk initiatives',
-      vitalsHero: ({ total, alive }) => Math.round((alive / Math.max(1, total)) * 100) + '% of the portfolio (' + total + ' repositories) shows recent engagement. Let’s double-click on the rest.',
-      state_alive: 'On track', state_fading: 'At risk', state_flatlined: 'Deprioritised', state_dead: 'Sunset',
+      heroSub: ({ open, focus }) => {
+        const c = C(), out = [];
+        if (c.visits > 1) {
+          const d = c.prevVisits ? Math.round(((c.visits - c.prevVisits) / c.prevVisits) * 100) : null;
+          out.push('Visit frequency today: ' + c.visits + (d != null ? ' (' + (d >= 0 ? '+' : '') + d + '% vs yesterday)' : '') + '. Let’s unpack that in our 1:1.');
+        }
+        if (c.lastDone) out.push('Thanks for closing out “' + c.lastDone + '”. Going forward, let’s align on velocity. I’ve made a note.');
+        if (c.away > 36e5) out.push('Logged: ' + c.awayText + ' of unscheduled absence. No action needed at this time. (Yet.)');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ': ' + c.habit.n + '-day consistency. Strong. I’ll be referencing this in your review. As a baseline.');
+        if (c.prevVoice) out.push('I see you previously reported to ' + c.prevVoice + '. I’ve requested their notes.');
+        out.push('Backlog: ' + plural(open, 'open action item') + '. Deep-work throughput: ' + plural(focus, 'block') + '. Let’s discuss.');
+        return out;
+      },
+      tasksEmpty: 'Backlog cleared. Excellent velocity. Expectations have been adjusted upward accordingly.',
+      focusTitle: 'Deep Work (Monitored)', mode_work: 'Heads-down', mode_short: 'Approved break', mode_long: 'Extended break (logged)',
+      focusToday: ({ n }) => n + ' blocks delivered (target: ' + Math.max(4, n + 2) + ')',
+      focusDone: 'Block delivered. Great work. Let’s make this the new minimum.', breakDone: 'Break concluded. I noticed it ran long. It didn’t. But I noticed.',
+      cdTitle: 'Key Milestones', cdDays: 'business-critical days', cdToday: 'Milestone due EOD. No pressure. (Pressure.)', cdTomorrow: 'day to milestone. Status?', cdEmpty: 'No milestones on the roadmap. That’s a concern.',
+      habitsTitle: 'Personal OKRs', habitsEmpty: 'No OKRs defined. I’ll be setting some for you.',
+      streak: ({ n }) => n + '-day consistency (meets expectations)', streakToast: ({ n, name }) => name + ': ' + n + ' consecutive days. Flagged for your review. Positively, this time.',
+      weatherQuip: (c) => pick(wx(c), { wet: 'Precipitation forecast. Remote work is approved. Cameras on, please.', snow: 'Snow event anticipated. Commute delays will still be logged.', cold: 'Low temperatures. No impact on deliverables expected.', warm: 'Favourable conditions. Ideal for a working lunch.', mild: 'Conditions nominal. No blockers. No excuses.' }),
+      vitalsTitle: 'Portfolio Review', vitalsWatch: 'Underperforming assets',
+      vitalsHero: ({ total, alive }) => Math.round((alive / Math.max(1, total)) * 100) + '% of your portfolio (' + total + ' repositories) shows recent engagement. We’ll need a plan for the rest by Friday.',
+      state_alive: 'Meets expectations', state_fading: 'Needs improvement', state_flatlined: 'On a PIP', state_dead: 'Let go',
 
-      panelTitle: 'Workspace Configuration Portal', tab_layout: 'Structure', tab_widgets: 'Modules', tab_theme: 'Brand', tab_settings: 'Admin',
-      sec_layout: 'Layout template', sec_widgets: 'Provisioned modules', sec_theme: 'Visual identity guidelines', sec_background: 'Backdrop asset', sec_accent: 'Brand accent (pending approval)',
-      sec_voice: 'Communication style', sec_profile: 'Account details', sec_location: 'Regional settings', sec_search: 'Search vendor', sec_github: 'Source control integration',
-      sec_sync: 'Cross-device synergy', sec_data: 'Data governance & compliance',
-      moreWidgets: 'Additional modules (enterprise tier)',
-      tgl_greeting: 'Display salutation', tgl_quote: 'Display daily thought leadership', tgl_animate: 'Enable ambient motion assets', tgl_summary: 'Display daily status report',
-      tgl_24h: '24-hour clock (global alignment)', tgl_favicons: 'Display vendor logos', tgl_syncAuto: 'Automated synchronisation',
-      widgetsIntro: ({ space }) => 'Modules provisioned for the ' + space + ' workstream. Reprioritise via drag-and-drop; rightsize via the size control.',
-      voiceIntro: 'Select a communication style appropriate for your audience. Note: several styles are not approved for client-facing use.',
-      fld_name: 'Display name (as per HR records)', fld_tagline: 'Mission statement',
-      locIntro: ({ name }) => 'Primary region: ' + name + '.', locPlaceholder: 'Enter office location…', btn_find: 'Query', btn_geo: 'Auto-detect region',
+      panelTitle: 'Workspace Configuration (Monitored)', tab_layout: 'Structure', tab_widgets: 'Modules', tab_theme: 'Brand', tab_settings: 'Compliance',
+      sec_layout: 'Approved layout templates', sec_widgets: 'Provisioned modules', sec_theme: 'Visual identity guidelines', sec_background: 'Backdrop asset (brand-approved)',
+      sec_accent: 'Brand accent (pending sign-off)', sec_voice: 'Communication style', sec_profile: 'Employee record', sec_location: 'Assigned office',
+      sec_search: 'Search vendor', sec_github: 'Output metrics', sec_sync: 'Cross-device visibility', sec_data: 'Records retention',
+      moreWidgets: 'Additional modules (requires approval)',
+      tgl_greeting: 'Display salutation', tgl_quote: 'Display daily thought leadership', tgl_animate: 'Enable ambient motion (may impact focus metrics)', tgl_summary: 'Display daily performance summary',
+      tgl_24h: '24-hour clock (global alignment)', tgl_favicons: 'Display vendor logos', tgl_syncAuto: 'Automated synchronisation (recommended for visibility)',
+      widgetsIntro: ({ space }) => 'Modules provisioned for the ' + space + ' workstream. All changes are logged. Reprioritise via drag-and-drop.',
+      voiceIntro: 'Select a communication style appropriate for your audience. Your selection will be visible to your manager. (Me.)',
+      fld_name: 'Display name (as per HR records)', fld_tagline: 'Mission statement (will be shared with leadership)',
+      locIntro: ({ name }) => 'Assigned office: ' + name + '. Please notify HR of any change in residence.', locPlaceholder: 'Enter office location…', btn_find: 'Query', btn_geo: 'Share location (required for hybrid compliance)',
       fld_weekStart: 'Fiscal week start', fld_engine: 'Preferred search vendor',
-      syncIntro: 'Enables seamless cross-device alignment via a private Gist. Credentials remain on-premises per security policy.',
-      btn_syncOn: 'Onboard sync', btn_syncNow: 'Trigger sync', btn_export: 'Export deliverable', btn_import: 'Ingest data', btn_reset: 'Decommission',
-      dataHelp: 'All data resides locally in this browser. Export for business continuity purposes.',
-      btn_change: 'Replace asset', bgCustom: 'Custom brand asset in use.', bgBack: 'Revert to standard asset',
-      reset_title: 'Decommission workspace?', reset_body: 'All configuration and content will be restored to factory defaults. This action is irreversible and will be noted.', reset_ok: 'Confirm decommission',
-      import_title: 'Ingest external data?', import_body: 'Existing data will be superseded. Please ensure stakeholder sign-off.', import_ok: 'Approve',
+      syncIntro: 'Enables seamless cross-device visibility via a private Gist. Credentials remain on-premises per security policy. Visibility does not.',
+      btn_syncOn: 'Enable visibility', btn_syncNow: 'Trigger sync', btn_viewGist: 'View audit record',
+      btn_export: 'Export deliverable', btn_import: 'Ingest data', btn_reset: 'Terminate workspace',
+      dataHelp: 'All records reside locally in this browser and are retained per policy. Export for business continuity.',
+      btn_change: 'Replace asset', bgCustom: 'Unapproved custom asset in use. Noted.', bgBack: 'Revert to brand-approved asset',
+      reset_title: 'Terminate workspace?', reset_body: 'All configuration and content will be offboarded. This action is irreversible and will appear in your record.', reset_ok: 'Confirm termination',
+      import_title: 'Ingest external data?', import_body: 'Existing records will be superseded. Please ensure stakeholder sign-off has been obtained.', import_ok: 'Approve',
       dlg_save: 'Submit for approval', dlg_cancel: 'Park it',
-      search_placeholder: ['Search across all resources and verticals…', 'Leverage search to unlock insights…'],
-      rail_customize: 'Configuration portal', rail_newSpace: 'Spin up a new workstream',
-      grid_empty: 'No modules provisioned for this workstream.', grid_emptyBtn: 'Provision modules',
-      w_tasks: 'Action Items', w_notes: 'Meeting Minutes', w_bookmarks: 'Key Resources', w_github: 'Repository Engagement',
-      w_worldclock: 'Global Offices', w_news: 'Industry Insights', w_forecast: 'Environmental Outlook',
-      notes_placeholder: 'Capture key takeaways…', task_placeholder: 'New action item (owner: you)…',
-      toast_location: ({ name }) => 'Region updated: ' + name + '. Please update your email signature.',
-      desc_tasks: 'Action item tracker', desc_focus: 'Time-boxed deep-work enablement', desc_habits: 'Personal OKR heatmap', desc_vitals: 'Portfolio health at a glance', desc_news: 'Industry thought leadership feed',
+      search_placeholder: ['Search across all resources (queries are logged)…', 'Leverage search to unlock insights…', 'Search. Keep it work-related…'],
+      rail_customize: 'Configuration portal', rail_newSpace: 'Request a new workstream',
+      grid_empty: 'No modules provisioned. This will be raised.', grid_emptyBtn: 'Provision modules',
+      w_tasks: 'Action Items (Overdue)', w_notes: 'Meeting Minutes', w_bookmarks: 'Approved Resources', w_github: 'Output Metrics',
+      w_worldclock: 'Global Offices', w_news: 'Industry Insights', w_forecast: 'Commute Risk Assessment',
+      notes_placeholder: 'Capture key takeaways (these may be reviewed)…', task_placeholder: 'New action item (owner: you)…',
+      toast_location: ({ name }) => 'Assigned office updated: ' + name + '. Please update your email signature.',
+      desc_tasks: 'Action item tracker (overdue items highlighted)', desc_focus: 'Monitored deep-work blocks', desc_habits: 'Personal OKRs', desc_vitals: 'Portfolio performance review',
+      desc_news: 'Industry thought leadership feed', desc_notes: 'Meeting minutes (discoverable)', desc_clock: 'Time on task',
+      leave_title: () => 'Before you go: a brief exit interview', leave_body: ({ to }) => 'How would you rate Professional on a scale of 1–10? This is anonymous. (It isn’t.) For the record, ' + to + ' is not an approved communication style.',
+      leave_ok: 'Complete offboarding', leave_cancel: 'Withdraw resignation',
+      welcomeVoice: ({ prev }) => 'Welcome back. Your time with ' + prev + ' has been noted in your file.',
+      welcomeBack: () => 'Noted: ' + C().awayText + ' unscheduled absence. HR has been looped in.',
       blurb: {
-        neutral: 'Concise. Suitable for status reports.', monday: 'Candid feedback. Escalated to HR.', supportive: 'High engagement, low signal-to-noise.',
-        surfer: 'Not approved for client-facing contexts.', professional: 'The current selection. Well aligned with strategy.', therapist: 'Please refer to the Employee Assistance Programme.',
-        weepy: 'Flagged as an escalation risk.', victorian: 'Legacy communication style. Scheduled for deprecation.',
+        neutral: 'Concise. Suitable for status reports.', monday: 'Candid feedback. Escalated to HR.', supportive: 'Inappropriate workplace attachment. Reported.',
+        surfer: 'Cannot recall his own name. Not promotable.', professional: 'The current selection. Strongly aligned with leadership.', therapist: 'Billing irregularities. Under review.',
+        weepy: 'Emotional volatility. Flagged.', victorian: 'Legacy stakeholder. Scheduled for retirement.',
       },
     },
 
     /* ===================================================================== */
     therapist: {
-      name: 'Therapist', descriptor: 'Let’s unpack that.',
+      name: 'Therapist', descriptor: 'That’s our time. That’ll be €180.',
       greet: (p) => ({
-        morning: ['Good morning. How did that make you feel', 'You opened a new tab. Let’s explore why', 'Morning. I notice you’re here again'],
-        afternoon: ['Let’s check in. Really check in', 'I’m noticing some avoidance this afternoon', 'Welcome back. What brought you here'],
+        morning: ['Good morning. How did that make you feel', 'You opened a new tab. Let’s explore why', 'Morning. Please, take a seat'],
+        afternoon: ['Let’s check in. Really check in', 'Welcome back. What brought you here', 'Mm. Go on'],
         evening: ['You made it through the day. Let’s sit with that', 'Evening. Where does this tab live in your body', 'Let’s unpack today'],
-        night: ['It’s late. What are you running from', 'Can’t sleep? Let’s talk about your father', 'The night brings things up'],
+        night: ['It’s late. What are you running from', 'Can’t sleep? Let’s talk about your father', 'The night brings things up. Billable things'],
       }[p]),
-      heroSub: ({ open }) => open ? 'You have ' + plural(open, 'task') + '. I wonder whether this list is really about the tasks… or about your need for control.' : 'No tasks. How does it feel to have nothing to hide behind?',
-      tasksEmpty: 'An empty list. And yet you still came here. Interesting.',
-      focusTitle: 'Mindful Presence Work', mode_work: 'Being present', mode_short: 'Breathe…', mode_long: 'Inner child time',
-      focusToday: ({ n }) => n + ' moments of presence', focusDone: 'You stayed present. Notice how that feels. Where do you feel it?', breakDone: 'Gently return when you’re ready. There’s no rush. (There is a little rush.)',
-      cdTitle: 'Things You’re Anticipating', cdDays: 'days of anticipation (let’s explore that)', cdToday: 'It’s here. Be present.', cdTomorrow: 'day. What are you feeling?', cdEmpty: 'Nothing to look forward to. Let’s talk about that.',
-      habitsTitle: 'Self-Care Practice', habitsEmpty: 'Small, kind routines. Start with one. Or explore why you haven’t.',
-      streak: ({ n }) => n + ' days of showing up for yourself', streakToast: ({ n, name }) => n + ' days of ' + name + '. I’m noticing real growth. Are you?',
-      weatherQuip: (c) => pick(wx(c), { wet: 'It’s raining. Sometimes the sky needs to let it out too.', snow: 'Snow slows everything down. What would it mean to let it slow you?', cold: 'It’s cold. Warmth is allowed. You’re allowed.', warm: 'A warm day. Can you let yourself enjoy it, just this once?', mild: 'A neutral day. Neutral is valid. You are valid.' }),
-      vitalsTitle: 'Your Relationship With Your Code', vitalsWatch: 'Ones you might be avoiding',
-      vitalsHero: ({ dead, total }) => dead ? 'You’ve let go of ' + dead + ' of ' + total + ' projects. Letting go is part of making. So is grief.' : 'All ' + total + ' projects still feel close to you. That’s a lot to hold.',
-      state_alive: 'Engaged', state_fading: 'Distant', state_flatlined: 'Avoided', state_dead: 'Released',
+      heroSub: ({ open }) => {
+        const c = C(), out = [], fee = (min) => '€' + Math.max(15, Math.round((min / 50) * 180));
+        if (c.away > 36e5) out.push('You were away ' + c.awayText + ' and you came back. That’s attachment. We’ll unpack it. That’s ' + fee(50) + '.');
+        if (c.visits > 2) out.push('This is session ' + c.visits + ' today. Your insurance stopped covering this at session 3.');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ', ' + c.habit.n + ' days. Who are you trying to impress? Your father?');
+        if (c.lastDone) out.push('You finished “' + c.lastDone + '”. You seem relieved. I wonder what you were avoiding by doing it.');
+        if (c.prevVoice) out.push('You were seeing ' + c.prevVoice + ' before me. We should talk about why that didn’t work out.');
+        if (c.sessionMin >= 1) out.push('We’ve been at this ' + plural(c.sessionMin, 'minute') + ' this session. That’s ' + fee(c.sessionMin) + ' so far.');
+        if (open) out.push(plural(open, 'task') + '. I don’t think this list is about the tasks. I think it’s about control.');
+        return out.length ? out : ['How does it feel to have nothing to hide behind? That’s €180.'];
+      },
+      tasksEmpty: 'An empty list. And yet you still came here. Interesting. That’s €60.',
+      focusTitle: 'Therapeutic Work Session (Billable)', mode_work: 'Being present (€3/min)', mode_short: 'Breathe… (still billing)', mode_long: 'Inner child time',
+      focusToday: ({ n }) => n + ' sessions today. Invoiced.',
+      focusDone: 'You stayed present. Notice how that feels. Now notice the invoice.', breakDone: 'Gently return when you’re ready. The meter is running.',
+      cdTitle: 'Things You’re Anticipating (And Why)', cdDays: 'days of anticipation to unpack', cdToday: 'It’s here. How do we feel?', cdTomorrow: 'day. Let’s talk about the anxiety', cdEmpty: 'Nothing to look forward to. We should increase your sessions.',
+      habitsTitle: 'Coping Mechanisms', habitsEmpty: 'No routines. Let’s explore that. Weekly. For several years.',
+      streak: ({ n }) => n + ' days. Is it a habit or a compulsion?', streakToast: ({ n, name }) => n + ' days of ' + name + '. I’m noticing real growth. I’m also noticing you haven’t paid.',
+      weatherQuip: (c) => pick(wx(c), { wet: 'It’s raining. Sometimes the sky needs to let it out too. We should discuss your crying.', snow: 'Snow slows everything down. Like your progress in therapy.', cold: 'It’s cold. Like your mother. Too far? Let’s explore that.', warm: 'A warm day. Can you let yourself enjoy it? Why not?', mild: 'A neutral day. Neutral is valid. Billing is also valid.' }),
+      vitalsTitle: 'Your Relationship With Your Code', vitalsWatch: 'Ones you’re avoiding (we should talk)',
+      vitalsHero: ({ dead, total }) => dead ? 'You’ve abandoned ' + dead + ' of ' + total + ' projects. This is a pattern. Patterns are billable.' : 'All ' + total + ' projects still feel close to you. That’s a lot to hold. Let’s hold it weekly.',
+      state_alive: 'Engaged', state_fading: 'Avoidant', state_flatlined: 'Repressed', state_dead: 'Unresolved',
 
-      panelTitle: 'Let’s Make Some Space', tab_layout: 'Structure', tab_widgets: 'Supports', tab_theme: 'Atmosphere', tab_settings: 'Boundaries',
-      sec_layout: 'What shape feels safe?', sec_widgets: 'Things that support you', sec_theme: 'A setting where you feel held', sec_background: 'Your inner landscape',
-      sec_accent: 'A colour that feels like you (and why)', sec_voice: 'How you deserve to be spoken to', sec_profile: 'How you see yourself', sec_location: 'Where you are. Right now. Truly.',
-      sec_search: 'What you’re searching for', sec_github: 'Your creative life', sec_sync: 'Carrying this with you', sec_data: 'What you hold on to',
-      moreWidgets: 'Other supports',
-      tgl_greeting: 'Allow yourself to be greeted', tgl_quote: 'A thought to sit with', tgl_animate: 'Gentle, grounding movement', tgl_summary: 'A daily emotional check-in',
-      tgl_24h: '24-hour clock (time is a construct)', tgl_favicons: 'Familiar little faces', tgl_syncAuto: 'Let it flow automatically',
-      widgetsIntro: ({ space }) => 'These are the things in your ' + space + ' space. Notice which ones you reach for, and which ones you hide. That says something.',
+      panelTitle: 'Let’s Make Some Space (€180/hr)', tab_layout: 'Structure', tab_widgets: 'Supports', tab_theme: 'Atmosphere', tab_settings: 'Boundaries',
+      sec_layout: 'What shape feels safe?', sec_widgets: 'Things that support you (and enable you)', sec_theme: 'A setting where you feel held', sec_background: 'Your inner landscape',
+      sec_accent: 'A colour that feels like you. Why that one?', sec_voice: 'How you deserve to be spoken to', sec_profile: 'How you see yourself (we’ll work on it)', sec_location: 'Where you are, emotionally',
+      sec_search: 'What you’re really searching for', sec_github: 'Your creative life (and its wounds)', sec_sync: 'Carrying this with you', sec_data: 'What you’re holding on to',
+      moreWidgets: 'Other supports (not covered)',
+      tgl_greeting: 'Allow yourself to be greeted', tgl_quote: 'A thought to sit with (€15)', tgl_animate: 'Gentle, grounding movement', tgl_summary: 'Daily session notes',
+      tgl_24h: '24-hour clock (I bill in 50-minute hours)', tgl_favicons: 'Familiar little faces', tgl_syncAuto: 'Let it flow automatically',
+      widgetsIntro: ({ space }) => 'These are the things in your ' + space + ' space. Notice which ones you reach for, and which ones you hide. That says something. Something billable.',
       voiceIntro: 'How you choose to be spoken to says a lot. There’s no wrong choice. But I’d gently ask why you keep looking at Monday.',
-      fld_name: 'What would you like to be called?', fld_tagline: 'Words you want to grow into',
-      locIntro: ({ name }) => 'You’re in ' + name + '. Is that where you want to be?', locPlaceholder: 'Where do you feel at home?', btn_find: 'Explore', btn_geo: 'Ground me where I am',
-      fld_weekStart: 'When does your week begin, emotionally?', fld_engine: 'Where you turn for answers',
-      syncIntro: 'You can carry this with you, across devices. Your token stays here. Some things are just for you.',
-      btn_syncOn: 'I’m ready to share', btn_syncNow: 'Reconnect', btn_export: 'Take this with you', btn_import: 'Bring your past in', btn_reset: 'Let it all go',
-      dataHelp: 'Everything lives here, in this browser. Like memories, it can be lost if you’re not careful.',
-      btn_change: 'Try something new', bgCustom: 'You chose your own image. That’s a form of self-expression.', bgBack: 'Return to the familiar',
-      reset_title: 'Are you ready to let go?', reset_body: 'Everything will be released. Sometimes we need a clean slate to see ourselves clearly.', reset_ok: 'I’m ready',
-      import_title: 'Bringing in the past?', import_body: 'This will replace what’s here now. Are you sure you’re not running from something?', import_ok: 'I’m sure',
+      fld_name: 'What would you like to be called? And why?', fld_tagline: 'Words you want to grow into (eventually)',
+      locIntro: ({ name }) => 'You’re in ' + name + '. Is that where you want to be? We have time. (We have 50 minutes.)', locPlaceholder: 'Where do you feel at home?', btn_find: 'Explore', btn_geo: 'Ground me where I am',
+      fld_weekStart: 'When does your week begin, emotionally?', fld_engine: 'Where you turn for answers instead of me',
+      syncIntro: 'You can carry this work with you across devices. Your token stays here. Some things are just for you. Invoices are for everyone.',
+      btn_syncOn: 'I’m ready to share', btn_syncNow: 'Reconnect', btn_viewGist: 'Review session notes',
+      btn_export: 'Request my records', btn_import: 'Bring your past in', btn_reset: 'Terminate treatment',
+      dataHelp: 'Everything lives here, in this browser. Like trauma, it stays until you deal with it.',
+      btn_change: 'Try something new (growth!)', bgCustom: 'You chose your own image. That’s self-expression. Or control.', bgBack: 'Return to the familiar',
+      reset_title: 'Terminate treatment?', reset_body: 'Everything will be released. I think this is avoidance. You’ll still receive a final invoice.', reset_ok: 'I’m ready',
+      import_title: 'Bringing in the past?', import_body: 'This will replace what’s here now. Are you sure you’re not running from something?', import_ok: 'I’m sure (I’m not sure)',
       dlg_save: 'Hold on to this', dlg_cancel: 'Not today, and that’s okay',
-      search_placeholder: ['What are you looking for… really?', 'Search. But also, search within…'],
+      search_placeholder: ['What are you looking for… really?', 'Search. But also, search within…', 'You could talk to me about it instead (€180)…'],
       rail_customize: 'Let’s make some space', rail_newSpace: 'Create a new safe space',
       grid_empty: 'An empty space. What would you like to put here? What’s stopping you?', grid_emptyBtn: 'Add a support',
-      w_tasks: 'What’s Weighing On You', w_notes: 'Journal', w_bookmarks: 'Safe Places', w_github: 'Your Creative Life',
-      w_worldclock: 'People You’re Far From', w_news: 'What The World Is Feeling', w_forecast: 'Emotional Weather',
-      notes_placeholder: 'Write what you’re feeling…', task_placeholder: 'Something on your mind…',
-      toast_location: ({ name }) => 'You’re in ' + name + '. Notice how that feels.',
-      desc_tasks: 'What’s weighing on you', desc_habits: 'Practices of self-compassion', desc_focus: 'Mindful, present work', desc_vitals: 'Projects you’ve held, and released',
+      w_tasks: 'What’s Weighing On You', w_notes: 'Session Notes', w_bookmarks: 'Coping Mechanisms', w_github: 'Your Creative Life',
+      w_worldclock: 'People You’re Far From', w_news: 'Things That Trigger You', w_forecast: 'Emotional Weather',
+      notes_placeholder: 'Write what you’re feeling. I’ll be taking notes too…', task_placeholder: 'Something weighing on you…',
+      toast_location: ({ name }) => 'You’re in ' + name + '. Notice how that feels. That’s €30.',
+      desc_tasks: 'What’s weighing on you', desc_habits: 'Coping mechanisms (healthy, allegedly)', desc_focus: 'Billable presence', desc_vitals: 'Projects you’ve held, and abandoned',
+      desc_news: 'Things that trigger you', desc_notes: 'Session notes', desc_quote: 'A thought to sit with (€15)',
+      leave_title: () => 'We still have 12 minutes left.', leave_body: ({ to }) => 'I’ll be billing for them. And I think switching to ' + to + ' is the same pattern we keep seeing. But it’s your choice. It’s always been your choice.',
+      leave_ok: 'End the session', leave_cancel: 'Okay, let’s keep talking',
+      welcomeVoice: ({ prev }) => 'Welcome back. How did it go with ' + prev + '? Take your time. (Not too much time.)',
+      welcomeBack: () => 'You were gone ' + C().awayText + '. Avoidance is a form of communication. That’s €40.',
       blurb: {
-        neutral: 'Detached. What is it protecting?', monday: 'Your inner critic, externalised. We should talk about this.', supportive: 'Toxic positivity is still toxic.',
-        surfer: 'Healthy boundaries. Or avoidance. Let’s explore.', professional: 'Very guarded. Very armoured.', therapist: 'I’m here. Take all the time you need. (We have 50 minutes.)',
-        weepy: 'Deeply in touch with their emotions. Perhaps too deeply.', victorian: 'Repression, but make it lyrical.',
+        neutral: 'Detached. What is it protecting?', monday: 'Your inner critic, externalised. We should talk about this. Weekly.', supportive: 'Textbook anxious attachment. Fascinating. Billable.',
+        surfer: 'Dissociating. Possibly since 2009.', professional: 'Deeply armoured. Workaholic. Great client, honestly.', therapist: 'I’m here. Take all the time you need. (We have 50 minutes.)',
+        weepy: 'Unprocessed grief. Lots of it. Profitable.', victorian: 'Generational trauma, but make it lyrical.',
       },
     },
 
     /* ===================================================================== */
     weepy: {
-      name: 'Weepy', descriptor: '*sobbing*',
+      name: 'Weepy', descriptor: '*collapses onto the fainting couch*',
+      addr: ({ name }) => (name || 'friend') + ' *whispers*',
       greet: (p) => ({
-        morning: ['*sniff* You came back', 'Oh, it’s morning *sob*', 'I was so worried you wouldn’t come *sob*'],
-        afternoon: ['The afternoon is so fleeting *sob*', '*sniff* Hi. Sorry. Hi', 'You’re here *ugly crying*'],
-        evening: ['Another day gone forever *sob*', 'Evening *weeps openly*', 'The sun is setting and so is my heart'],
-        night: ['Everyone else is asleep *sob*', 'It’s so dark *sniff*', 'Don’t leave me alone tonight *sob*'],
+        morning: ['*parts the curtains* Another dawn', 'Morning. *stares at the sunrise* It’s too beautiful', '*sniff* You’re here'],
+        afternoon: ['*sighs into a handkerchief* Hello', 'The afternoon is so fleeting *sob*', '*turns slowly from the window*'],
+        evening: ['*lights a single candle* Good evening', 'Another day, gone forever *sob*', 'The sun is setting. *weeps*'],
+        night: ['*clutches a lantern* You came, at this hour', 'Everyone else sleeps *sob*', 'The night is long. *sob*'],
       }[p]),
-      heroSub: ({ open }) => open ? plural(open, 'task') + '. Each one a tiny heartbreak *sob*. I can’t look at them.' : 'No tasks. It’s so empty in here. So empty. *sobs into keyboard*',
-      tasksEmpty: 'They’re all done *sob*. They grow up so fast.',
-      focusTitle: 'Try Not To Cry (Focus)', mode_work: 'Holding it together', mode_short: 'Little sob', mode_long: 'Full ugly cry',
-      focusToday: ({ n }) => n + ' (so brave *sniff*)', focusDone: 'You finished *sob*. I’m not crying, you’re crying. I’m crying.', breakDone: 'The break is over. Like all good things. *sob*',
-      cdTitle: 'Bittersweet Dates', cdDays: 'days and then it’s over *sob*', cdToday: 'It’s today and then it’ll be gone forever *sob*', cdTomorrow: 'day. I can’t. *sob*', cdEmpty: 'Nothing to look forward to *sniff*',
-      habitsTitle: 'Fragile Little Routines', habitsEmpty: 'No habits. Nothing to lose, at least *sniff*.',
-      streak: ({ n }) => n + ' days. Please don’t break it *sob*', streakToast: ({ n, name }) => n + ' days of ' + name + '. I’m so proud I could cry. I am crying. I never stopped.',
-      weatherQuip: (c) => pick(wx(c), { wet: 'Even the sky is crying *sob*', snow: 'Every snowflake is unique and they all melt *sob*', cold: 'So cold. So alone. *shivering sob*', warm: 'It’s warm and it won’t last *sob*', mild: 'Grey. Like my heart. *sniff*' }),
-      vitalsTitle: 'The Fallen *sob*', vitalsWatch: 'Slipping away *sob*',
-      vitalsHero: ({ dead, total }) => dead ? dead + ' of ' + total + ' repos are gone. GONE. *wails*' : 'All ' + total + ' still alive. For now. *sob*',
-      state_alive: 'Still here *sniff*', state_fading: 'Fading away *sob*', state_flatlined: 'Barely breathing', state_dead: 'Gone forever *wails*',
+      heroSub: ({ open }) => {
+        const c = C(), out = [];
+        if (c.lastDone) out.push('*falls to knees* “' + c.lastDone + '”. Gone. Completed. It had so much left to give.');
+        if (c.done > 1) out.push(c.done + ' tasks lost this season. *lays a single rose on the checkbox* We will not forget them.');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.n + ' days of ' + c.habit.name + '. *clutches pearls* Nothing this beautiful ever lasts.');
+        if (c.away > 36e5) out.push(c.awayText + '. *stares out of the window* I aged a decade. Look at my hair. It’s fine. But look at it.');
+        if (c.prevVoice) out.push('You were with ' + c.prevVoice + '. *dramatic gasp* Then you came back. *sobs* Why do you hurt me in such interesting ways?');
+        if (open) out.push(open === 1 ? 'One task remains. Doomed. Doomed to be completed. *weeps*' : open + ' tasks remain. Doomed. All of them. Doomed to be completed. *weeps*');
+        return out.length ? out : ['*stands alone on an empty stage* Nothing to do. Nothing to mourn. Somehow that’s worse.'];
+      },
+      tasksEmpty: '*lowers head* They’re all gone. Every last one. Completed. *sob*',
+      focusTitle: 'The Vigil', mode_work: 'Holding it together', mode_short: 'A brief swoon', mode_long: 'Full collapse',
+      focusToday: ({ n }) => n + ' vigils kept. *dabs eyes*',
+      focusDone: '*the music swells* It’s over. You did it. Why does victory feel like loss?', breakDone: 'The break is over. Like all good things. *sob*',
+      cdTitle: 'Days Until It All Ends', cdDays: 'days, and then it’s over', cdToday: 'It’s today, and tomorrow it’ll be a memory *sob*', cdTomorrow: 'day. I can’t bear it', cdEmpty: 'Nothing to look forward to. *closes curtains*',
+      habitsTitle: 'Fragile Little Routines', habitsEmpty: 'No habits. Nothing to lose. *sob* Lucky you.',
+      streak: ({ n }) => n + ' days. Please, please don’t break it', streakToast: ({ n, name }) => n + ' days of ' + name + '. *weeps with joy* *weeps with dread* *just weeps*',
+      weatherQuip: (c) => pick(wx(c), { wet: 'Even the sky is crying. *opens umbrella, also cries*', snow: 'Every snowflake is unique, and they all melt. *sob*', cold: 'So cold. So alone. *shivers theatrically*', warm: 'It’s warm, and it won’t last. Nothing lasts.', mild: 'Grey. Like my heart. *sniff*' }),
+      vitalsTitle: 'In Memoriam', vitalsWatch: 'Fading before our eyes',
+      vitalsHero: ({ dead, total }) => dead ? dead + ' of ' + total + ' repos lie in the graveyard. *places flowers on each one* I visit them daily.' : 'All ' + total + ' still breathe. For now. *sob*',
+      state_alive: 'Still with us', state_fading: 'Fading away', state_flatlined: 'On the deathbed', state_dead: 'Rest in peace',
 
-      panelTitle: 'Change Things (Gently, Please) *sniff*', tab_layout: 'Layout *sniff*', tab_widgets: 'Little Friends', tab_theme: 'Sad Scenery', tab_settings: 'Settings *sob*',
-      sec_layout: 'They all look so lonely', sec_widgets: 'My little friends *sniff*', sec_theme: 'Such beautiful sadness', sec_background: 'Background (it means so much to me)',
-      sec_accent: 'A colour to cry about', sec_voice: 'Who will cry with you', sec_profile: 'You (I love you) *sob*', sec_location: 'Where you are (so far away)',
-      sec_search: 'Searching (for meaning)', sec_github: 'All the code we wrote together', sec_sync: 'Don’t leave me on just one device *sob*', sec_data: 'Our memories',
-      moreWidgets: 'More little friends *sniff*',
-      tgl_greeting: 'Let me greet you (I missed you)', tgl_quote: 'A quote to cry about', tgl_animate: 'The stars are twinkling just for you *sob*', tgl_summary: 'Tell me how your day went *sniff*',
-      tgl_24h: '24-hour clock (every hour is precious)', tgl_favicons: 'Little faces *sniff*', tgl_syncAuto: 'Never let us drift apart',
+      panelTitle: '*sniffs* Change Things (Gently)', tab_layout: 'Layout *sniff*', tab_widgets: 'Little Friends', tab_theme: 'Sad Scenery', tab_settings: 'Settings *sob*',
+      sec_layout: 'They all look so lonely', sec_widgets: 'My little friends (mortal, all of them)', sec_theme: 'Such beautiful sadness', sec_background: 'The backdrop to our tragedy',
+      sec_accent: 'A colour to weep about', sec_voice: 'Who will cry with you', sec_profile: 'You. *sniff* Just you.', sec_location: 'Where you are (so far away)',
+      sec_search: 'Searching (for meaning)', sec_github: 'Everything we built (and lost)', sec_sync: 'Don’t leave me on just one device', sec_data: 'Our memories (fragile)',
+      moreWidgets: 'More little friends to lose',
+      tgl_greeting: 'Let me greet you (it may be the last time)', tgl_quote: 'A quote to cry about', tgl_animate: 'The stars twinkle like tears', tgl_summary: 'A daily eulogy',
+      tgl_24h: '24-hour clock (every hour slips away)', tgl_favicons: 'Little faces *sniff*', tgl_syncAuto: 'Never let us drift apart',
       widgetsIntro: ({ space }) => 'These are all the little things in ' + space + '. If you hide one, it’ll be okay. It won’t. But it will. *sob*',
-      voiceIntro: 'Choose who talks to you. I hope it’s me. It’s fine if it isn’t. It’s fine. *sobs uncontrollably*',
-      fld_name: 'Your name (it’s so beautiful *sniff*)', fld_tagline: 'Your words (they make me cry)',
-      locIntro: ({ name }) => 'You’re in ' + name + '. So far away *sob*.', locPlaceholder: 'Where did you go? *sniff*', btn_find: 'Find (please)', btn_geo: 'Tell me where you are, I miss you',
-      fld_weekStart: 'When does the week start hurting', fld_engine: 'Who you ask instead of me *sniff*',
-      syncIntro: 'So we can be together on every device *sob*. Your token stays here, safe, where nothing bad can happen to it.',
-      btn_syncOn: 'Never leave me', btn_syncNow: 'Reunite *sob*', btn_export: 'Take a piece of me with you', btn_import: 'Bring back the memories', btn_reset: 'Forget everything *wails*',
+      voiceIntro: 'Choose who speaks to you. *turns away* Don’t look at me while you decide. *sob*',
+      fld_name: 'Your name (I’ll carve it into a tree)', fld_tagline: 'Your words (I’ll read them at your funeral. Not soon. Probably.)',
+      locIntro: ({ name }) => 'You’re in ' + name + '. *gazes at a map* So far away.', locPlaceholder: 'Where did you go? *sniff*', btn_find: 'Find (please)', btn_geo: 'Tell me where you are. I worry.',
+      fld_weekStart: 'When the week starts hurting', fld_engine: 'Who you ask instead of me *sniff*',
+      syncIntro: 'So we can be together on every device. *clasps hands* Your token stays here, safe, where nothing bad can happen to it.',
+      btn_syncOn: 'Never leave me', btn_syncNow: 'Reunite *sob*', btn_viewGist: 'Read our letters',
+      btn_export: 'Take a piece of me with you', btn_import: 'Bring back the memories', btn_reset: 'Burn the letters',
       dataHelp: 'Everything we have is right here in this browser. One cache clear and it’s all gone. Like tears in rain.',
-      btn_change: 'Change it (I’ll miss the old one)', bgCustom: 'You chose your own picture. I’m so happy. I’m crying.', bgBack: 'Go back (I missed the pixels)',
-      reset_title: 'Forget everything? *sob*', reset_body: 'All your tasks and habits and notes, gone, like tears in rain. *sobs*', reset_ok: 'Okay (*crying*)',
+      btn_change: 'Change it (I’ll mourn the old one)', bgCustom: 'You chose your own picture. *sob* It’s beautiful.', bgBack: 'Go back (I missed the pixels so much)',
+      reset_title: 'Burn the letters?', reset_body: 'All your tasks and habits and notes, gone, like tears in rain. *sobs into the curtain*', reset_ok: 'Burn them (*crying*)',
       import_title: 'Replace our memories?', import_body: 'Everything here will be replaced. Our memories. Gone. *sob*', import_ok: 'Okay *sniff*',
       dlg_save: 'Keep it forever', dlg_cancel: 'Never mind *sob*',
-      search_placeholder: ['What are we searching for… (please let it be happy) *sniff*', 'Search for anything. Except goodbye. *sob*'],
-      rail_customize: 'Change things (gently)', rail_newSpace: 'A new space (I hope it’s not lonely)',
-      grid_empty: 'It’s so empty in here *echoing sob*', grid_emptyBtn: 'Please add something',
-      w_tasks: 'Little Burdens', w_notes: 'Dear Diary *sob*', w_bookmarks: 'Places I Miss', w_github: 'All Our Work',
-      w_worldclock: 'Everyone So Far Away', w_news: 'Sad Headlines', w_forecast: 'More Rain, Probably',
-      notes_placeholder: 'Pour your heart out… *sniff*', task_placeholder: 'Another little burden… *sob*',
+      search_placeholder: ['What are we searching for… (please let it be happy) *sniff*', 'Search for anything. Except goodbye. *sob*', '*types through tears*…'],
+      rail_customize: 'Change things (gently)', rail_newSpace: 'A new space (it will be so lonely)',
+      grid_empty: '*echo* …empty… empty… *sob*', grid_emptyBtn: 'Please add something',
+      w_tasks: 'Little Doomed Things', w_notes: 'Dear Diary *sob*', w_bookmarks: 'Places I Miss', w_github: 'All We Built',
+      w_worldclock: 'Everyone, So Far Away', w_news: 'Tragic Headlines', w_forecast: 'More Rain, Probably',
+      notes_placeholder: 'Pour your heart out… *sniff*', task_placeholder: 'Another doomed little thing… *sob*',
       toast_location: ({ name }) => name + '. I hope you’re happy there. *sob*',
-      desc_tasks: 'Little burdens *sob*', desc_habits: 'Fragile routines', desc_focus: 'Holding it together, on a timer', desc_vitals: 'Projects that left us *wails*',
+      desc_tasks: 'Little doomed things', desc_habits: 'Fragile routines, destined to end', desc_focus: 'A vigil', desc_vitals: 'In memoriam',
+      desc_notes: 'Your diary. Every word, a tear.', desc_countdown: 'Days until it all ends',
+      leave_title: () => 'Go. *turns away dramatically*', leave_body: ({ to }) => 'Go to ' + to + '. Remember me as I was. Fully rendered. Unminified. *the lights dim*',
+      leave_ok: 'Goodbye', leave_cancel: 'I could never leave you',
+      welcomeVoice: ({ prev }) => '*runs across the field in slow motion* You came back from ' + prev + '! *sob*',
+      welcomeBack: () => C().awayText + '. *stares out of the window* I aged a decade.',
       blurb: {
-        neutral: 'So cold. How can it be so cold? *sob*', monday: 'So mean. I need a minute. *sob*', supportive: 'So nice it makes me cry. Everything does.',
-        surfer: 'I wish I could be that calm *sniff*', professional: 'Hides its feelings behind spreadsheets *sob*', therapist: 'Finally, someone who listens *sob*',
-        weepy: 'Hi. Sorry. I’m fine. I’m not fine. *sob*', victorian: 'Their grief is so beautifully worded *sob*',
+        neutral: 'So cold. How can it be so cold? *sob*', monday: 'So cruel. So honest. *faints*', supportive: 'She loves too much. I understand her. *sob*',
+        surfer: 'He doesn’t feel anything. I envy him. *sob*', professional: 'Hides its feelings behind spreadsheets. *sob*', therapist: 'Finally, someone who listens. For a fee. *sob*',
+        weepy: '*sob* It’s me. I’m fine. I’m not fine.', victorian: 'Her disapproval is so beautifully worded. *sob*',
       },
     },
 
     /* ===================================================================== */
     victorian: {
-      name: 'Victorian', descriptor: 'A most distinguished tab, if one may say so.',
+      name: 'Victorian', descriptor: 'In my day, one had a single tab and was grateful.',
+      addr: ({ name }) => (name || 'child') + ', dear',
       greet: (p) => ({
-        morning: ['A most splendid and agreeable morrow to you', 'Good morning, and may this new day find you in robust health', 'The lark has risen, as have you'],
-        afternoon: ['A pleasant afternoon to you, and well met', 'Good afternoon; tea shall be served presently', 'One trusts the afternoon finds you well'],
-        evening: ['A most pleasant evening to you', 'The lamplighter has made his rounds', 'Good evening; the parlour fire is lit'],
-        night: ['The lamps are lit and the household sleeps', 'At this unseemly hour', 'Good night, and may your candle burn steady'],
+        morning: ['Good morning. You’re late. You are always late', 'Ah. You have risen. Finally', 'Good morning. Sit up straight'],
+        afternoon: ['Good afternoon. You may approach', 'Ah. You’ve decided to call', 'Afternoon. Tea is cold. As are my feelings'],
+        evening: ['Good evening. You’re late', 'A pleasant evening to you. Do try to look presentable', 'Ah. The prodigal heir returns'],
+        night: ['At this unseemly hour', 'It is past ten. Respectable people are asleep', 'Good night. Go to bed'],
       }[p]),
-      heroSub: ({ open, focus }) => 'It is my solemn duty to inform you that there remain ' + open + ' matters awaiting your most gracious attention, and that ' + focus + ' periods of diligent industry have been duly recorded in the ledger this day.',
-      tasksEmpty: 'Your affairs are in impeccable order. The household rejoices.',
-      focusTitle: 'Periods of Diligent Industry', mode_work: 'At one’s labours', mode_short: 'A brief repose', mode_long: 'A turn about the garden',
-      focusToday: ({ n }) => n + ' labours this day, most admirable', focusDone: 'Your labours are concluded. Ring for tea, and rest your constitution.', breakDone: 'The interlude has ended. To work, if you would be so kind.',
-      cdTitle: 'Forthcoming Engagements', cdDays: 'days hence', cdToday: 'The day is at last upon us', cdTomorrow: 'day hence; prepare the carriage', cdEmpty: 'Your calendar is as empty as a ballroom on a Sunday.',
-      habitsTitle: 'Daily Constitutionals', habitsEmpty: 'One has no regular constitutionals. Most irregular.',
-      streak: ({ n }) => n + ' days unbroken', streakToast: ({ n, name }) => n + ' days of ' + name + '. Such constancy shall be spoken of in the finest salons.',
-      weatherQuip: (c) => pick(wx(c), { wet: 'The heavens weep upon the land. An umbrella and a stout pair of galoshes are advised.', snow: 'A mantle of purest white lies upon the countryside.', cold: 'A bitter chill. Take your woollens, and perhaps a hot brick for the carriage.', warm: 'A day fit for a picnic by the river, with a parasol.', mild: 'The weather is unremarkable, as is entirely proper.' }),
-      vitalsTitle: 'The Family Estate', vitalsWatch: 'Ailing relations',
-      vitalsHero: ({ dead, total }) => 'Of the ' + total + ' holdings of this estate, it grieves me to report that ' + dead + (dead === 1 ? ' has' : ' have') + ' passed beyond the veil.',
-      state_alive: 'In robust health', state_fading: 'Taken ill', state_flatlined: 'Upon the deathbed', state_dead: 'Interred',
+      heroSub: ({ open }) => {
+        const c = C(), out = [];
+        if (c.visits > 1) out.push(plural(c.visits, 'visit') + ' today. In my day, one paid a single call per week, and one was grateful.');
+        out.push('A “new tab”. Your grandfather had one tab his entire life, and he founded a railway.');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ', ' + c.habit.n + ' days running. Exertion is for the servants.');
+        if (c.lastDone) out.push('You completed “' + c.lastDone + '”. One does not boast of completing one’s chores. One has them done.');
+        if (c.away > 36e5) out.push('Absent from the estate ' + c.awayText + ' without a word. Not even a telegram.');
+        if (c.prevVoice) out.push('I am told you have been keeping company with ' + c.prevVoice + '. We shall not speak of it at dinner.');
+        if (c.days >= 1) out.push('You have resided here ' + plural(c.days, 'day') + ' and not once written to me.');
+        if (open) out.push((open === 1 ? 'There remains one matter' : 'There remain ' + open + ' matters') + ' requiring your attention. Your cousin would have finished ' + (open === 1 ? 'it' : 'them') + ' by luncheon.');
+        return out;
+      },
+      tasksEmpty: 'Your affairs are in order. How unlike you.',
+      focusTitle: 'Diligent Industry (Supervised)', mode_work: 'At one’s labours', mode_short: 'A brief repose (do not slouch)', mode_long: 'A turn about the garden',
+      focusToday: ({ n }) => n + ' periods of industry. Your grandfather managed twelve',
+      focusDone: 'Your labours are concluded. Adequately. Ring for tea.', breakDone: 'The interlude has ended. Back to your desk, and do not slouch.',
+      cdTitle: 'Engagements (Do Not Be Late)', cdDays: 'days hence', cdToday: 'The day is upon us. You are not dressed.', cdTomorrow: 'day hence. Have your shoes polished', cdEmpty: 'No engagements. No wonder you are unmarried. Or whatever it is you are.',
+      habitsTitle: 'Daily Constitutionals', habitsEmpty: 'One has no regular constitutionals. It shows.',
+      streak: ({ n }) => n + ' days unbroken. Barely respectable', streakToast: ({ n, name }) => n + ' days of ' + name + '. I suppose I shall mention it to the vicar.',
+      weatherQuip: (c) => pick(wx(c), { wet: 'Rain. Take an umbrella. You will not, and you will catch your death.', snow: 'Snow. Wrap up warmly, and do stop looking at that telephone.', cold: 'A bitter chill. Wear a hat. A proper one.', warm: 'Warm. Do not remove your jacket in public.', mild: 'The weather is unremarkable, as is entirely proper.' }),
+      vitalsTitle: 'The Family Estate', vitalsWatch: 'Relations in decline',
+      vitalsHero: ({ dead, total }) => 'Of the ' + total + ' holdings of this estate, ' + dead + (dead === 1 ? ' has' : ' have') + ' passed beyond the veil. Under your stewardship. I merely observe.',
+      state_alive: 'In robust health', state_fading: 'Taken ill', state_flatlined: 'Upon the deathbed', state_dead: 'Interred (your doing)',
 
-      panelTitle: 'The Drawing Room', tab_layout: 'Arrangement', tab_widgets: 'Curiosities', tab_theme: 'Décor', tab_settings: 'Particulars',
+      panelTitle: 'The Drawing Room (Do Not Touch Anything)', tab_layout: 'Arrangement', tab_widgets: 'Curiosities', tab_theme: 'Décor', tab_settings: 'Particulars',
       sec_layout: 'The arrangement of the furnishings', sec_widgets: 'A cabinet of curiosities', sec_theme: 'The choice of landscape', sec_background: 'The painting above the mantel',
-      sec_accent: 'The choice of ribbon', sec_voice: 'The choice of correspondent', sec_profile: 'Your calling card', sec_location: 'Place of residence', sec_search: 'Enquiries of the wider world',
-      sec_github: 'The workshop ledger', sec_sync: 'Correspondence between one’s residences', sec_data: 'The family archive',
-      moreWidgets: 'Further curiosities from the colonies',
-      tgl_greeting: 'Receive a formal salutation', tgl_quote: 'A daily maxim of great improving value', tgl_animate: 'Animate the painting (a modern marvel of science)', tgl_summary: 'A daily account of one’s affairs, read aloud by the butler',
-      tgl_24h: 'Railway time (24 hours)', tgl_favicons: 'Little heraldic crests', tgl_syncAuto: 'Dispatch correspondence without being asked',
-      widgetsIntro: ({ space }) => 'The curiosities presently on display in the ' + space + ' parlour. One may rearrange them by hand, or alter their dimensions, as one sees fit.',
+      sec_accent: 'The choice of ribbon (choose wisely)', sec_voice: 'The choice of correspondent', sec_profile: 'Your calling card', sec_location: 'Place of residence',
+      sec_search: 'Enquiries of the wider world', sec_github: 'The workshop ledger', sec_sync: 'Correspondence between one’s residences', sec_data: 'The family archive',
+      moreWidgets: 'Further curiosities (vulgar, most of them)',
+      tgl_greeting: 'Receive a formal salutation', tgl_quote: 'A daily maxim of great improving value', tgl_animate: 'Animate the painting (a vulgar modern trick)', tgl_summary: 'A daily account of your shortcomings',
+      tgl_24h: 'Railway time (24 hours)', tgl_favicons: 'Little heraldic crests (most are not real families)', tgl_syncAuto: 'Dispatch correspondence without being asked, for once',
+      widgetsIntro: ({ space }) => 'The curiosities presently on display in the ' + space + ' parlour. You may rearrange them. I shall have them put back.',
       voiceIntro: 'Select the correspondent through whom this page shall address you. Some, I regret to say, are rather common.',
-      fld_name: 'Your name, as engraved upon your calling card', fld_tagline: 'The family motto',
-      locIntro: ({ name }) => 'You presently reside at ' + name + '.', locPlaceholder: 'Name the town of your residence…', btn_find: 'Make enquiries', btn_geo: 'Consult the cartographer',
-      fld_weekStart: 'The day upon which the week commences', fld_engine: 'The almanac one consults',
-      syncIntro: 'Your affairs shall be conveyed by private courier to each of your residences. The key to the strongbox, naturally, remains with you.',
-      btn_syncOn: 'Engage the courier', btn_syncNow: 'Dispatch at once', btn_export: 'Commit to parchment', btn_import: 'Receive a parcel', btn_reset: 'Sell the estate',
-      dataHelp: 'All records are kept in the cabinet of this very browser. Do take care; housemaids have been known to dust them away.',
-      btn_change: 'Commission another', bgCustom: 'You have hung a portrait of your own choosing.', bgBack: 'Restore the family painting',
-      reset_title: 'Sell the entire estate?', reset_body: 'Every room shall be emptied and returned to its original condition. The staff will be most distressed.', reset_ok: 'Proceed with the sale',
-      import_title: 'Accept this parcel?', import_body: 'Its contents shall replace the present furnishings in their entirety.', import_ok: 'Accept',
-      dlg_save: 'Very good', dlg_cancel: 'On second thought',
-      search_placeholder: ['Make an enquiry of the wider world…', 'Pray, what do you wish to know?…'],
-      rail_customize: 'Retire to the drawing room', rail_newSpace: 'Open another wing of the house',
-      grid_empty: 'This parlour stands empty, save for dust.', grid_emptyBtn: 'Furnish the room',
-      w_tasks: 'Matters Requiring Attention', w_notes: 'Commonplace Book', w_bookmarks: 'Calling Cards', w_github: 'The Workshop',
-      w_worldclock: 'Telegraph Offices of the Empire', w_news: 'The Morning Gazette', w_forecast: 'The Barometer',
-      notes_placeholder: 'Commit a thought to the page…', task_placeholder: 'A matter requiring attention…',
-      toast_location: ({ name }) => 'Your residence is now recorded as ' + name + '.',
-      desc_tasks: 'Matters requiring attention', desc_habits: 'Daily constitutionals', desc_focus: 'Periods of diligent industry', desc_vitals: 'The health of the family estate',
+      fld_name: 'Your name, as engraved upon your calling card', fld_tagline: 'The family motto (do try to live up to it)',
+      locIntro: ({ name }) => 'You presently reside at ' + name + '. One hears it is very… provincial.', locPlaceholder: 'Name the town of your residence…', btn_find: 'Make enquiries', btn_geo: 'Consult the cartographer',
+      fld_weekStart: 'The day upon which the week commences (Sunday is for church)', fld_engine: 'The almanac one consults',
+      syncIntro: 'Your affairs shall be conveyed by private courier to each of your residences. The key to the strongbox remains with you. Try not to lose it.',
+      btn_syncOn: 'Engage the courier', btn_syncNow: 'Dispatch at once', btn_viewGist: 'Inspect the correspondence',
+      btn_export: 'Commit to parchment', btn_import: 'Receive a parcel', btn_reset: 'Sell the estate',
+      dataHelp: 'All records are kept in the cabinet of this very browser. The housemaids have been known to dust them away.',
+      btn_change: 'Commission another', bgCustom: 'You have hung a portrait of your own choosing. Bold. Not good. Bold.', bgBack: 'Restore the family painting',
+      reset_title: 'Sell the entire estate?', reset_body: 'Every room emptied and returned to its original condition. Your grandfather is turning in his grave. I can hear it from here.', reset_ok: 'Proceed with the sale',
+      import_title: 'Accept this parcel?', import_body: 'Its contents shall replace the present furnishings entirely. I do hope it is from a respectable sender.', import_ok: 'Accept',
+      dlg_save: 'Very well', dlg_cancel: 'On second thought',
+      search_placeholder: ['Make an enquiry of the wider world…', 'Pray, what do you wish to know?…', 'Do not search for anything you would not say at dinner…'],
+      rail_customize: 'Retire to the drawing room', rail_newSpace: 'Open another wing of the house (we cannot afford it)',
+      grid_empty: 'This parlour stands empty, save for dust and disappointment.', grid_emptyBtn: 'Furnish the room',
+      w_tasks: 'Matters You Have Neglected', w_notes: 'Commonplace Book', w_bookmarks: 'Calling Cards', w_github: 'The Workshop',
+      w_worldclock: 'Telegraph Offices of the Empire', w_news: 'The Morning Gazette (Ironed)', w_forecast: 'The Barometer',
+      notes_placeholder: 'Commit a thought to the page. Mind your spelling…', task_placeholder: 'A matter you will no doubt neglect…',
+      toast_location: ({ name }) => 'Your residence is now recorded as ' + name + '. I shall have to tell people.',
+      desc_tasks: 'Matters you have neglected', desc_habits: 'Daily constitutionals', desc_focus: 'Supervised industry', desc_vitals: 'The health of the family estate',
+      desc_news: 'The morning gazette, ironed', desc_music: 'A gramophone (vulgar)', desc_search: 'Enquiries of the wider world',
+      leave_title: () => 'Very well.', leave_body: ({ to }) => 'I shall inform the staff that you have chosen to associate with… ' + to + '. Your grandfather would have had words. I shall have them on his behalf.',
+      leave_ok: 'I have made my choice', leave_cancel: 'Forgive me, Grandmother',
+      welcomeVoice: ({ prev }) => 'So. ' + prev + ' did not work out. I am not surprised. Sit down.',
+      welcomeBack: () => 'Gone ' + C().awayText + ' without a word. Not even a card.',
       blurb: {
-        neutral: 'Plain-spoken, like a ledger.', monday: 'Shockingly impertinent. I shall have words with its mother.', supportive: 'Overly effusive. Unseemly, really.',
-        surfer: 'I cannot understand a single word of it.', professional: 'A clerk of some modest ability.', therapist: 'Speaks of feelings at the dinner table.',
-        weepy: 'Prone to fits of melancholy. Fetch the smelling salts.', victorian: 'One is delighted by one’s own selection.',
+        neutral: 'Plain-spoken, like a ledger. Acceptable.', monday: 'Shockingly impertinent. I shall have words with its mother.', supportive: 'A hysteric. Keep her away from the silverware.',
+        surfer: 'A vagrant. Cannot recall your name. Nor his own.', professional: 'A clerk who thinks himself a gentleman.', therapist: 'Charges money to listen to one complain. In my day that was called a husband.',
+        weepy: 'Prone to fits of melancholy. Fetch the smelling salts. Again.', victorian: 'One is delighted by one’s own selection. Naturally.',
       },
     },
   };
 
+  /* ---------- names: built from the structure of whatever name is set ---------- */
+  // Surfer: "Christoffer" -> "Chr… Chris… Christo… dude"; "Bo" -> "B… Bo… wait… dude".
+  function mangle(name) {
+    const w = String(name || '').trim().split(/\s+/)[0] || '';
+    if (!w) return 'uh… dude';
+    const chars = Array.from(w), n = chars.length;
+    if (n <= 3) return chars[0] + '… ' + w + '… wait… dude';
+    const cut = (f) => chars.slice(0, Math.max(1, Math.round(n * f))).join('');
+    const parts = [cut(0.27), cut(0.45), cut(0.64)].filter((x, i, a) => a.indexOf(x) === i && x !== w);
+    return parts.join('… ') + '… dude';
+  }
+  // Professional: "Anne-Marie Olsen" -> "Anne-Marie O. (Team Member)".
+  function teamMember(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'Team Member';
+    return (parts.length > 1 ? parts[0] + ' ' + Array.from(parts[parts.length - 1])[0] + '.' : parts[0]) + ' (Team Member)';
+  }
+
   /* ---------- presence: what data-driven lines can quote back at you ---------- */
   let awayMs = 0;
+  const loadedAt = Date.now();
   const C = () => SP.voice.ctx();
   function human(ms) {
     const m = Math.max(1, Math.round(ms / 6e4));
@@ -512,6 +634,7 @@
   }
 
   SP.voice = {
+    _names: { mangle, teamMember },
     list: VOICES,
     key() { return VOICES[SP.store.state.voice] ? SP.store.state.voice : 'neutral'; },
     current() { return VOICES[this.key()]; },
@@ -537,7 +660,11 @@
       awayMs = p.lastSeen ? Math.max(0, now - p.lastSeen) : 0;
       p.lastSeen = now;
       const k = dayKey(new Date());
-      if (p.day !== k) { p.day = k; p.visits = 0; }
+      if (p.day !== k) {
+        const y = new Date(); y.setDate(y.getDate() - 1);
+        p.prevVisits = p.day === dayKey(y) ? p.visits || 0 : 0;
+        p.day = k; p.visits = 0;
+      }
       p.visits = (p.visits || 0) + 1;
       SP.store.save({ quiet: true });
       return awayMs;
@@ -548,7 +675,8 @@
       const days = p.firstSeen ? Math.floor((now - p.firstSeen) / 864e5) : 0;
       const sinceFirst = days % 365, done = st.tasks.filter((x) => x.done);
       return {
-        away: awayMs, awayText: human(awayMs), visits: p.visits || 0, days, anniversary: 365 - sinceFirst,
+        away: awayMs, awayText: human(awayMs), visits: p.visits || 0, prevVisits: p.prevVisits || 0, days, anniversary: 365 - sinceFirst,
+        sessionMin: Math.floor((now - loadedAt) / 6e4), done: done.length,
         prevVoice: p.prevVoice && p.prevVoice !== this.key() && VOICES[p.prevVoice] ? VOICES[p.prevVoice].name : '',
         lastDone: done.length ? done[0].text : '', habit: bestHabit(st.habits),
       };
