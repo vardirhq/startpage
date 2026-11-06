@@ -128,7 +128,8 @@
       const vk = chaosVoice(id), as = (fn) => (vk ? SP.voice.as(vk, fn) : fn());
       el.innerHTML = as(() => W.render());
       el.classList.toggle('chaos', !!vk);
-      if (vk) { const h = el.querySelector('.card-head h3'), tag = '<span class="chaos-tag' + (h ? '' : ' float') + '" title="Chaos mode: this card has its own voice">' + esc(SP.voice.list[vk].name) + '</span>'; if (h) h.insertAdjacentHTML('afterend', tag); else el.insertAdjacentHTML('afterbegin', tag); }
+      // A small tab hanging from the card's top edge: positioned absolutely, so it never moves the content.
+      if (vk) el.insertAdjacentHTML('afterbegin', '<span class="chaos-tag" title="Chaos mode: this card has its own voice">' + esc(SP.voice.list[vk].name) + '</span>');
       el.insertAdjacentHTML('beforeend', '<div class="card-tools"><button class="size-btn" data-size-btn title="Card size" aria-label="Card size: ' + SIZES[sizeOf(id)].label + '">' + I('resize', 13) + '<span>' + sizeOf(id).toUpperCase() + '</span></button></div>');
       el.querySelector('[data-size-btn]').onclick = () => {
         const sp = space(), order = ['s', 'm', 'l'], next = order[(order.indexOf(sizeOf(id)) + 1) % 3];
