@@ -155,10 +155,21 @@
       try { await SP.store.files.set('bg', f); S().customBg = true; save(); await SP.app.applyTheme(); render(); }
       catch (err) { toast('Couldn’t save that image'); }
     });
-    on('[data-voice]', 'click', (e) => {
-      const v = e.currentTarget.dataset.voice;
-      if (v !== 'neutral' && S().voice === 'neutral') S().showSummary = true; // a voice is mostly heard in the summary line
+    on('[data-voice]', 'click', async (e) => {
+      const v = e.currentTarget.dataset.voice, cur = SP.voice.key(), V = SP.voice.list;
+      if (v === cur) return;
+      // Some voices don't let you go quietly.
+      if (V[cur].leave_title) {
+        const ctx = { to: V[v].name };
+        const ok = await SP.ui.dialog(SP.voice.t('leave_title', ctx), '<p class="muted">' + esc(SP.voice.t('leave_body', ctx)) + '</p>',
+          { okText: SP.voice.t('leave_ok'), cancelText: SP.voice.t('leave_cancel') });
+        if (!ok) return;
+      }
+      if (v !== 'neutral' && cur === 'neutral') S().showSummary = true; // a voice is mostly heard in the summary line
+      S().presence = S().presence || {};
+      S().presence.prevVoice = cur;
       S().voice = v; save(); SP.app.renderAll();
+      if (V[v].welcomeVoice && cur !== 'neutral') toast(SP.voice.t('welcomeVoice', { prev: V[cur].name }));
     });
     on('[data-weekstart]', 'change', (e) => { S().weekStart = +e.target.value; save(); SP.app.renderWidget('calendar'); SP.app.renderWidget('habits'); });
     on('[data-sync-now]', 'click', async () => { await SP.sync.now(); render(); });

@@ -98,6 +98,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
 
   function toast(msg) {
+    document.querySelectorAll('.toast').forEach((n) => n.remove()); // newest message wins instead of piling up
     const t = document.createElement('div');
     t.className = 'toast';
     t.textContent = msg;

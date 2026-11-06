@@ -63,6 +63,7 @@
       { id: 'h3', name: 'Read', days: {} },
     ],
     sync: { gistId: '', auto: true, lastSync: 0 },
+    presence: {},
     updatedAt: 0,
   };
 

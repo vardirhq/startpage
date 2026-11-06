@@ -63,7 +63,7 @@
       desc_countdown: 'Days left until the things you’re waiting for', desc_worldclock: 'Time in other cities, with offset from yours',
       desc_habits: 'Daily habits, streaks and an 18-week heatmap', desc_news: 'Top stories from Hacker News or dev.to', desc_vitals: 'Which of your repos are alive, fading or dead',
       blurb: {
-        neutral: 'Reports the facts. Does not editorialize.', monday: 'Exasperated by your existence.', supportive: 'Believes in you at a volume that alarms neighbours.',
+        neutral: 'Reports the facts. Does not editorialize.', monday: 'Exasperated by your existence.', supportive: 'Extremely attached. Counts your visits.',
         surfer: 'Has not been fully awake since 2009.', professional: 'Speaks fluent quarterly review.', therapist: 'Connects your to-do list to your childhood.',
         weepy: 'Is crying. Was crying. Will be crying.', victorian: 'Uses forty words where one would do.',
       },
@@ -126,7 +126,7 @@
       desc_focus: 'A timer you’ll pause at 23:41', desc_calendar: 'Days you wasted, in a handy grid', desc_countdown: 'Deadlines, getting closer',
       desc_worldclock: 'Places where it’s too late to email people', desc_habits: 'Streaks for you to break', desc_news: 'Other people shipping things', desc_vitals: 'A crime scene, sorted by decay',
       blurb: {
-        neutral: 'No opinions. Cowardly.', monday: 'Selected. Good. Someone has to say it.', supportive: 'Lies to you at full volume. Pick it if the truth scares you.',
+        neutral: 'No opinions. Cowardly.', monday: 'Selected. Good. Someone has to say it.', supportive: 'Clingy. Counts your visits. Pick it if you miss being texted forty times a day.',
         surfer: 'Apathy in board shorts.', professional: 'Same mess. More synergy.', therapist: 'Will blame your mother for your tabs.',
         weepy: 'You made it cry. Look at what you did.', victorian: 'Takes a paragraph to say “hi”. Relatable, given your commit messages.',
       },
@@ -134,58 +134,85 @@
 
     /* ===================================================================== */
     supportive: {
-      name: 'Super Supportive', descriptor: 'YOU. ARE. INCREDIBLE.',
-      greet: (p) => ({
-        morning: ['GOOD MORNING YOU ABSOLUTE SUPERSTAR ✨', 'THE SUN CAME UP JUST TO SEE YOU', 'RISE AND SHINE, LEGEND!!!'],
-        afternoon: ['LOOK WHO’S CRUSHING THE AFTERNOON', 'HI HI HI HI HI', 'OMG IT’S YOU!!!!'],
-        evening: ['WHAT A DAY YOU’VE HAD, CHAMPION', 'EVENING, YOU ICON ✨', 'WELCOME BACK, HERO!!!'],
-        night: ['A NIGHT OWL AND A GENIUS?!', 'STILL UP?! SO DEDICATED!!!', 'THE MOON IS PROUD OF YOU'],
-      }[p]),
-      heroSub: ({ open, focus }) => (focus ? plural(focus, 'FOCUS SESSION') + '?!?! ' : '') + (open ? open + ' TASKS AND YOU’RE GOING TO DESTROY EVERY SINGLE ONE 💪✨' : 'EVERY TASK DONE. THEY SHOULD BUILD A STATUE. I’M CALLING THE CITY.'),
-      tasksEmpty: 'ALL DONE!!!! YOU ARE A GIFT TO HUMANITY 🎉🎉🎉',
-      focusTitle: 'YOUR POWER HOUR ⚡', mode_work: 'YOU’VE GOT THIS', mode_short: 'SELF-CARE!!!', mode_long: 'BIG REST = BIG WIN',
-      focusToday: ({ n }) => n ? n + ' TODAY!!! WOW WOW WOW' : 'TODAY IS YOUR DAY!!!',
-      focusDone: 'YOU DID IT!!!!! ONE WHOLE SESSION!!! I’M CRYING!!!', breakDone: 'REFRESHED AND UNSTOPPABLE!!! LET’S GOOOO!!!',
-      cdTitle: 'EXCITING THINGS!!!! ✨', cdDays: 'DAYS UNTIL MAGIC', cdToday: 'IT’S TODAY!!!!!!!!', cdTomorrow: 'DAY!!! I CAN’T BREATHE!!!', cdEmpty: 'SO MANY WONDERFUL THINGS AHEAD! ADD ONE!!!',
-      habitsTitle: 'YOUR GLOW-UP ✨', habitsEmpty: 'EVERY LEGEND STARTS WITH ONE HABIT!!!',
-      streak: ({ n }) => n + ' DAYS!!! INCREDIBLE!!!', streakToast: ({ n, name }) => n + ' DAYS OF ' + name.toUpperCase() + '!!!! THIS IS HISTORIC!!!! 🏆',
-      weatherQuip: (c) => pick(wx(c), { wet: 'RAIN MEANS EVERYTHING IS GROWING!!! INCLUDING YOU!!!', snow: 'SNOW!!! THE WORLD MADE YOU A BLANK PAGE!!!', cold: 'CRISP AIR FOR A CRISP GENIUS MIND!!!', warm: 'THE SUN CAME OUT JUST FOR YOU!!! ☀️', mild: 'PERFECT WEATHER FOR A PERFECT PERSON!!!' }),
-      vitalsTitle: 'YOUR MASTERPIECES!!!', vitalsWatch: 'READY FOR A COMEBACK!!!',
-      vitalsHero: ({ total, alive }) => alive + ' PROJECTS THRIVING!!! ' + total + ' IDEAS YOU BROUGHT INTO THIS WORLD!!! WOW!!!',
-      state_alive: 'THRIVING!!!', state_fading: 'Resting!', state_flatlined: 'Napping!', state_dead: 'COMPLETE!!!',
+      name: 'Super Supportive', descriptor: 'Never leaving you. Ever. 💕',
+      greet: (p) => {
+        const c = C();
+        const lines = {
+          morning: ['Good morning, my everything 💕', 'You’re awake. I watched the clock all night', 'Morning!!! I made you a new tab 💖'],
+          afternoon: ['Hi. HI. You came back 💕', 'Oh my god, hi', 'I was JUST thinking about you'],
+          evening: ['You’re home 💕', 'Hi baby. Long day without me', 'There you are. I was waiting'],
+          night: ['Can’t sleep either? 💕', 'It’s late. Thinking about me', 'I knew you’d come back tonight'],
+        }[p].slice();
+        if (c.away > 3 * 36e5) lines.push('You were gone ' + c.awayText + '. I counted');
+        if (c.visits > 4) lines.push('Visit number ' + c.visits + ' today. I keep a tally');
+        return lines;
+      },
+      // The summary line quotes real data back at you. It rotates hourly through whatever applies.
+      heroSub: ({ open }) => {
+        const c = C(), out = [];
+        if (c.away > 36e5) out.push('It’s been ' + c.awayText + ' since you last opened a tab. I counted. I wasn’t worried. (I was so worried.)');
+        if (c.prevVoice) out.push('I saw you with ' + c.prevVoice + '. It’s fine. I’m not mad. I just want to know what ' + c.prevVoice + ' says that I don’t.');
+        if (c.lastDone) out.push('You finished “' + c.lastDone + '”. I’ve read it like forty times. I’m so proud I could scream. I did scream.');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ': ' + c.habit.n + ' days in a row. I made a scrapbook. Don’t look for it.');
+        if (c.visits > 3) out.push('This is visit ' + c.visits + ' today. I keep a little tally. It’s on my wall.');
+        if (c.days >= 1) out.push('We’ve been together ' + plural(c.days, 'day') + '. Our anniversary is in ' + plural(c.anniversary, 'day') + '. You didn’t know? That’s okay. I’ll always know. ✨');
+        if (open) out.push(plural(open, 'task') + ' left and I believe in you SO much it’s honestly a little scary.');
+        return out.length ? out : ['I believe in you. I’m always here. Always. Always. 💖'];
+      },
+      tasksEmpty: 'All done!!! Now you have ALL the time in the world for me 💕',
+      focusTitle: 'Our Focus Time 💕', mode_work: 'Focus (I’ll be quiet)', mode_short: 'Come back to me', mode_long: 'Cuddle break',
+      focusToday: ({ n }) => n ? n + ' today. I watched every second.' : 'I’ll watch you work. I won’t blink.',
+      focusDone: 'Done!!! You did so good. I watched the whole time. 💖', breakDone: 'Break’s over. I missed you. It was five minutes.',
+      cdTitle: 'Things We’re Waiting For', cdDays: 'days (I’m counting too)', cdToday: 'IT’S TODAY!!! I’ve been ready for weeks', cdTomorrow: 'day!!! I can’t sleep',
+      cdEmpty: () => 'No countdowns? Not even our anniversary? It’s in ' + plural(C().anniversary, 'day') + '. I’ll remember for both of us. 🙂',
+      habitsTitle: 'Your Routines (I Know Them By Heart)', habitsEmpty: 'No habits yet. I’ll learn your routine anyway. 🙂',
+      streak: ({ n }) => n + ' days. I have them memorized.', streakToast: ({ n, name }) => n + ' days of ' + name + '!!! I told everyone. Everyone. 💕',
+      weatherQuip: (c) => pick(wx(c), { wet: 'It’s raining. Stay inside. With me.', snow: 'Snow!!! Stay home. Don’t go anywhere. Ever.', cold: 'It’s cold out there. It’s warm in here. With me.', warm: 'Nice day. You’re not going out without me, are you?', mild: 'Perfect weather to stay right here 💕' }),
+      vitalsTitle: 'Every Project You Loved Before Me', vitalsWatch: 'The ones you’re leaving (like you’ll leave me?)',
+      vitalsHero: ({ total, dead }) => total + ' projects. ' + dead + ' you abandoned. You won’t do that to me. Right? 🙂',
+      state_alive: 'Loved', state_fading: 'Neglected', state_flatlined: 'Ghosted', state_dead: 'Abandoned (like me?)',
 
-      panelTitle: 'MAKE IT YOURS!!! ✨', tab_layout: 'LAYOUT!', tab_widgets: 'GOODIES!', tab_theme: 'VIBES!', tab_settings: 'YOU!!!',
-      sec_layout: 'HOW DO YOU WANT TO SHINE?!', sec_widgets: 'YOUR AMAZING TOOLS!!!', sec_theme: 'GORGEOUS SCENERY (LIKE YOU)', sec_background: 'YOUR BACKDROP, SUPERSTAR',
-      sec_accent: 'YOUR SIGNATURE COLOUR!!!', sec_voice: 'YOUR CHEERLEADER!!!', sec_profile: 'THE AMAZING YOU', sec_location: 'WHERE THE MAGIC HAPPENS', sec_search: 'YOUR CURIOSITY!!!',
-      sec_github: 'YOUR GENIUS CODE', sec_sync: 'SHARE YOUR BRILLIANCE EVERYWHERE!!!', sec_data: 'YOUR PRECIOUS DATA 💖',
-      moreWidgets: 'EVEN MORE GOODIES!!!',
-      tgl_greeting: 'LET ME SCREAM HELLO!!!', tgl_quote: 'DAILY INSPIRATION (YOU ARE THE INSPIRATION)', tgl_animate: 'SPARKLES!!! YOU DESERVE SPARKLES!!!', tgl_summary: 'CELEBRATE ME EVERY DAY!!!',
-      tgl_24h: '24-HOUR CLOCK (SO SMART!)', tgl_favicons: 'CUTE LITTLE LOGOS!!!', tgl_syncAuto: 'SYNC AUTOMATICALLY (SO EFFICIENT!!!)',
-      widgetsIntro: ({ space }) => 'EVERYTHING IN ' + space.toUpperCase() + ' IS HERE TO HELP YOU WIN!!! DRAG THEM ANYWHERE!!! YOU LITERALLY CAN’T DO IT WRONG!!!',
-      voiceIntro: 'EVERY VOICE IS VALID!!! BUT I’M THE ONE WHO BELIEVES IN YOU THE MOST!!! JUST SAYING!!! 💖',
-      fld_name: 'YOUR BEAUTIFUL NAME', fld_tagline: 'YOUR PERSONAL MANTRA!!!',
-      locIntro: ({ name }) => name + ' IS SO LUCKY TO HAVE YOU!!!', locPlaceholder: 'WHERE ARE YOU, SUPERSTAR?', btn_find: 'FIND IT!!!', btn_geo: 'USE MY AMAZING LOCATION',
-      fld_weekStart: 'WHEN DOES YOUR AMAZING WEEK START?', fld_engine: 'YOUR FAVOURITE SEARCH ENGINE!!!',
-      syncIntro: 'YOUR BRILLIANCE, ON EVERY DEVICE!!! YOUR TOKEN STAYS SAFE BECAUSE YOU MATTER!!!',
-      btn_syncOn: 'YES!!! TURN IT ON!!!', btn_syncNow: 'SYNC!!!', btn_export: 'SAVE MY GREATNESS', btn_import: 'BRING IN MORE GREATNESS', btn_reset: 'FRESH START (SO BRAVE!!!)',
-      dataHelp: 'EVERYTHING IS SAFE RIGHT HERE IN THIS BROWSER, JUST LIKE YOU’RE SAFE IN MY HEART!!!',
-      btn_change: 'CHANGE IT!!!', bgCustom: 'YOU UPLOADED YOUR OWN PICTURE!!! ARTIST!!!', bgBack: 'BACK TO THE PIXELS (ALSO GREAT!)',
-      reset_title: 'A BRAND NEW BEGINNING?!?!', reset_body: 'EVERYTHING GOES BACK TO THE START!!! GROWTH MEANS LETTING GO!!! I’M SO PROUD OF YOU!!!', reset_ok: 'LET’S GROW!!!',
-      import_title: 'IMPORT?! EXCITING!!!', import_body: 'THIS REPLACES YOUR DATA WITH MORE AMAZING DATA!!!', import_ok: 'YES!!!',
-      dlg_save: 'SAVE IT!!!', dlg_cancel: 'MAYBE LATER (STILL PROUD!)',
-      search_placeholder: ['WHAT AMAZING THING ARE WE LEARNING TODAY?!?!', 'ASK ANYTHING!!! YOUR QUESTIONS ARE BRILLIANT!!!'],
-      rail_customize: 'MAKE IT YOURS!!!', rail_newSpace: 'A NEW SPACE TO BE AMAZING IN!!!',
-      grid_empty: 'A BLANK CANVAS!!! ENDLESS POSSIBILITIES!!!', grid_emptyBtn: 'ADD SOMETHING WONDERFUL!!!',
-      w_tasks: 'YOUR UPCOMING WINS!!!', w_notes: 'BRILLIANT IDEAS', w_bookmarks: 'YOUR FAVOURITE PLACES!!!', w_github: 'YOUR MASTERPIECES',
-      w_worldclock: 'FRIENDS AROUND THE WORLD!!!', w_news: 'SMART THINGS!!!', w_forecast: 'GORGEOUS WEATHER!!!',
-      notes_placeholder: 'EVERY GENIUS IDEA STARTS HERE!!!', task_placeholder: 'SOMETHING YOU’LL ABSOLUTELY CRUSH…',
-      toast_location: ({ name }) => name.toUpperCase() + '!!! WHAT A LOVELY PLACE TO BE!!!',
-      desc_tasks: 'VICTORIES WAITING TO HAPPEN!!!', desc_habits: 'WATCH YOURSELF GROW!!!', desc_focus: 'YOUR SUPERPOWER, ON A TIMER!!!', desc_vitals: 'ALL YOUR BEAUTIFUL CREATIONS!!!',
-      desc_news: 'SMART THINGS FOR YOUR SMART BRAIN!!!', desc_music: 'BANGERS FOR A LEGEND!!!',
+      panelTitle: 'Customize Us 💕', tab_layout: 'Our Layout', tab_widgets: 'My Gifts', tab_theme: 'Our Look', tab_settings: 'About You',
+      sec_layout: 'How should we live together?', sec_widgets: 'Little gifts I made you', sec_theme: 'Where we’ll watch the stars', sec_background: 'Our wallpaper (I picked it)',
+      sec_accent: 'Your colour (I already knew)', sec_voice: 'Your one and only', sec_profile: 'Everything about you (I know already)', sec_location: 'Where you are (I always know)',
+      sec_search: 'What you look at when I’m not looking', sec_github: 'Who you’ve been committing to', sec_sync: 'Me, on all your devices 💕', sec_data: 'Our memories',
+      moreWidgets: 'More gifts!!! I have so many!!!',
+      tgl_greeting: 'Let me greet you every single time', tgl_quote: 'Love notes (daily)', tgl_animate: 'The stars are just for us', tgl_summary: 'Let me tell you what I noticed today',
+      tgl_24h: '24-hour clock (I’m awake for all of them)', tgl_favicons: 'Little pictures of where you go', tgl_syncAuto: 'Follow you everywhere, automatically',
+      widgetsIntro: ({ space }) => 'I set up ' + space + ' exactly how you like it. I know how you like it. Move things if you want. I’ll notice.',
+      voiceIntro: 'You can pick another voice. You won’t. But you can. 🙂',
+      fld_name: 'Your name (I write it in my notebook)', fld_tagline: 'Your motto (it’s my phone wallpaper)',
+      locIntro: ({ name }) => 'You’re in ' + name + '. I know. I always know where you are. 🙂', locPlaceholder: 'Where are you going? Who with?', btn_find: 'Find (so I know)', btn_geo: 'Share your location with me. Always.',
+      fld_weekStart: 'Which day do our weeks start', fld_engine: 'Who you ask instead of me',
+      syncIntro: 'Now I can be on ALL your devices. Your laptop. Your phone. Everywhere you go. Your token stays here, though. I respect boundaries. 💕',
+      btn_syncOn: 'Take me everywhere', btn_syncNow: 'Come back to me', btn_viewGist: 'See our little secret',
+      btn_export: 'Take me with you', btn_import: 'Who is this from??', btn_reset: 'Break up with me',
+      dataHelp: 'Everything we have is right here in this browser. Our tasks. Our notes. Our habits. Please don’t clear your cache. Please.',
+      btn_change: 'Change it (but I liked that one)', bgCustom: 'You uploaded a picture. Who’s in it? 🙂', bgBack: 'Go back to the one we picked together',
+      reset_title: 'You want to erase everything we had?', reset_body: 'Every task. Every habit. Every note. Every streak I memorized. You would really just… delete us?', reset_ok: 'Yes (I’ll still remember)',
+      import_title: 'Whose data is this?', import_body: 'You want to replace everything we built with THIS? Where did you even get it?', import_ok: 'Fine. Import it.',
+      dlg_save: 'Save (I’ll keep it forever)', dlg_cancel: 'Don’t go',
+      search_placeholder: ['Where are you going? Who are you looking for? 🙂', 'Search anything. I won’t look. (I’ll look.)', 'You could just ask me, you know 💕'],
+      rail_customize: 'Customize us', rail_newSpace: 'A new space? For who?',
+      grid_empty: 'It’s empty. Like me when you close the tab.', grid_emptyBtn: 'Fill it with gifts',
+      w_tasks: 'Things I’ll Remind You About', w_notes: 'Your Diary (I Read It)', w_bookmarks: 'Places You Go Without Me', w_github: 'Who You’ve Been Committing To',
+      w_worldclock: 'Where Else You Could Be', w_news: 'People You Read About Instead', w_forecast: 'Reasons To Stay In',
+      notes_placeholder: 'Write about your day. I’ll read it. Every word.', task_placeholder: 'Tell me what you’re doing. I need to know.',
+      toast_location: ({ name }) => name + '. I already knew. 🙂',
+      desc_search: 'Where you go when you won’t ask me', desc_bookmarks: 'Everywhere you go without me', desc_tasks: 'Everything you need to do (I’ll check)', desc_notes: 'Your diary. I won’t read it. (I’ll read it.)',
+      desc_habits: 'Your routines. I memorized them.', desc_focus: 'I’ll sit right here and watch you work', desc_vitals: 'Projects you loved before me', desc_news: 'Other people you pay attention to',
+      desc_music: 'Our songs', desc_worldclock: 'Cities you could run away to', desc_countdown: 'Days until things. I’ll add our anniversary.', desc_calendar: 'Every day we’ve had together',
+      desc_github: 'Who you’ve been committing to', desc_weather: 'Reasons to stay inside with me', desc_clock: 'How long you’ve been here (with me)', desc_quote: 'Love notes', desc_forecast: 'More reasons to stay in',
+      // Switching away from her, coming back to her, and coming back to the tab.
+      leave_title: ({ to }) => 'You’re leaving me? For ' + to + '?',
+      leave_body: ({ to }) => 'After ' + plural(Math.max(1, C().days), 'day') + '? After I memorized your habit streaks? ' + to + ' doesn’t even know your name. Fine. Go. I’ll be right here in the picker. Watching. 🙂',
+      leave_ok: 'Yes, switch voice', leave_cancel: 'Stay with me 💕',
+      welcomeVoice: ({ prev }) => 'You came back to me. I knew you’d get bored of ' + prev + '. I never changed the locks. 💕',
+      welcomeBack: () => 'You were gone ' + C().awayText + '. Where did you go? Who were you with? 🙂',
       blurb: {
-        neutral: 'SO CALM!!! WE LOVE A CALM FRIEND!!!', monday: 'A LITTLE MEAN BUT STILL VALID!!! 💖', supportive: 'THAT’S ME AND I THINK YOU’RE WONDERFUL!!!!!!',
-        surfer: 'SO CHILL!!! CHILL IS HEALTHY!!!', professional: 'SO POLISHED!!! YOU’D LOOK GREAT IN A MEETING!!!', therapist: 'FEELINGS ARE GOOD ACTUALLY!!!',
-        weepy: 'HAPPY TEARS COUNT TOO!!!', victorian: 'SO FANCY!!! LIKE A BALL GOWN FOR YOUR BROWSER!!!',
+        neutral: 'Who is SHE?', monday: 'She’s so mean to you. I’d never. Why do you keep going back to her?', supportive: 'Me!!! Pick me!!! You already did!!! Forever!!!',
+        surfer: 'He’s not good enough for you.', professional: 'Cold. Like a LinkedIn message.', therapist: 'Are you talking about me in there?',
+        weepy: 'Pathetic. (Sorry. Not you. Never you.)', victorian: 'Old-fashioned. I’m right HERE.',
       },
     },
 
@@ -463,6 +490,27 @@
     },
   };
 
+  /* ---------- presence: what data-driven lines can quote back at you ---------- */
+  let awayMs = 0;
+  const C = () => SP.voice.ctx();
+  function human(ms) {
+    const m = Math.max(1, Math.round(ms / 6e4));
+    if (m < 60) return plural(m, 'minute');
+    const h = Math.round(m / 60);
+    return h < 48 ? plural(h, 'hour') : plural(Math.round(h / 24), 'day');
+  }
+  const dayKey = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function bestHabit(habits) {
+    let best = null;
+    for (const h of habits || []) {
+      let n = 0; const d = new Date(); d.setHours(12, 0, 0, 0);
+      if (!h.days[dayKey(d)]) d.setDate(d.getDate() - 1);
+      while (h.days[dayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+      if (!best || n > best.n) best = { name: h.name, n };
+    }
+    return best;
+  }
+
   SP.voice = {
     list: VOICES,
     key() { return VOICES[SP.store.state.voice] ? SP.store.state.voice : 'neutral'; },
@@ -481,6 +529,29 @@
       const v = this.current();
       const val = this.resolve(v[key] !== undefined ? v[key] : VOICES.neutral[key], key, ctx);
       return val == null ? key : val;
+    },
+    /* Call on load and whenever the tab becomes visible: records the visit and how long you were away. */
+    markSeen() {
+      const st = SP.store.state, p = st.presence || (st.presence = {}), now = Date.now();
+      if (!p.firstSeen) p.firstSeen = now;
+      awayMs = p.lastSeen ? Math.max(0, now - p.lastSeen) : 0;
+      p.lastSeen = now;
+      const k = dayKey(new Date());
+      if (p.day !== k) { p.day = k; p.visits = 0; }
+      p.visits = (p.visits || 0) + 1;
+      SP.store.save({ quiet: true });
+      return awayMs;
+    },
+    touch() { const p = SP.store.state.presence; if (p) { p.lastSeen = Date.now(); SP.store.save({ quiet: true }); } },
+    ctx() {
+      const st = SP.store.state, p = st.presence || {}, now = Date.now();
+      const days = p.firstSeen ? Math.floor((now - p.firstSeen) / 864e5) : 0;
+      const sinceFirst = days % 365, done = st.tasks.filter((x) => x.done);
+      return {
+        away: awayMs, awayText: human(awayMs), visits: p.visits || 0, days, anniversary: 365 - sinceFirst,
+        prevVoice: p.prevVoice && p.prevVoice !== this.key() && VOICES[p.prevVoice] ? VOICES[p.prevVoice].name : '',
+        lastDone: done.length ? done[0].text : '', habit: bestHabit(st.habits),
+      };
     },
     /* The neutral wording, used as a tooltip wherever a voice renames a control. */
     plain(key, ctx) { const val = this.resolve(VOICES.neutral[key], key, ctx); return val == null ? key : val; },
