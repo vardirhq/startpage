@@ -432,8 +432,15 @@ dialog#dlg::backdrop { background: rgba(5, 3, 15, 0.55); backdrop-filter: blur(3
 .dlg-head h2 { margin: 0; font-size: 17px; }
 .dlg-body { padding: 10px 22px; max-height: 60vh; overflow-y: auto; }
 .dlg-body p { margin: 0 0 14px; }
-.dlg-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 22px 20px; }
+.dlg-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 10px 22px 20px; }
 .dlg-foot .danger { margin-right: auto; }
+/* Voiced labels get long ("Never mind (classic)", "Do it. You will anyway"): let them wrap instead of overflowing. */
+.dlg-foot .btn { white-space: normal; text-align: center; height: auto; min-height: 40px; padding-top: 8px; padding-bottom: 8px; line-height: 1.25; max-width: 100%; }
+@media (max-width: 520px) {
+  .dlg-foot { flex-direction: column-reverse; align-items: stretch; }
+  .dlg-foot .btn { width: 100%; }
+  .dlg-foot .danger { margin-right: 0; order: -1; }
+}
 .edit-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 2px; font-size: 14px; }
 .edit-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0 4px 2px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
 
@@ -517,7 +524,7 @@ body.editing .card-tools { display: flex; }
 .w-forecast { min-width: 380px; } .w-news { min-width: 340px; } .w-habits { min-width: 340px; }
 
 /* focus */
-.focus { display: flex; align-items: center; gap: 22px; }
+.focus { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px; }
 .focus-ring { position: relative; width: 124px; height: 124px; flex: none; }
 .focus-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .fr-bg { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 8; }
@@ -528,7 +535,7 @@ body.editing .card-tools { display: flex; }
 .fr-center b { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .fr-center small { font-size: 11.5px; color: var(--muted); max-width: 90px; line-height: 1.2; }
 .focus.running .fr-center b { color: #fff; }
-.focus-side { flex: 1; min-width: 0; display: grid; gap: 12px; justify-items: start; }
+.focus-side { flex: 1 1 200px; min-width: 0; display: grid; gap: 12px; justify-items: start; } /* wraps below the ring when there isn't room beside it */
 .focus-btns { display: flex; gap: 8px; align-items: center; }
 .focus-btns .btn { height: 40px; }
 .focus-today { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
@@ -662,13 +669,14 @@ body.editing .card-tools { display: flex; }
 .ob-card { width: min(560px, 100%); max-height: calc(100vh - 32px); display: flex; flex-direction: column; border-radius: 22px;
   background: rgba(var(--tint-rgb), 0.94); border: 1px solid var(--line-strong); box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55); }
 .ob-card.enter { animation: pop 0.2s ease; }
-.ob-head { display: flex; align-items: center; gap: 14px; padding: 18px 22px 0; }
+.ob-head { display: flex; align-items: center; gap: 14px; padding: 18px 22px 12px; transition: box-shadow 0.15s; }
+.ob-card.scrolled .ob-head { box-shadow: 0 1px 0 var(--line-strong); } /* divider once the list scrolls under it */
 .ob-kicker { display: inline-flex; align-items: center; gap: 8px; flex: 1; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 .ob-kicker svg { filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.5)); }
 .ob-dots { display: flex; gap: 6px; }
 .ob-dots i { width: 22px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.15); transition: background 0.2s; }
 .ob-dots i.on { background: var(--accent); }
-.ob-body { padding: 20px 22px 8px; overflow-y: auto; }
+.ob-body { padding: 8px 22px 8px; overflow-y: auto; }
 .ob-body h2 { margin: 0 0 6px; font-size: clamp(22px, 4vw, 28px); line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; }
 .ob-body > p.muted { margin: 0 0 18px; font-size: 14px; line-height: 1.5; }
 .ob-input { width: 100%; height: 50px; padding: 0 16px; border-radius: 14px; font-size: 17px; outline: 0;
@@ -690,8 +698,16 @@ body.editing .card-tools { display: flex; }
 .ob-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 22px 20px; }
 .ob-right { display: flex; gap: 8px; margin-left: auto; }
 body.onboarding #main, body.onboarding #rail { pointer-events: none; }
+.ob-foot .btn { white-space: normal; text-align: center; height: auto; min-height: 44px; line-height: 1.25; }
 @media (max-width: 520px) {
   .ob-voices { grid-template-columns: 1fr; }
-  .ob-head { flex-wrap: wrap; }
-  .ob-foot { flex-wrap: wrap; }
+  /* Kicker gets its own row; dots and Skip share the next one. */
+  .ob-head { flex-wrap: wrap; row-gap: 10px; }
+  .ob-kicker { flex-basis: 100%; }
+  .ob-dots { flex: 1; }
+  /* Buttons stack full-width, main action on top (same as dialogs). */
+  .ob-foot { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  .ob-right { margin-left: 0; flex-direction: column-reverse; gap: 8px; }
+  .ob-foot .btn { width: 100%; }
+  .ob-foot > span:empty { display: none; }
 }
