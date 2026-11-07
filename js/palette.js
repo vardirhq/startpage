@@ -104,6 +104,13 @@
     }
     const c = convert(v);
     if (c) out.push({ answer: true, icon: 'resize', label: c.text, sub: 'Enter to copy', copy: fmtNum(+c.value.toPrecision(8)) });
+    // Currency, with cached ECB rates: "100 usd to eur". The first query fetches the rates.
+    const fx = /^([\d.,]+)\s*([a-z]{3})\s+(?:to|in|i|til|=)\s+([a-z]{3})$/i.exec(v.trim());
+    if (fx && SP.fx && SP.fx.codes.includes(fx[2].toUpperCase()) && SP.fx.codes.includes(fx[3].toUpperCase())) {
+      const n = parseFloat(fx[1].replace(',', '.')), a = fx[2].toUpperCase(), b = fx[3].toUpperCase(), r = SP.fx.convert(n, a, b);
+      if (r != null) out.push({ answer: true, icon: 'coins', label: SP.fx.money(r, b), sub: 'ECB rate · Enter to copy', copy: r.toFixed(2) });
+      else { out.push({ icon: 'coins', label: 'Fetching exchange rates…', sub: a + ' → ' + b }); SP.fx.load().then(() => { const q = document.getElementById('q'); if (q) q.dispatchEvent(new Event('input')); }); }
+    }
     const d = dates(v);
     if (d) out.push({ answer: true, icon: 'calendar', label: d.text, sub: d.sub, copy: d.text });
     return out;

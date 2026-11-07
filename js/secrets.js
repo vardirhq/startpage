@@ -214,7 +214,7 @@
   // What the regular voices think of the newcomers.
   const OPINIONS = {
     neutral: { owl: 'Keeps irregular hours.', ghost: 'Mostly absent.', parent: 'Enthusiastic.' },
-    monday: { owl: 'Ugh. Never sleeps. Never shuts up.', ghost: 'Mopes like you. Spookier.', parent: 'Proud of you. Someone had to be. Ugh.' },
+    monday: { owl: 'Never sleeps. Never shuts up. Exhausting.', ghost: 'Mopes like you. Spookier.', parent: 'Proud of you. Someone had to volunteer.' },
     supportive: { owl: 'Up all night with you? THAT’S MY JOB.', ghost: 'Never leaves. I respect that. I’m also never leaving.', parent: 'Wants to meet me? I’ll bring a pie 💕' },
     surfer: { owl: 'Dawn patrol, but backwards.', ghost: 'Spooky, man. Or I forgot who it is.', parent: 'Wants to know if I have a job, man.' },
     professional: { owl: 'Works unpaid overtime. Ideal.', ghost: 'Hasn’t badged in for a week.', parent: 'Keeps emailing your manager.' },

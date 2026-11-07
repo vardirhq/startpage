@@ -24,14 +24,14 @@
       wr_outro: 'That was your week.',
     },
     monday: {
-      wr_kicker: 'Ugh. Your week', wr_title: 'Your Week, Unfortunately', wr_save: 'Save it. Frame your mediocrity', wr_share: 'Show people. Brave', wr_close: 'Make it stop', wr_open: 'Relive the week. Ugh.',
+      wr_kicker: 'Your week, regrettably', wr_title: 'Your Week, Unfortunately', wr_save: 'Save it. Frame your mediocrity', wr_share: 'Show people. Brave', wr_close: 'Make it stop', wr_open: 'Relive the week. If you must.',
       wr_done: ({ n, added }) => n >= added ? n + ' done, ' + added + ' added. Huh. Fine. Don’t get used to it.' : n + ' done, ' + added + ' added. The pile grows. As predicted.',
-      wr_focus: ({ n, time }) => n ? time + ' of “focus”. I’ve seen the tabs you had open.' : 'Zero focus sessions. Not even one. Ugh.',
+      wr_focus: ({ n, time }) => n ? time + ' of “focus”. I’ve seen the tabs you had open.' : 'Zero focus sessions. Not even an accidental one.',
       wr_streak: ({ name, n }) => n + ' days of ' + name + '. Your only personality trait this week.',
       wr_visits: ({ n, late }) => 'You opened this page ' + plural(n, 'time') + '. ' + (late ? late + ' after midnight. Seek help.' : 'Nothing better to do, apparently.'),
       wr_dropped: ({ n }) => plural(n, 'task') + ' deleted unfinished. You call it “prioritising”.',
-      wr_repos: ({ dead, total }) => dead + ' of ' + total + ' repos dead. You visited none of them. Ugh.',
-      wr_outro: 'Same time next week. You’ll be here. You always are. Ugh.',
+      wr_repos: ({ dead, total }) => dead + ' of ' + total + ' repos dead. You visited none of them. Not even flowers.',
+      wr_outro: 'Same time next week. You’ll be here. You always are. It’s a little sad. For both of us.',
     },
     supportive: {
       wr_kicker: 'Our week together 💕', wr_title: 'Every Moment Of Your Week (I Saved Them)', wr_save: 'Save it (I already did)', wr_share: 'Show everyone we’re together', wr_close: 'Don’t close it yet…', wr_open: 'Look at our week 💕',
@@ -133,13 +133,14 @@
     const from = new Date(days[0] + 'T12:00'), to = new Date(days[6] + 'T12:00');
     const f = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     return { days, range: f(from) + ' – ' + f(to), done: sum('done'), added: sum('added'), dropped: sum('dropped'), sessions, focusMin,
-      visits: sum('visits'), late: sum('late'), habit: habit && habit.n >= 2 ? habit : null, repos };
+      visits: sum('visits'), late: sum('late'), mood: (() => { const m = s.moods || {}, v = days.map((k) => m[k]).filter(Boolean); return v.length >= 2 ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : null; })(), habit: habit && habit.n >= 2 ? habit : null, repos };
   }
   function rows(d) {
     const r = [{ icon: 'check', big: d.done, label: 'tasks done', line: t('wr_done', { n: d.done, added: d.added }) },
       { icon: 'timer', big: hrs(d.focusMin * (d.sessions ? 1 : 0)), label: 'focused', line: t('wr_focus', { n: d.sessions, time: hrs(d.focusMin) }) }];
     if (d.habit) r.push({ icon: 'flame', big: d.habit.n, label: 'day streak', line: t('wr_streak', { name: d.habit.name, n: d.habit.n }) });
     r.push({ icon: 'eye', big: d.visits, label: 'visits', line: t('wr_visits', { n: d.visits, late: d.late }) });
+    if (d.mood) r.push({ icon: 'smile', big: d.mood, label: 'avg mood', line: t('wr_mood', { avg: d.mood }) });
     if (d.dropped) r.push({ icon: 'trash', big: d.dropped, label: 'dropped', line: t('wr_dropped', { n: d.dropped }) });
     if (d.repos && d.repos.total) r.push({ icon: 'gauge', big: d.repos.dead + '/' + d.repos.total, label: 'repos dead', line: t('wr_repos', d.repos) });
     return r;

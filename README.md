@@ -21,7 +21,7 @@ Whatever you skip stays empty, and the page starts with no personal data: no nam
 
 ## What's on it
 
-**Modules:** search · clock · weather · forecast (24h chart, wind, UV, sunrise/sunset, air quality) · GitHub activity · repo vitals · bookmarks · tasks · notes · focus timer · calendar (ISO weeks) · countdowns · world clocks · habits (streaks + heatmap) · news (Hacker News / dev.to) · music · daily quote
+**Modules:** search · clock · weather · forecast (24h chart, wind, UV, sunrise/sunset, air quality) · GitHub activity · repo vitals · bookmarks · tasks · notes · focus timer · calendar (ISO weeks) · countdowns · world clocks · habits (streaks + heatmap) · news (Hacker News / dev.to) · music · daily quote · moon (pixel-art phase, next full and new moon, golden hour) · on this day (Wikipedia) · currency (ECB rates via [Frankfurter](https://frankfurter.dev), also `100 usd to eur` in search) · mood (one tap a day, 30-day strip, average in Wrapped) · days since (counters with a reset button and a record) · decide (coin, die, a magic 8-ball that answers in the current voice, and "pick one of these")
 
 **Spaces:** each space (Home, Work, Gaming, Dev, your own) has its own widget set, order and card sizes.
 

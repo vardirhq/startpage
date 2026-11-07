@@ -25,7 +25,7 @@
     { id: 'valentine', when: (d) => d.getMonth() === 1 && d.getDate() === 14, fx: ['hearts'], heckler: 'supportive', name: 'Valentine’s Day',
       line: 'Happy Valentine’s Day!!! I got you something. It’s me. I’m the gift. I’ll be in every summary today. 💕', by: 'supportive' },
     { id: 'fools', when: (d) => d.getMonth() === 3 && d.getDate() === 1, chaos: true, name: 'April Fools’ Day',
-      line: 'Everyone’s talking at once today. Not my idea. Ugh.', by: 'monday' },
+      line: 'Everyone’s talking at once today. Not my idea. I filed a complaint.', by: 'monday' },
   ];
 
   function event(now) { if (S().seasons === false) return null; now = now || new Date(); return EVENTS.find((e) => e.when(now)) || null; }

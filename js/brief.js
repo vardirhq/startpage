@@ -21,7 +21,7 @@
       mb_cd: ({ title, days }) => (days === 0 ? title + ' is today.' : title + ' in ' + plural(days, 'day') + '.'),
     },
     monday: {
-      mb_title: 'Ugh. Your day, briefly', mb_read: 'Say it out loud. Ugh', mb_close: 'Go away',
+      mb_title: 'Your day, briefly (it won’t take long)', mb_read: 'Make me say it out loud', mb_close: 'Go away',
       mb_tasks: ({ n, top }) => plural(n, 'task') + ' waiting. Start with ' + list(top) + '. You won’t, but start there.', mb_noTasks: 'No tasks. Suspicious. Did you delete them again?',
       mb_streak: ({ name, n }) => n + ' days of ' + name + '. Break it today and I’ll never let you forget it.',
       mb_cd: ({ title, days }) => (days === 0 ? title + ' is today. You’re not ready.' : title + ' in ' + plural(days, 'day') + '. You’ll panic on the last one.'),
