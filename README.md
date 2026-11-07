@@ -14,30 +14,74 @@ Open a new tab and you get a pixel-art sky, your tasks, the weather, a moon that
 
 ## Meet the voices
 
-A voice doesn’t just change the greeting. It rewrites the whole page: widget titles, buttons, settings, error messages, even the dialog that asks whether you really want to delete everything. Pick one during setup, or under Customize → Voice.
+A voice doesn’t just change the greeting. It rewrites the whole page: widget titles, buttons, settings, error messages, even the dialog that asks whether you really want to delete everything. Pick one during setup, or under Customize → Voice. Every voice has opinions about the others, and they share them in the voice picker. If a voice renames a button beyond recognition, hover it for the plain wording; on a phone, it sits just underneath.
 
-![The same greeting in eight voices](docs/voices.png)
+### Neutral · *just the facts*
+![Neutral: “Good evening, Alex.”](docs/voices/neutral.png)
 
-| Voice | In a word | Sounds like |
-|---|---|---|
-| **Neutral** | Just the facts | “Good evening, friend.” |
-| **Monday** | Tired of you | “Twenty-five minutes of focus. Alert the historians.” |
-| **Super Supportive** | Never leaving | “You were gone 3 hours. Where did you go? Who were you with? 🙂” |
-| **Surfer** | Forgot your name | “Duuude. Hey, A… Al… Ale… dude.” |
-| **Professional** | Building a case | “Noted: 3 hours unscheduled absence. HR has been looped in.” |
-| **Therapist** | Billing by the minute | “You paused at 23:41. What came up for you just now?” |
-| **Weepy** | In mourning | “‘Buy milk’ is done. \*sobs\* Its little life is over.” |
-| **Victorian** | Disapproving | “In my day, one had a single tab and was grateful.” |
+Says what’s there and moves on. The control group, and the one to pick when the others get to be too much. Its entire reaction to you finishing every single task:
+> “All tasks done.”
 
-Every voice has opinions about the others, and they’ll tell you in the voice picker. Hover over any renamed control to see what it actually does. On a phone, the plain wording sits right underneath it.
+### Monday · *tired of you*
+![Monday: “Still at it. Bless, Alex.”](docs/voices/monday.png)
+
+Dry, exhausted by your existence, and secretly the one who notices everything. Pause the focus timer early and:
+> “24:59 left and you bailed. Riveting stamina.”
+
+### Super Supportive · *never leaving*
+![Super Supportive: “There you are. I was waiting, Alex.”](docs/voices/supportive.png)
+
+Loves you. Counts your visits. Has your anniversary in the calendar, though you don’t. Delete a task without doing it and:
+> “You deleted ‘Fix the flaky test’? Just like that? Is that what you’ll do to me? 🙂”
+
+### Surfer · *forgot your name*
+![Surfer: “Duuude. Hey, A… Al… Ale… dude.”](docs/voices/surfer.png)
+
+Extremely relaxed. Works out your name from its shape, then gives up halfway. Delete a task and:
+> “Let it go, man. Like the ocean. The ocean doesn’t have a to-do list.”
+
+### Professional · *building a case*
+![Professional: “Following up on this evening, Alex (Team Member).”](docs/voices/professional.png)
+
+Treats your new tab like a performance review. Everything is noted, everything goes in your file.
+> “‘Fix the flaky test’ descoped without delivery. Please send a written justification by EOD.”
+
+### Therapist · *billing by the minute*
+![Therapist: “Let’s unpack today, Alex.”](docs/voices/therapist.png)
+
+Gently curious about why you’re like this. Invoices in euros. Abandon a focus session and:
+> “You abandoned the session. Does that remind you of anything? Your father, perhaps?”
+
+### Weepy · *in mourning*
+![Weepy: “The sun is setting. *weeps*, Alex *whispers*.”](docs/voices/weepy.png)
+
+Every finished task is a little death, and every closed tab a goodbye. Tick something off and:
+> “You ticked it. It’s gone. Everything goes eventually. \*stares into the rain\*”
+
+### Victorian · *disapproving*
+![Victorian: “Ah. The prodigal heir returns, Alex, dear.”](docs/voices/victorian.png)
+
+Your grandmother, in a browser. Has views on your tabs, your spelling and your posture. Open a tab at 2am and:
+> “It is 02:14. Decent people are asleep. I am awake only to disapprove of you.”
 
 ### …and three you have to earn
 
-Three more voices sit in the picker as `???` until you unlock them. Each tile carries a hint:
+They wait in the voice picker as `???`, each with a hint.
 
-- *Open a tab after midnight. Five nights.*
-- *Stay away for a week.* (Someone will be waiting: “oh. you’re alive.”)
-- *Keep any habit going for 30 days.* (“THAT’S MY KID!!!”)
+**Night Owl** · *open a tab after midnight on five different nights*
+![Night Owl: “Evening. Stretch. Hydrate. Caffeinate, Alex 🦉.”](docs/voices/owl.png)
+
+> “Sleep is a subscription you cancelled.”
+
+**Ghost** · *stay away for a week*
+![Ghost: “you came back. i didn’t think you would, alex.”](docs/voices/ghost.png)
+
+> “oh. you’re alive.”
+
+**Proud Parent** · *keep any habit going for 30 days*
+![Proud Parent: “Evening, champ. I’m SO proud of you, Alex (that’s my kid).”](docs/voices/parent.png)
+
+> “THAT’S MY KID!!!”
 
 ### …or make your own
 
