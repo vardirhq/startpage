@@ -1,7 +1,7 @@
 /* Widget implementations. Each widget has render() -> HTML and an optional mount(el). */
 (function (SP) {
   'use strict';
-  const { esc, uid, ago, favicon, normalizeUrl, menu, form, toast, confirm } = SP.ui;
+  const { esc, uid, ago, favicon, normalizeUrl, safeUrl, menu, form, toast, confirm } = SP.ui;
   const I = SP.icon;
   const S = () => SP.store.state;
   const save = () => SP.store.save();
@@ -237,7 +237,7 @@
   /* ---------------- Bookmarks ---------------- */
   function tileHtml(b, i) {
     const fav = S().favicons ? favicon(b.url) : '';
-    return '<a class="tile" href="' + esc(b.url) + '" data-tile="' + i + '" title="' + esc(b.url) + '">' +
+    return '<a class="tile" href="' + esc(safeUrl(b.url) || '#') + '" data-tile="' + i + '" title="' + esc(b.url) + '">' +
       '<span class="tile-ic">' + (fav ? '<img src="' + esc(fav) + '" alt="" width="28" height="28" loading="lazy">' : '') + '<i>' + esc((b.title || '?')[0].toUpperCase()) + '</i></span>' +
       '<span class="tile-t">' + esc(b.title) + '</span></a>';
   }
@@ -317,7 +317,7 @@
       return head('tasks', SP.voice.t('w_tasks'), (t.some((x) => x.done) ? '<button class="icon-btn" data-clear title="Clear completed">' + I('trash', 16) + '</button>' : '') +
         '<button class="icon-btn" data-add aria-label="Add task">' + I('plus', 20) + '</button>') +
         '<ul class="task-list">' + t.map((x) => '<li class="' + (x.done ? 'done' : '') + '" data-id="' + x.id + '">' +
-          '<label><input type="checkbox"' + (x.done ? ' checked' : '') + '><span class="box">' + I('check', 14) + '</span></label>' +
+          '<label><input type="checkbox"' + (x.done ? ' checked' : '') + ' aria-label="' + esc(x.text) + '"><span class="box">' + I('check', 14) + '</span></label>' +
           '<span class="task-t" title="Double-click to edit">' + esc(x.text) + '</span>' +
           '<button class="icon-btn del" aria-label="Delete task">' + I('x', 14) + '</button></li>').join('') +
         (t.length ? '' : '<li class="muted empty-li">' + esc(SP.voice.t('tasksEmpty')) + '</li>') + '</ul>';

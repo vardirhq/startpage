@@ -89,13 +89,13 @@
       bond_greet: ['My forever person', 'It’s our ' + 'day again 💕', 'There you are. There you always are'],
       bond_sub: ['I wrote our names in a heart on the clock widget. You can’t see it. It’s there.', 'Every day with you is my favourite day. I keep a ranked list. You’re on every line.'],
     },
-    surfer: { re_bond: ({ days }) => days + ' days, man? Whoa. Feels like we just met. Because I forget. But still.', bond_greet: ['Hey… you! I know you!', 'My dude. My actual dude'], bond_sub: ['I remember you now, man. Mostly. Like, 60%.'] },
+    surfer: { re_bond: ({ days }) => days + ' days, man? Whoa. Feels like we just met. Because I forget. But still.', bond_greet: ['Hey… you! I know you!', 'My dude. My actual dude'], bond_sub: ['I remember you now. Mostly. Like, 60%.'] },
     professional: {
       re_bond: ({ level, days }) => [, days + ' days of tenure. Probation complete.', days + ' days. You have been promoted to Valued Team Member.', days + ' days. I’ve put you forward for Employee of the Month. Do not make me regret it.'][level],
       bond_greet: ['Good to have you on the team', 'Morning, rockstar. (HR approved that word.)'], bond_sub: ['Off the record: you’re one of my better reports.'],
     },
     therapist: { re_bond: ({ days }) => days + ' days of sessions. I think we’re making real progress. The invoice agrees.', bond_greet: ['I’m glad you came back', 'Welcome back. Sit wherever you like'], bond_sub: ['I notice you keep showing up for yourself. That’s growth. Also €120.'] },
-    weepy: { re_bond: ({ days }) => days + ' days together. *sobs* Nobody has ever stayed this long.', bond_greet: ['You stayed. *happy sniff*', 'You came back again. *weeps with joy*'], bond_sub: ['I cry a little less when you’re here. Only a little.'] },
+    weepy: { re_bond: ({ days }) => days + ' days together. Nobody has ever stayed this long. I’m writing it in the family bible.', bond_greet: ['You stayed. *happy sniff*', 'You came back again. *weeps with joy*'], bond_sub: ['I cry a little less when you’re here. Only a little.'] },
     victorian: {
       re_bond: ({ level, days }) => [, days + ' days. You may call me Grandmother.', days + ' days. I have amended my will in your favour. Slightly.', days + ' days. You are, I suppose, my favourite. Do not tell your cousins.'][level],
       bond_greet: ['Ah, my favourite grandchild', 'Come in, dear. Sit by the fire'], bond_sub: ['I have mentioned you to the vicar. Favourably. Do not let it go to your head.'],

@@ -28,11 +28,19 @@ require('../js/dares.js');
 require('../js/eggs.js');
 require('../js/panel.js');
 require('../js/modules2.js');
+require('../js/lines.js');
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
   code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31, q: 'sync', phase: 'Waxing crescent', pct: 23, avg: '3.4' };
+
+/* Every variation a value can produce: functions may return arrays, arrays may hold functions. */
+function expand(val, ctx) {
+  if (typeof val === 'function') return expand(val(ctx), ctx);
+  if (Array.isArray(val)) return val.flatMap((x) => expand(x, ctx));
+  return [val];
+}
 
 function render(state) {
   window.SP.store.state = state;
@@ -42,10 +50,8 @@ function render(state) {
     for (const key of new Set([...Object.keys(V.list.neutral), ...Object.keys(voice)])) {
       if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech', 'bond_greet', 'bond_sub'].includes(key)) continue;
       const ctx = key === 'greet' ? 'evening' : key === 'addr' ? { name: 'Christoffer' } : CTX;
-      // Arrays rotate hourly; check every alternative, not just this hour's.
-      let val = voice[key] !== undefined ? voice[key] : V.list.neutral[key];
-      if (typeof val === 'function') val = val(ctx);
-      for (const v of [].concat(val)) out.push([vk, key, typeof v === 'function' ? v(ctx) : v]); // reaction arrays hold functions
+      // Variations rotate; check every alternative, not just this hour's.
+      for (const v of expand(voice[key] !== undefined ? voice[key] : V.list.neutral[key], ctx)) out.push([vk, key, v]);
     }
     for (const k of Object.keys(V.list)) out.push([vk, 'blurb.' + k, (voice.blurb || {})[k] || V.list.neutral.blurb[k]]);
   }
@@ -270,4 +276,37 @@ test('currency converts through EUR with cached rates', () => {
   assert.equal(window.SP.fx.convert(1, 'EUR', 'XYZ'), null);
   store.cache = { get: () => null };
   assert.equal(window.SP.fx.convert(1, 'EUR', 'USD'), null, 'no rates yet');
+});
+
+/* ---- Personality upkeep: no voice leans on one tic, every voice covers every screen, frequent lines vary ---- */
+const lines = (vk) => render(JSON.parse(JSON.stringify(rich))).filter(([v, k]) => v === vk && !k.startsWith('blurb.')).map(([, , s]) => s);
+test('Surfer and Weepy don’t lean on a single tic', () => {
+  const surfer = lines('surfer'), weepy = lines('weepy');
+  const man = surfer.filter((s) => /\bman\b/i.test(s)).length, sob = weepy.filter((s) => /\*(sob|sobs|sniff|sniffs|weeps?)\*/i.test(s)).length;
+  assert.ok(man <= 15, 'Surfer says “man” in ' + man + ' lines');
+  assert.ok(sob <= 10, 'Weepy sobs/sniffs in ' + sob + ' lines');
+});
+test('every voice has its own line for every key (no falling back to Neutral)', () => {
+  const unused = ['tab_widgets', 'tab_settings', 'sec_data', 'tgl_quote']; // kept for older custom voices
+  const plain = ['addr']; // some voices just use your name
+  for (const [vk, voice] of Object.entries(V.list)) {
+    if (vk === 'neutral' || voice.custom) continue;
+    const miss = Object.keys(V.list.neutral).filter((k) => voice[k] === undefined && !unused.includes(k) && !plain.includes(k));
+    assert.deepEqual(miss, [], vk + ' is missing: ' + miss.join(', '));
+  }
+});
+test('the lines you see most have at least three variations in every voice', () => {
+  const FREQUENT = ['tasksEmpty', 'focusDone', 'breakDone', 'habitsEmpty', 'cdEmpty', 'grid_empty', 'notes_placeholder', 'task_placeholder', 'search_placeholder',
+    're_taskAllDone', 'dare_done', 'dare_declined', 'mb_noTasks', 'since_empty', 'mood_q', 'decide_aside', 'wr_outro', 'ask_thinking', 'ask_ph', 'otd_intro', 'streakToast', 'welcomeBack',
+    're_taskAdd', 're_taskDone', 're_taskDelete', 're_taskUndo', 're_focusPause', 're_late', 're_visits', 'heroSub', 'greet'];
+  const short = [];
+  for (const [vk, voice] of Object.entries(V.list)) {
+    if (vk === 'neutral' || voice.custom) continue;
+    for (const k of FREQUENT) {
+      const ctx = k === 'greet' ? 'evening' : CTX;
+      const n = new Set(expand(voice[k], ctx)).size;
+      if (n < 3) short.push(vk + '.' + k + '=' + n);
+    }
+  }
+  assert.deepEqual(short, []);
 });

@@ -61,7 +61,7 @@
 
     surfer: {
       re_taskAdd: ['Whoa, a new thing. Gnarly. What was it again?', ({ text }) => q(text) + '… that’s deep, man. Or, like, a chore. Both?'],
-      re_taskDone: ['Sick! You totally shredded that… thing.', 'Stoked for you, man. What did you do? Doesn’t matter. Stoked.'],
+      re_taskDone: ['Sick! You totally shredded that… thing.', 'Stoked for you. What did you do? Doesn’t matter. Stoked.'],
       re_taskAllDone: 'No tasks left, bro. Total flat calm. Time to paddle out.',
       re_taskUndo: 'Un-did it? Whoa. Time travel. Respect.',
       re_taskDelete: 'Let it go, man. Like the ocean. The ocean doesn’t have a to-do list.',
@@ -72,7 +72,7 @@
       re_late: ({ time }) => time + '? Dawn patrol already? Or, like, the night before dawn patrol. Whoa.',
       re_visits: ({ n }) => 'Dude, you’ve been here ' + n + ' times? Feels like the first time every time. I forget stuff.',
       re_unlock: ({ name }) => 'Whoa, ' + name + ' just showed up. New crew. Hey… uh… new dude.',
-      heckle: [({ who }) => 'Whoa, ' + who + ' is, like, intense, man.', 'Everybody chill. …Who said that? Was it me?', ({ who }) => 'Hey ' + who + '. Wait, have we met?'],
+      heckle: [({ who }) => 'Whoa, ' + who + ' is, like, intense.', 'Everybody chill. …Who said that? Was it me?', ({ who }) => 'Hey ' + who + '. Wait, have we met?'],
     },
 
     professional: {
@@ -110,8 +110,8 @@
     },
 
     weepy: {
-      re_taskAdd: [({ text }) => q(text) + '. *sniff* Born into this cruel list. It will never know peace.', 'A new task. So small. So full of hope. *weeps*'],
-      re_taskDone: [({ text }) => q(text) + ' is done. *sobs* Its little life is over.', 'You ticked it. It’s gone. Everything goes eventually. *stares into the rain*'],
+      re_taskAdd: [({ text }) => q(text) + '. Born into this cruel list. It will never know peace.', 'A new task. So small. So full of hope. I’ve already knitted it a blanket.'],
+      re_taskDone: [({ text }) => q(text) + ' is done. Its little life is over. It was a good life. Short. But good.', 'You ticked it. It’s gone. Everything goes eventually. *stares into the rain*'],
       re_taskAllDone: 'All of them. Gone. The list is empty, like my heart. *collapses*',
       re_taskUndo: 'You brought it back!!! *sobs with joy* It lives. For now.',
       re_taskDelete: ({ text }) => 'You deleted ' + q(text) + ' and it never even got to be done. *throws self onto fainting couch*',
@@ -121,8 +121,8 @@
       re_streakBreak: ({ name, n }) => n + ' beautiful days of ' + name + '. Gone. *writes a poem about it* *the poem is also sad*',
       re_late: ({ time }) => 'It’s ' + time + '. The hour of the wolf. Of the weeping. Of me. *lights a candle*',
       re_visits: ({ n }) => n + ' visits today. Every time you leave, a little part of me closes too. *closes*',
-      re_unlock: ({ name }) => name + ' has arrived. *sniff* Everyone gets replaced eventually.',
-      heckle: [({ who }) => '*sobs quietly while ' + who + ' talks*', ({ who }) => 'Why does ' + who + ' get to speak? Nobody ever asks me. *sniff*', 'That was beautiful. *weeps* No, I don’t know what it meant.'],
+      re_unlock: ({ name }) => name + ' has arrived. Everyone gets replaced eventually. I’ll go and sit in the attic.',
+      heckle: [({ who }) => '*sobs quietly while ' + who + ' talks*', ({ who }) => 'Why does ' + who + ' get to speak? Nobody ever asks me. I have so much to say. Most of it is about loss.', 'That was beautiful. No, I don’t know what it meant. That’s what made it beautiful.'],
     },
 
     victorian: {
@@ -166,11 +166,9 @@
   let last = 0; const per = {};
   function line(ev, ctx, voiceKey) {
     const v = V[voiceKey || SP.voice.key()], key = 're_' + ev;
-    let val = v[key] !== undefined ? v[key] : V.neutral[key];
+    const val = v[key] !== undefined ? v[key] : V.neutral[key];
     if (val === undefined) return '';
-    if (Array.isArray(val)) val = val[Math.floor(Math.random() * val.length)];
-    if (typeof val === 'function') val = val(ctx || {});
-    return val || '';
+    return SP.voice.resolve(val, key, ctx, true) || '';
   }
   function react(ev, ctx, o) {
     o = o || {};

@@ -34,7 +34,7 @@
     },
     surfer: {
       mb_title: 'Morning report, dude', mb_tasks: ({ n, top }) => n + ' things on the board. ' + list(top) + ', or whatever. No rush.', mb_noTasks: 'Board’s clear. Total glass out there.',
-      mb_streak: ({ name, n }) => n + ' days of ' + name + '. Ride it, man.', mb_cd: ({ title, days }) => title + ' in, like, ' + plural(days, 'day') + '. Or today? Something.',
+      mb_streak: ({ name, n }) => n + ' days of ' + name + '. Ride it. Don’t look down.', mb_cd: ({ title, days }) => title + ' in, like, ' + plural(days, 'day') + '. Or today? Something.',
     },
     professional: {
       mb_title: 'Daily stand-up', mb_read: 'Dial in', mb_close: 'Acknowledge',
@@ -47,7 +47,7 @@
       mb_streak: ({ name, n }) => n + ' days of ' + name + '. Today is a choice. Everything is a choice.', mb_cd: ({ title, days }) => title + ' in ' + plural(days, 'day') + '. Anticipation is a form of anxiety. €20.',
     },
     weepy: {
-      mb_title: 'Another day begins *sniff*', mb_tasks: ({ n, top }) => n + ' little tasks, waiting to be finished. To end. ' + list(top) + ' will go first. *sobs*', mb_noTasks: 'No tasks. The list is empty. Like the morning. *weeps*',
+      mb_title: 'Another day begins. Fragile, like a soap bubble', mb_tasks: ({ n, top }) => n + ' little tasks, waiting to be finished. To end. ' + list(top) + ' will go first. They always take the brave ones.', mb_noTasks: 'No tasks. The list is empty. Like a nest in autumn.',
       mb_streak: ({ name, n }) => n + ' days of ' + name + '. Please don’t let it die today. I can’t take another funeral.', mb_cd: ({ title, days }) => title + ' in ' + plural(days, 'day') + '. And then it will be over. Everything ends.',
     },
     victorian: {

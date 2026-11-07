@@ -95,6 +95,8 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
   border-right: 1px solid var(--line);
 }
 .logo { color: var(--accent); filter: drop-shadow(0 0 10px rgba(var(--accent-rgb), 0.45)); margin-bottom: 12px; }
+.spaces-tabs { display: contents; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .spaces { display: flex; flex-direction: column; align-items: center; gap: 14px; flex: 1; overflow-y: auto; scrollbar-width: none; padding: 2px 0; }
 .space { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 74px; color: var(--muted); font-size: 13px; font-weight: 500; }
 .space-ic { display: grid; place-items: center; width: 64px; height: 44px; border-radius: 14px; transition: background 0.15s, color 0.15s; }

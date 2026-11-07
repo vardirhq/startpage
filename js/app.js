@@ -21,9 +21,9 @@
   function renderRail() {
     const rail = $('#rail');
     rail.innerHTML = '<div class="logo" title="Startpage">' + SP.logo(38) + '</div>' +
-      '<div class="spaces" role="tablist" aria-label="Spaces">' + S().spaces.map((s, i) =>
+      '<div class="spaces"><div class="spaces-tabs" role="tablist" aria-label="Spaces">' + S().spaces.map((s, i) =>
         '<button role="tab" class="space' + (s.id === space().id ? ' active' : '') + '" data-space="' + s.id + '" aria-selected="' + (s.id === space().id) + '" title="' + esc(s.name) + (i < 9 ? ' (Alt+' + (i + 1) + ')' : '') + '">' +
-        '<span class="space-ic">' + I(s.icon, 22) + '</span><span class="space-l">' + esc(s.name) + '</span></button>').join('') +
+        '<span class="space-ic">' + I(s.icon, 22) + '</span><span class="space-l">' + esc(s.name) + '</span></button>').join('') + '</div>' +
       '<button class="space-add" data-add-space title="' + esc(SP.voice.t('rail_newSpace')) + '" aria-label="New space">' + I('plus', 20) + '</button></div>' +
       '<button class="rail-btn" data-customize title="' + esc(SP.voice.t('rail_customize')) + '" aria-label="Customize">' + I('customize', 22) + '</button>';
     rail.querySelectorAll('[data-space]').forEach((b) => {
@@ -273,7 +273,7 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }
       const away = SP.voice.markSeen();
-      if (!SP.react.visit(away) && away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.t('welcomeBack'), { who: SP.voice.current().name });
+      if (!SP.react.visit(away) && away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.line('welcomeBack'), { who: SP.voice.current().name });
       renderHero();
       if (SP.widgets.weather.data) SP.widgets.weather.load();
       if (SP.widgets.github.data) SP.widgets.github.load();

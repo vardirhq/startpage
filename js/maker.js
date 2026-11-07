@@ -110,7 +110,7 @@
     return sanitize(JSON.parse(new TextDecoder().decode(u8)));
   }
   async function shareLink(key) {
-    const spec = S().customVoices[key.slice(2)], base = /^https?:$/.test(location.protocol) ? location.origin + location.pathname : 'https://vardirhq.github.io/startpage/';
+    const spec = S().customVoices[key.slice(2)], base = /^https?:$/.test(location.protocol) ? location.origin + location.pathname : 'https://start.vardir.no/';
     const url = base + '#voice=' + await encode(spec);
     try { await navigator.clipboard.writeText(url); SP.ui.toast('Link to “' + spec.name + '” copied.'); } catch (e) { SP.ui.toast('Couldn’t copy the link.'); }
     return url;

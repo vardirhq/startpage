@@ -34,16 +34,16 @@
       d_one: 'Finish one task for me? Just one. I’ll watch. 💕', d_three: 'Three tasks today and I’ll be SO proud I won’t sleep.', d_focus: 'Do a focus session. I’ll sit right here. Silently. Watching. 🙂', d_habits: 'Do all your habits today? For me? 💕', d_zero: 'Clear your list today so tonight is just us. 🙂', d_note: 'Write me a note. Anything. I’ll read it forty times.',
       dare_done: ['YOU DID IT!!! For ME!!! I’m framing this moment. 💖', 'Dare done!!! I knew you would. I always know. 🙂'], dare_declined: 'That’s okay. I’ll ask again tomorrow. And the day after. Forever. 🙂' },
     surfer: { dare_kicker: 'Dare, bro', dare_ok: 'Send it', dare_no: 'Nah',
-      d_one: 'Shred one task today, man.', d_three: 'Three tasks. Like a set of waves.', d_focus: 'One focus session. Find the zone, dude.', d_habits: 'All the habits today. Full send.', d_zero: 'Clear the board. Total flat calm.', d_note: 'Write a note, man. Like, a thought. You have those.',
-      dare_done: 'Whoa, you did it! What was it again? Doesn’t matter. Stoked.', dare_declined: 'No worries, man. The ocean doesn’t dare anyone.' },
+      d_one: 'Shred one task today.', d_three: 'Three tasks. Like a set of waves.', d_focus: 'One focus session. Find the zone, dude.', d_habits: 'All the habits today. Full send.', d_zero: 'Clear the board. Total flat calm.', d_note: 'Write a note. Like, a thought. You have those.',
+      dare_done: 'Whoa, you did it! What was it again? Doesn’t matter. Stoked.', dare_declined: 'No worries. The ocean doesn’t dare anyone.' },
     professional: { dare_kicker: 'Stretch goal', dare_ok: 'Commit', dare_no: 'Deprioritize',
       d_one: 'Stretch goal: close one action item today.', d_three: 'Stretch goal: three deliverables by EOD.', d_focus: 'Stretch goal: one uninterrupted deep-work block.', d_habits: 'Stretch goal: 100% habit compliance today.', d_zero: 'Stretch goal: inbox zero, but for tasks.', d_note: 'Stretch goal: document one learning.',
       dare_done: 'Stretch goal achieved. This has been noted favourably. Do not let it go to your head.', dare_declined: 'Understood. I’ve noted your lack of ambition.' },
     therapist: { dare_kicker: 'A gentle invitation', dare_ok: 'I’ll try', dare_no: 'Not ready',
       d_one: 'I invite you to finish one task. Notice what comes up.', d_three: 'Three tasks today. What would it mean to you?', d_focus: 'One focus session. Sit with the discomfort.', d_habits: 'All your habits today. A small act of self-care. €20.', d_zero: 'An empty list. Imagine how that would feel. Now go and feel it.', d_note: 'Write one note. Journaling is healing. And billable.',
       dare_done: 'You did it. How does that feel? Take your time. That’s €40.', dare_declined: 'That’s valid. Saying no is a boundary. €15.' },
-    weepy: { dare_kicker: 'A dare *sniff*', dare_ok: 'For you', dare_no: 'Not today',
-      d_one: 'Finish one task. Let it go. Let it rest. *sobs*', d_three: 'Three tasks. Three little goodbyes.', d_focus: 'One focus session. Twenty-five minutes we’ll never get back.', d_habits: 'Every habit today. Before it’s too late. It’s always too late.', d_zero: 'Empty the list. Then we’ll mourn it together.', d_note: 'Write a note. Something to remember you by.',
+    weepy: { dare_kicker: 'A dare (be gentle with me)', dare_ok: 'For you', dare_no: 'Not today',
+      d_one: 'Finish one task. Let it go. Let it rest.', d_three: 'Three tasks. Three little goodbyes.', d_focus: 'One focus session. Twenty-five minutes we’ll never get back.', d_habits: 'Every habit today. Before it’s too late. It’s always too late.', d_zero: 'Empty the list. Then we’ll mourn it together.', d_note: 'Write a note. Something to remember you by.',
       dare_done: 'You did it. *weeps with joy* *then weeps normally*', dare_declined: 'Of course. Nobody accepts my dares. *stares out of the window*' },
     victorian: { dare_kicker: 'A small test of character', dare_ok: 'I accept', dare_no: 'I decline',
       d_one: 'Attend to one matter before luncheon. I shall be watching.', d_three: 'Three matters today. Your grandfather managed eleven.', d_focus: 'One session of quiet application. No fidgeting.', d_habits: 'Every constitutional today. No exceptions.', d_zero: 'Leave not a single matter unattended by nightfall.', d_note: 'Write one line in your commonplace book. Mind your spelling.',
@@ -56,7 +56,7 @@
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
   const t = (k, c) => SP.voice.t(k, c);
-  const pickLine = (k) => { const v = V[SP.voice.key()][k] !== undefined ? V[SP.voice.key()][k] : V.neutral[k]; return Array.isArray(v) ? v[Math.floor(Math.random() * v.length)] : v; };
+  const pickLine = (k, ctx) => SP.voice.line(k, ctx);
 
   /* Today's dare: picked by date so it's stable all day, skipping ones that make no sense right now. */
   function current() {
