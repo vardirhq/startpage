@@ -69,8 +69,10 @@
     return SP.voice.t('greet', h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night');
   }
   /* Now and then another voice butts in on the summary line. */
+  const V_ = (k) => SP.voice.list[k] || {};
   function heckleHtml() {
     const h = SP.react.heckle();
+    if (h && V_(h.key).secret && V_(SP.voice.key()).secret) SP.eggs.found('secrets');
     return h ? '<p class="g-heckle"><b>' + esc(h.who) + ':</b> ' + esc(h.text) + '</p>' : '';
   }
   function renderHero() {
@@ -82,7 +84,8 @@
       const hello = greet(); // no comma after a greeting that ends in "?" or "!"
       g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
         (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
-        (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' + heckleHtml() : '');
+        (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' + heckleHtml() : '') + SP.dares.html() + SP.season.bannerHtml();
+      SP.season.bindBanner(g); SP.dares.bind(g);
     }
     const sw = $('#search-wrap');
     const want = sp.widgets.includes('search');
@@ -116,7 +119,7 @@
   /* Chaos mode: every card gets its own voice, reshuffled daily (or with >shuffle voices). */
   function chaosVoice(id) {
     const s = S();
-    if (!s.chaos) return null;
+    if (!s.chaos && !SP.season.forcedChaos()) return null; // April Fools' Day: chaos for everyone
     const pool = SP.voice.available().filter((k) => k !== 'neutral');
     let h = (s.chaosSeed || 0) + Math.floor(Date.now() / 864e5) * 7919;
     for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
@@ -218,7 +221,7 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  function renderAll() { SP.maker.register(); applyTheme(); renderRail(); renderMain(); if (SP.panel.isOpen()) SP.panel.render(); }
+  function renderAll() { SP.maker.register(); SP.bonds.mark(); applyTheme(); renderRail(); renderMain(); if (SP.panel.isOpen()) SP.panel.render(); }
 
   /* ---------- shortcuts & ticking ---------- */
   function shortcuts() {
@@ -238,7 +241,7 @@
     Object.keys(SP.widgets).forEach((k) => { const w = SP.widgets[k]; if (w.tick && (on.includes(k) || k === 'focus')) w.tick(); }); // the timer keeps running on other spaces
     const m = new Date().getMinutes();
     if (m !== lastMinute) {
-      if (lastMinute !== -1) { renderHero(); SP.sky.update(); }
+      if (lastMinute !== -1) { renderHero(); SP.sky.update(); SP.eggs.checkAll(); }
       lastMinute = m;
     }
   }
@@ -255,7 +258,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const away0 = SP.voice.markSeen();
     setInterval(() => { if (document.visibilityState === 'visible') SP.voice.touch(); }, 60e3);
-    applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts(); SP.sky.update();
+    applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts(); SP.sky.update(); SP.bonds.mark();
     setInterval(tick, 1000); tick();
     SP.sync.init();
     SP.onboarding.maybeStart();
@@ -265,6 +268,7 @@
     SP.achieve.check({ quiet: !!S()._achQuiet }); delete S()._achQuiet;
     if (!SP.wrapped.maybeShow()) { SP.brief.maybeShow(); setTimeout(() => SP.react.visit(away0, true), 900); }
     SP.maker.fromHash();
+    setTimeout(() => SP.eggs.checkAll(), 2500);
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }

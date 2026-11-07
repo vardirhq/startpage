@@ -65,6 +65,17 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
 [data-wx="cloudy"] #bg-canvas { --wx-f: saturate(0.8) brightness(0.95); }
 [data-wx="fog"] #bg-canvas { --wx-f: contrast(0.78) brightness(1.02) saturate(0.7); }
 [data-wx="snow"] #bg-canvas { --wx-f: brightness(1.05) saturate(0.75); }
+/* Seasons nudge the palette; events tint it (js/season.js). */
+#bg-canvas { filter: var(--sky-f) var(--wx-f) var(--season-f, brightness(1)); }
+[data-season="autumn"] #bg-canvas { --season-f: sepia(0.18) saturate(1.1); }
+[data-season="winter"] #bg-canvas { --season-f: saturate(0.85) hue-rotate(8deg); }
+[data-season="spring"] #bg-canvas { --season-f: saturate(1.08); }
+[data-event="haunted"] #bg-canvas { --season-f: hue-rotate(-25deg) saturate(1.2) brightness(0.85); }
+/* Ghost grows less transparent the longer you stay with it (js/bonds.js). */
+[data-voice="ghost"] .card { transition: opacity 1s; }
+[data-voice="ghost"][data-bond="0"] .card { opacity: 0.72; }
+[data-voice="ghost"][data-bond="1"] .card { opacity: 0.82; }
+[data-voice="ghost"][data-bond="2"] .card { opacity: 0.92; }
 #bg-image { background: center / cover no-repeat; }
 .bg-shade {
   position: absolute; inset: 0;
@@ -528,6 +539,19 @@ dialog#dlg::backdrop { background: rgba(5, 3, 15, 0.55); backdrop-filter: blur(3
   padding: 2px 8px 3px; border-radius: 0 0 7px 7px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.3;
   color: var(--accent); background: rgba(var(--accent-rgb), 0.16); border: 1px solid rgba(var(--accent-rgb), 0.32); border-top: 0; pointer-events: none; }
 .card.chaos { padding-top: 30px; } /* room for the voice tab, same on every card */
+.dare { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; max-width: 640px; margin: 10px 0 0; padding: 7px 8px 7px 12px; border-radius: 12px; font-size: 13px;
+  background: rgba(var(--tint-rgb), 0.55); border: 1px dashed rgba(var(--accent-rgb), 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.dare > svg { flex: none; color: var(--accent); }
+.dare span { flex: 1 1 220px; min-width: 0; line-height: 1.4; }
+.dare b { color: var(--accent); font-weight: 700; }
+.dare.on { border-style: solid; }
+.dare.done { border-style: solid; border-color: rgba(74, 222, 128, 0.45); opacity: 0.85; }
+.dare.done > svg, .dare.done b { color: #86efac; }
+.dare-n { font-style: normal; font-weight: 700; margin-left: 4px; color: var(--accent); }
+.g-event { display: flex; align-items: center; gap: 8px; max-width: 640px; margin: 10px 0 0; padding: 6px 6px 6px 12px; border-radius: 12px; font-size: 13px; line-height: 1.4;
+  background: rgba(var(--accent-rgb), 0.14); border: 1px solid rgba(var(--accent-rgb), 0.35); }
+.g-event b { flex: none; color: var(--accent); }
+.g-event span { flex: 1; min-width: 0; }
 .g-heckle { margin: 6px 0 0; font-size: 13px; font-style: italic; color: rgba(244, 242, 255, 0.55); max-width: 60ch; }
 .g-heckle b { font-style: normal; font-weight: 700; color: var(--accent); margin-right: 2px; }
 #bg-anim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; pointer-events: none; }

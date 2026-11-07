@@ -12,22 +12,25 @@ const rich = {
 const empty = { voice: 'neutral', tasks: [], habits: [], presence: {} };
 
 global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} } } };
-global.document = { body: { classList: { contains: () => false } }, addEventListener() {} };
+global.document = { body: { classList: { contains: () => false } }, addEventListener() {}, querySelector: () => null, documentElement: { dataset: {} } };
 require('../js/voices.js');
 require('../js/react.js');
 require('../js/secrets.js');
 require('../js/bonds.js');
 require('../js/speak.js');
 require('../js/achieve.js');
+require('../js/season.js');
 require('../js/wrapped.js');
 require('../js/ask.js');
 require('../js/brief.js');
 require('../js/maker.js');
+require('../js/dares.js');
+require('../js/eggs.js');
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
-  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday' };
+  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31 };
 
 function render(state) {
   window.SP.store.state = state;
@@ -35,7 +38,7 @@ function render(state) {
   for (const [vk, voice] of Object.entries(V.list)) {
     state.voice = vk;
     for (const key of new Set([...Object.keys(V.list.neutral), ...Object.keys(voice)])) {
-      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech'].includes(key)) continue;
+      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech', 'bond_greet', 'bond_sub'].includes(key)) continue;
       const ctx = key === 'greet' ? 'evening' : key === 'addr' ? { name: 'Christoffer' } : CTX;
       // Arrays rotate hourly; check every alternative, not just this hour's.
       let val = voice[key] !== undefined ? voice[key] : V.list.neutral[key];
@@ -184,4 +187,54 @@ test('every script in js/ is loaded by index.html, which the service worker cach
   const fs = require('fs'), html = fs.readFileSync(__dirname + '/../index.html', 'utf8');
   for (const f of fs.readdirSync(__dirname + '/../js')) assert.ok(html.includes('src="js/' + f + '"'), f + ' missing from index.html');
   assert.ok(fs.readFileSync(__dirname + '/../sw.js', 'utf8').includes('(?:js|css|icons)'));
+});
+
+test('seasons: northern and southern hemisphere, event calendar', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { location: { lat: 59.9, lon: 10.7 } });
+  assert.equal(Se.season(new Date(2026, 9, 10)), 'autumn');
+  window.SP.store.state.location = { lat: -33.9, lon: 151.2 };
+  assert.equal(Se.season(new Date(2026, 9, 10)), 'spring', 'Sydney in October');
+  assert.equal(Se.event(new Date(2026, 9, 28)).id, 'haunted');
+  assert.equal(Se.guest(new Date(2026, 9, 28)), 'ghost');
+  assert.equal(Se.host(new Date(2026, 11, 24)), 'victorian');
+  assert.ok(Se.forcedChaos(new Date(2026, 3, 1)));
+  assert.equal(Se.event(new Date(2026, 5, 10)), null);
+  assert.ok(Se.fx(new Date(2026, 1, 14), 'day', null).includes('hearts'));
+  assert.ok(!Se.fx(new Date(2026, 9, 10), 'day', 'rain').includes('petals'), 'no blossoms in the rain');
+  window.SP.store.state.seasons = false;
+  assert.equal(Se.event(new Date(2026, 9, 28)), null, 'can be turned off');
+});
+
+test('bond levels: 7, 30 and 90 days; softer lines from level 2', () => {
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday', presence: { rel: { monday: { days: 29 } } } });
+  const B = window.SP.bonds;
+  assert.equal(B.level('monday'), 1);
+  assert.ok(!V.list.monday.greet('evening').includes('Oh. It’s you. Good'));
+  window.SP.store.state.presence.rel.monday.days = 30;
+  assert.equal(B.level('monday'), 2);
+  assert.ok(V.list.monday.greet('evening').includes('Oh. It’s you. Good'));
+  window.SP.store.state.presence.rel.monday.days = 90;
+  assert.equal(B.level('monday'), 3);
+});
+
+test('dares: one a day, only ones that make sense, progress from acceptance', () => {
+  const d0 = new Date(), k = d0.getFullYear() + '-' + String(d0.getMonth() + 1).padStart(2, '0') + '-' + String(d0.getDate()).padStart(2, '0');
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { onboarded: true, voice: 'monday', notes: '', stats: { [k]: { done: 4 } }, tasks: [] });
+  const D = window.SP.dares, d = D.current();
+  assert.ok(d && ['focus', 'note'].includes(d.type), 'no task dares without tasks: ' + d.type);
+  assert.equal(D.current(), d, 'stable for the day');
+  d.state = 'accepted'; d.base = { done: 4, focus: 0, notes: 0 };
+  assert.equal(D.progress(d), 0);
+  window.SP.store.state.notes = 'x'; window.SP.store.state.stats[k].focus = 1;
+  assert.equal(D.progress(d), 1);
+});
+
+test('discovery: "hi monday" gets Monday, in her own words', () => {
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'neutral' });
+  const r = window.SP.eggs.greetingQuery('hi monday');
+  assert.equal(r.who, 'Monday');
+  assert.match(r.text, /Ugh\. Hi/);
+  assert.equal(window.SP.eggs.greetingQuery('hi there'), null);
+  assert.equal(window.SP.eggs.greetingQuery('hello ghost'), null, 'locked voices stay hidden');
 });

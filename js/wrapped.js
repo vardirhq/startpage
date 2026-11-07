@@ -149,7 +149,10 @@
   let prevFocus = null;
   const root = () => document.getElementById('wrapped');
   function open() {
+    const host = SP.season.host(); // Yuletide: Victorian narrates, whoever you've picked
+    if (host && SP.voice.key() !== host && !SP.voice._override) return SP.voice.as(host, open);
     const d = data(), vk = SP.voice.key(), el = root();
+    if (new Date().getHours() === 0) SP.eggs.found('midnight');
     prevFocus = document.activeElement;
     if (SP.panel.isOpen()) SP.panel.close();
     el.hidden = false;
@@ -163,13 +166,13 @@
       (navigator.canShare ? '<button class="btn ghost" data-wr-share>' + I('share', 16) + esc(t('wr_share')) + '</button>' : '') +
       '<button class="btn primary" data-wr-save>' + I('download', 16) + esc(t('wr_save')) + '</button></footer></div>';
     el.querySelectorAll('[data-wr-close]').forEach((b) => (b.onclick = close));
-    el.querySelector('[data-wr-save]').onclick = () => image(d).then((blob) => {
+    el.querySelector('[data-wr-save]').onclick = () => image(d, vk).then((blob) => {
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'startpage-wrapped-' + d.days[6] + '.png'; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     });
     const sh = el.querySelector('[data-wr-share]');
     if (sh) sh.onclick = async () => {
-      const file = new File([await image(d)], 'wrapped.png', { type: 'image/png' });
+      const file = new File([await image(d, vk)], 'wrapped.png', { type: 'image/png' });
       if (navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: t('wr_title') }).catch(() => {});
     };
     el.onclick = (e) => { if (e.target === el) close(); };
@@ -197,10 +200,15 @@
     if (cur) lines.push(cur);
     return lines;
   }
-  async function image(d) {
+  /* The words are taken before anything async, so the narrator (e.g. Victorian at Yuletide) carries over. */
+  function image(d, vk) {
+    const words = () => ({ kicker: t('wr_kicker'), title: t('wr_title'), outro: t('wr_outro'), rows: rows(d), vk: SP.voice.key() });
+    return draw(d, vk ? SP.voice.as(vk, words) : words());
+  }
+  async function draw(d, T) {
     try { await document.fonts.ready; } catch (e) { /* fine */ }
     const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d'), s = S(), vk = SP.voice.key();
+    const g = c.getContext('2d'), s = S(), vk = T.vk;
     const css = getComputedStyle(document.documentElement), accent = css.getPropertyValue('--accent').trim() || '#a78bfa';
     const font = css.getPropertyValue('--font').trim() || 'sans-serif';
     // Pixel scene across the top, upscaled without smoothing.
@@ -211,13 +219,13 @@
     const grd = g.createLinearGradient(0, 170, 0, 430); grd.addColorStop(0, 'rgba(10,9,20,0)'); grd.addColorStop(1, 'rgba(10,9,20,1)');
     g.fillStyle = grd; g.fillRect(0, 0, W, 432); g.fillStyle = '#0a0914'; g.fillRect(0, 430, W, H - 430);
     const L = 80; let y = 440;
-    g.fillStyle = accent; g.font = '700 28px ' + font; g.fillText((t('wr_kicker') + ' · ' + d.range).toUpperCase(), L, y);
+    g.fillStyle = accent; g.font = '700 28px ' + font; g.fillText((T.kicker + ' · ' + d.range).toUpperCase(), L, y);
     g.fillStyle = '#f4f2ff'; g.font = '800 64px ' + font;
-    for (const ln of wrap(g, t('wr_title'), W - 2 * L).slice(0, 2)) { y += 76; g.fillText(ln, L, y); }
+    for (const ln of wrap(g, T.title, W - 2 * L).slice(0, 2)) { y += 76; g.fillText(ln, L, y); }
     g.font = 'italic 600 30px ' + font;
-    const outro = wrap(g, t('wr_outro'), W - 2 * L).slice(0, 2);
+    const outro = wrap(g, T.outro, W - 2 * L).slice(0, 2);
     const bottom = H - 110 - outro.length * 40 - 50, room = bottom - (y + 40);
-    const rs = rows(d).slice(0, Math.min(5, Math.floor(room / 112))), rowH = Math.min(130, room / rs.length);
+    const rs = T.rows.slice(0, Math.min(5, Math.floor(room / 112))), rowH = Math.min(130, room / rs.length);
     y += 40;
     for (const r of rs) {
       g.fillStyle = accent; g.font = '800 58px ' + font; g.fillText(String(r.big), L, y + 52);

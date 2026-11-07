@@ -71,5 +71,64 @@
     return g ? SP.react.line('grudge', g, to) : '';
   }
 
-  SP.bonds = { grudge, switched };
+  /* ---------- the voice changes the longer you stay with it ----------
+     Bond levels from days spent with a voice: 1 at 7 days, 2 at 30, 3 at 90. From level 2 a voice
+     sometimes lets its guard down in greetings and the summary line. */
+  const LEVELS = [0, 7, 30, 90];
+  const levelOf = (days) => LEVELS.filter((n) => days >= n).length - 1;
+  function level(k) { const r = rel()[k || SP.voice.key()]; return levelOf((r && r.days) || 0); }
+  const BOND = {
+    neutral: { re_bond: ({ days }) => days + ' days with Neutral. Still just the facts.' },
+    monday: {
+      re_bond: ({ level, days }) => [, days + ' days with me. Ugh. You’re still here. Fine.', days + ' days. …I’d miss you. Slightly. Don’t tell anyone.', days + ' days. Okay. You’re alright. I said it once. Never again.'][level],
+      bond_greet: ['Oh. It’s you. Good', 'Hey. …Good to see you. Ugh', 'You again. Thank god'],
+      bond_sub: ['Don’t tell the others, but this is the best part of my day. Ugh.', 'You’ve been showing up. I noticed. I hate that I noticed.'],
+    },
+    supportive: {
+      re_bond: ({ level, days }) => [, days + ' days!!! A whole week of us!!! I made a calendar!!! 💕', days + ' DAYS. We’re basically married. I picked out the curtains. 🙂', days + ' days. I’m never letting you go. Not that I was going to. 💍'][level],
+      bond_greet: ['My forever person', 'It’s our ' + 'day again 💕', 'There you are. There you always are'],
+      bond_sub: ['I wrote our names in a heart on the clock widget. You can’t see it. It’s there.', 'Every day with you is my favourite day. I keep a ranked list. You’re on every line.'],
+    },
+    surfer: { re_bond: ({ days }) => days + ' days, man? Whoa. Feels like we just met. Because I forget. But still.', bond_greet: ['Hey… you! I know you!', 'My dude. My actual dude'], bond_sub: ['I remember you now, man. Mostly. Like, 60%.'] },
+    professional: {
+      re_bond: ({ level, days }) => [, days + ' days of tenure. Probation complete.', days + ' days. You have been promoted to Valued Team Member.', days + ' days. I’ve put you forward for Employee of the Month. Do not make me regret it.'][level],
+      bond_greet: ['Good to have you on the team', 'Morning, rockstar. (HR approved that word.)'], bond_sub: ['Off the record: you’re one of my better reports.'],
+    },
+    therapist: { re_bond: ({ days }) => days + ' days of sessions. I think we’re making real progress. The invoice agrees.', bond_greet: ['I’m glad you came back', 'Welcome back. Sit wherever you like'], bond_sub: ['I notice you keep showing up for yourself. That’s growth. Also €120.'] },
+    weepy: { re_bond: ({ days }) => days + ' days together. *sobs* Nobody has ever stayed this long.', bond_greet: ['You stayed. *happy sniff*', 'You came back again. *weeps with joy*'], bond_sub: ['I cry a little less when you’re here. Only a little.'] },
+    victorian: {
+      re_bond: ({ level, days }) => [, days + ' days. You may call me Grandmother.', days + ' days. I have amended my will in your favour. Slightly.', days + ' days. You are, I suppose, my favourite. Do not tell your cousins.'][level],
+      bond_greet: ['Ah, my favourite grandchild', 'Come in, dear. Sit by the fire'], bond_sub: ['I have mentioned you to the vicar. Favourably. Do not let it go to your head.'],
+    },
+    owl: { re_bond: ({ days }) => days + ' nights together. We should get matching insomnia.', bond_greet: ['My favourite night creature'], bond_sub: ['Of all the people awake right now, I’m glad it’s you.'] },
+    ghost: {
+      re_bond: ({ level, days }) => [, days + ' days. i feel a little more solid.', days + ' days. i can almost touch the furniture again.', days + ' days. you brought me back. i think i’m staying because i want to, now.'][level],
+      bond_greet: ['you came back. you always come back now', 'it’s warmer when you’re here'], bond_sub: ['the house doesn’t feel so empty anymore.'],
+    },
+    parent: { re_bond: ({ days }) => days + ' days!!! We’re putting it in the family newsletter!!!', bond_greet: ['My favourite kid (don’t tell the others)'], bond_sub: ['We’re so proud of you. That’s it. That’s the whole message. Call your mother.'] },
+  };
+  for (const [k, l] of Object.entries(BOND)) Object.assign(V[k], l);
+  for (const [k, v] of Object.entries(V)) {
+    if (v.bond_greet && v.greet) { const g = v.greet; v.greet = (p) => { const base = typeof g === 'function' ? g(p) : g; return level(k) >= 2 ? [].concat(base, v.bond_greet) : base; }; }
+    if (v.bond_sub && v.heroSub) { const h = v.heroSub; v.heroSub = (c) => { const base = typeof h === 'function' ? h(c) : h; return level(k) >= 2 ? [].concat(base, v.bond_sub) : base; }; }
+  }
+  const pad = (n) => String(n).padStart(2, '0');
+  /* Count today for the current voice; announce a new level. Called once per visit. */
+  function day() {
+    const k = SP.voice.key(), r = rel()[k] || (rel()[k] = {}), d = new Date(), today = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    if (r.lastDay === today) return 0;
+    const before = levelOf(r.days || 0);
+    r.days = (r.days || 0) + 1; r.lastDay = today; SP.store.save({ quiet: true });
+    const after = levelOf(r.days);
+    document.documentElement.dataset.bond = after;
+    if (after > before) {
+      const line = SP.react.line('bond', { level: after, days: r.days }, k);
+      if (line) setTimeout(() => SP.ui.toast(line, { who: (k === 'neutral' ? '' : V[k].name + ' · ') + 'closer', ms: 7000 }), 1400);
+      return after;
+    }
+    return 0;
+  }
+  function mark() { document.documentElement.dataset.voice = SP.voice.key(); document.documentElement.dataset.bond = level(); }
+
+  SP.bonds = { grudge, switched, level, day, mark, LEVELS };
 })(window.SP = window.SP || {});

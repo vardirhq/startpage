@@ -90,7 +90,7 @@
         ? '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-voice="' + k + '"' + (v.secret ? ' class="secret"' : '') + '><b>' + esc(v.name) + '</b><span>' + esc((cur.blurb && cur.blurb[k]) || base.blurb[k] || v.descriptor) + '</span></button>'
         : '<button role="radio" aria-checked="false" aria-disabled="true" class="locked" title="Locked"><b>' + I('lock', 14) + ' ???</b><span>' + esc(v.hint) + '</span></button>').join('') + '</div>';
   }
-  const voiceToggles = () => toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos) + (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + toggle('brief', 'tgl_brief', S().brief !== false) + SP.maker.sectionHtml();
+  const voiceToggles = () => toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos) + (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + toggle('brief', 'tgl_brief', S().brief !== false) + toggle('dares', 'tgl_dares', S().dares !== false) + SP.maker.sectionHtml();
 
   const VIEWS = {
     layout() {
@@ -102,7 +102,7 @@
         section('sec_accent', accentRow(false)) +
         section('sec_voice', voicePicker()) +
         '<section class="p-sec">' + toggle('showGreeting', 'tgl_greeting', S().showGreeting) + toggle('showQuote', 'tgl_quote', SP.app.space().widgets.includes('quote')) +
-          toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + '</section>';
+          toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + toggle('seasons', 'tgl_seasons', S().seasons !== false) + '</section>';
     },
     widgets() {
       const on = SP.app.space().widgets;
@@ -136,6 +136,7 @@
           '<label class="field"><span>Token (optional)</span><input data-gh="token" type="password" value="' + esc(s.github.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
           '<p class="small muted">Without a token you get public activity (60 API calls/hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge, and <code>gist</code> enables sync. The token is stored only in this browser.</p></div>') +
         section('sec_achievements', SP.achieve.sectionHtml()) +
+        section('sec_discoveries', SP.eggs.sectionHtml()) +
         section('sec_ask', SP.ask.settingsHtml()) +
         section('sec_sync', s.github.token
           ? '<p class="small muted">' + T('syncIntro') + '</p>' +
@@ -178,7 +179,7 @@
     on('[data-accent]', 'click', (e) => { S().accent = e.currentTarget.dataset.accent; save(); SP.app.applyTheme(); render(); });
     on('[data-accent-custom]', 'input', (e) => { S().accent = e.target.value; save(); SP.app.applyTheme(); });
     on('[data-accent-custom]', 'change', render);
-    on('[data-bg-shuffle]', 'click', () => { S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); SP.app.applyTheme(); SP.app.renderMain(); render(); });
+    on('[data-bg-shuffle]', 'click', () => { SP.eggs.shuffled(); S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); SP.app.applyTheme(); SP.app.renderMain(); render(); });
     on('[data-bg-reset]', 'click', () => { S().customBg = false; save(); SP.store.files.del('bg'); SP.app.applyTheme(); render(); });
     on('[data-bg-file]', 'change', async (e) => {
       const f = e.target.files[0]; if (!f) return;
@@ -195,16 +196,16 @@
       if (k === 'showQuote') return setWidget('quote', v);
       if (k === 'syncAuto') { S().sync.auto = v; save(); return; }
       if (k === 'animate') { S().animate = v; save(); SP.app.applyTheme(); render(); return; }
-      if (k === 'showSummary' || k === 'heckles') { S()[k] = v; save(); SP.app.renderHero(); return; }
+      if (k === 'showSummary' || k === 'heckles' || k === 'dares') { S()[k] = v; save(); SP.app.renderHero(); return; }
       if (k === 'speak') { S().speak = v; save(); if (v) SP.speak.say(SP.voice.t('speakHello'), null, true); else SP.speak.stop(); return; }
       if (k === 'chaos') { S().chaos = v; save(); SP.app.renderMain(); SP.achieve.check(); if (v) toast(SP.voice.t('chaosOn'), { who: SP.voice.key() === 'neutral' ? '' : SP.voice.current().name }); return; }
       S()[k] = v; save();
       if (k === 'showGreeting') SP.app.renderHero();
-      if (k === 'liveSky') SP.sky.update();
+      if (k === 'liveSky' || k === 'seasons') { SP.sky.update(); SP.app.renderAll(); }
       if (k === 'clock24') SP.app.renderWidget('clock');
       if (k === 'favicons') SP.app.renderWidget('bookmarks');
     });
-    on('[data-set]', 'change', (e) => { S()[e.target.dataset.set] = e.target.value.trim(); save(); SP.app.renderHero(); });
+    on('[data-set]', 'change', (e) => { S()[e.target.dataset.set] = e.target.value.trim(); save(); SP.app.renderHero(); SP.eggs.checkAll(); });
     on('[data-gh]', 'change', (e) => {
       S().github[e.target.dataset.gh] = e.target.value.trim(); save();
       SP.widgets.github.reset(); SP.app.renderWidget('github');

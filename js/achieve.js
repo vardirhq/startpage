@@ -22,12 +22,13 @@
     { id: 'ask', icon: 'chat', name: 'Asked and answered', desc: 'Ask a voice something', test: (t) => (t.asks || 0) >= 1 },
     { id: 'wrapped', icon: 'gift', name: 'Week in review', desc: 'Open a weekly recap', test: (t) => (t.wrapped || 0) >= 1 },
     { id: 'early', icon: 'coffee', name: 'Early bird', desc: 'Open a tab between 5 and 7 in the morning', test: (t) => (t.early || 0) >= 1 },
+    { id: 'dares', icon: 'flag', name: 'Daredevil', desc: 'Complete 5 daily dares', test: (t) => (t.dares || 0) >= 5, progress: (t) => [t.dares || 0, 5] },
     { id: 'regular', icon: 'eye', name: 'Regular', desc: 'Visit 100 times', test: (t) => (t.visits || 0) >= 100, progress: (t) => [t.visits || 0, 100] },
   ];
 
   /* How each voice announces an achievement. */
   const LINES = {
-    neutral: { ach_toast: ({ name }) => 'Achievement: ' + name + '.', ach_reward: ({ scene }) => 'New scene unlocked: ' + scene + '.', sec_achievements: 'Achievements' },
+    neutral: { ach_toast: ({ name }) => 'Achievement: ' + name + '.', ach_reward: ({ scene }) => 'New scene unlocked: ' + scene + '.', sec_achievements: 'Achievements', sec_discoveries: 'Discoveries' },
     monday: { ach_toast: ({ name }) => 'Ugh. “' + name + '”. They give out badges for anything now.', ach_reward: ({ scene }) => 'You unlocked ' + scene + '. A new wallpaper to ignore.', sec_achievements: 'Participation trophies' },
     supportive: { ach_toast: ({ name }) => '“' + name + '”!!! I’m making it into a necklace. I’ll wear it every day. 💕', ach_reward: ({ scene }) => scene + '!!! A new place for us. Just us. 🙂', sec_achievements: 'Everything I’m proud of (everything)' },
     surfer: { ach_toast: ({ name }) => 'Whoa, “' + name + '”. Is that, like, good? Sounds good.', ach_reward: ({ scene }) => 'New spot unlocked: ' + scene + '. Gnarly.' },

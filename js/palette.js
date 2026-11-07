@@ -123,7 +123,7 @@
     Object.entries(SP.scene.themes).filter(([id]) => SP.achieve.sceneUnlocked(id)).forEach(([id, t]) => list.push({ k: 'theme ' + t.name, label: 'Theme: ' + t.name, icon: 'image', run: () => { S().theme = id; S().customBg = false; save(); app.renderAll(); } }));
     S().spaces.forEach((sp) => list.push({ k: 'space go switch ' + sp.name, label: 'Space: ' + sp.name, icon: sp.icon, run: () => app.switchSpace(sp.id) }));
     Object.entries(app.LAYOUTS).forEach(([id, l]) => list.push({ k: 'layout ' + l.label, label: 'Layout: ' + l.label, icon: 'layout', run: () => { S().layout = id; save(); app.renderMain(); } }));
-    list.push({ k: 'background shuffle random scene', label: 'Shuffle background', icon: 'shuffle', run: () => { S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); app.renderAll(); } });
+    list.push({ k: 'background shuffle random scene', label: 'Shuffle background', icon: 'shuffle', run: () => { SP.eggs.shuffled(); S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); app.renderAll(); } });
     list.push({ k: 'animation animate motion background', label: (S().animate ? 'Disable' : 'Enable') + ' animated background', icon: 'sparkles', run: () => { S().animate = !S().animate; save(); app.applyTheme(); } });
     list.push({ k: 'customize settings preferences', label: 'Open Customize', icon: 'customize', run: () => SP.panel.open() });
     list.push({ k: 'chaos voices mode', label: (S().chaos ? 'Disable' : 'Enable') + ' Chaos mode (a voice per card)', icon: 'shuffle', run: () => { S().chaos = !S().chaos; save(); app.renderMain(); } });
@@ -142,6 +142,8 @@
   }
   function commands(q) {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean), list = commandList(), out = [];
+    if (words[0] === 'sudo') return [{ icon: 'lock', label: 'sudo: permission denied', sub: 'Enter', run: () => SP.eggs.found('sudo') }];
+    if (words[0] === 'dare') { const d = SP.dares.current(); if (d) return [{ icon: 'flag', label: SP.voice.t('d_' + d.type), sub: d.state === 'offered' ? 'Accept' : d.state, run: () => d.state === 'offered' && SP.dares.accept() }]; }
     // Commands that take text: "task buy milk", "note call mum"
     if (words.length > 1) {
       for (const c of list) if (c.arg && c.k.split(' ').includes(words[0])) {
