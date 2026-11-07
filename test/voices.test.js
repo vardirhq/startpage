@@ -11,7 +11,7 @@ const rich = {
 };
 const empty = { voice: 'neutral', tasks: [], habits: [], presence: {} };
 
-global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} } } };
+global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} }, widgets: {}, widgetMeta: {}, widgetOrder: [], widgetHead: () => '' } };
 global.document = { body: { classList: { contains: () => false } }, addEventListener() {}, querySelector: () => null, documentElement: { dataset: {} } };
 require('../js/voices.js');
 require('../js/react.js');
@@ -27,11 +27,12 @@ require('../js/maker.js');
 require('../js/dares.js');
 require('../js/eggs.js');
 require('../js/panel.js');
+require('../js/modules2.js');
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
-  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31, q: 'sync' };
+  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31, q: 'sync', phase: 'Waxing crescent', pct: 23, avg: '3.4' };
 
 function render(state) {
   window.SP.store.state = state;
@@ -238,4 +239,35 @@ test('discovery: "hi monday" gets Monday, in her own words', () => {
   assert.match(r.text, /Ugh\. Hi/);
   assert.equal(window.SP.eggs.greetingQuery('hi there'), null);
   assert.equal(window.SP.eggs.greetingQuery('hello ghost'), null, 'locked voices stay hidden');
+});
+
+test('Monday: "ugh" is a signature, not a crutch', () => {
+  const M = V.list.monday, ctx = Object.assign({}, CTX, { q: 'x' }), lines = [];
+  window.SP.store.state = JSON.parse(JSON.stringify(rich));
+  const add = (val, c) => { if (typeof val === 'function') val = val(c); for (const x of [].concat(val)) { const v = typeof x === 'function' ? x(c) : x; if (typeof v === 'string') lines.push(v); } };
+  for (const [k, v] of Object.entries(M)) if (!['blurb', 'heckle_at', 'name', 'greet', 'bond_greet', 'speech'].includes(k)) add(v, ctx);
+  for (const p of ['morning', 'afternoon', 'evening', 'night']) add(M.greet(p), p);
+  Object.values(M.blurb).forEach((b) => lines.push(b));
+  const ugh = lines.filter((l) => /\bugh\b/i.test(l));
+  assert.ok(lines.length > 250, 'checked ' + lines.length + ' lines');
+  assert.ok(ugh.length <= 4, ugh.length + ' lines with ugh: ' + ugh.join(' | '));
+});
+
+test('moon phases line up with known dates', () => {
+  assert.equal(window.SP.moon(Date.UTC(2024, 0, 25, 18)).name, 'Full moon');
+  assert.equal(window.SP.moon(Date.UTC(2024, 0, 11, 12)).name, 'New moon');
+  assert.equal(window.SP.moon(Date.UTC(2024, 0, 18, 4)).name, 'First quarter');
+  const m = window.SP.moon(Date.UTC(2024, 0, 20));
+  // Mean lunations drift up to ~14 h from the real ones (orbital eccentricity); a day is the precision we show.
+  assert.ok(Math.abs(m.nextFull - Date.UTC(2024, 0, 25, 17, 54)) < 864e5, String(m.nextFull));
+});
+
+test('currency converts through EUR with cached rates', () => {
+  const store = window.SP.store;
+  store.cache = { get: () => ({ date: '2026-11-06', rates: { EUR: 1, USD: 1.1, NOK: 11.5, JPY: 176 } }) };
+  assert.equal(window.SP.fx.convert(100, 'EUR', 'USD').toFixed(2), '110.00');
+  assert.equal(window.SP.fx.convert(110, 'USD', 'NOK').toFixed(2), '1150.00');
+  assert.equal(window.SP.fx.convert(1, 'EUR', 'XYZ'), null);
+  store.cache = { get: () => null };
+  assert.equal(window.SP.fx.convert(1, 'EUR', 'USD'), null, 'no rates yet');
 });

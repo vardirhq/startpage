@@ -26,7 +26,7 @@
   /* A few voiced lines for the chat chrome; everything else falls back to neutral. */
   const LINES = {
     neutral: { ask_label: ({ name }) => 'Ask ' + name, ask_ph: 'Ask a follow-up…', ask_thinking: 'Thinking…', ask_refused: 'That one can’t be answered here.', ask_send: 'Ask', sec_ask: 'Ask a voice (Claude API)' },
-    monday: { ask_ph: 'Ask something. Make it worth my time…', ask_thinking: 'Ugh. Thinking…', ask_refused: 'No. Not even I’ll go there.', ask_send: 'Fine. Ask', sec_ask: 'Ask me things (you pay for it)' },
+    monday: { ask_ph: 'Ask something. Make it worth my time…', ask_thinking: 'Thinking. Against my will…', ask_refused: 'No. Not even I’ll go there.', ask_send: 'Fine. Ask', sec_ask: 'Ask me things (you pay for it)' },
     supportive: { ask_ph: 'Tell me anything. EVERYTHING 💕', ask_thinking: 'Thinking about you… I mean, your question…', ask_refused: 'I can’t answer that one. But I still love you. 🙂', ask_send: 'Tell me', sec_ask: 'Talk to me (for real) 💕' },
     therapist: { ask_thinking: 'Hmm. Let me sit with that…', ask_send: 'Share', sec_ask: 'Book a session (billed to your API key)' },
     victorian: { ask_ph: 'Pose your question. Politely…', ask_thinking: 'One is considering…', ask_send: 'Enquire' },

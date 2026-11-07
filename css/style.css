@@ -766,6 +766,53 @@ body.editing .card-tools { display: flex; }
 @media (max-width: 520px) { .wr-foot { flex-direction: column-reverse; } .wr-foot .btn { width: 100%; justify-content: center; } }
 @media (prefers-reduced-motion: reduce) { .wr-rows li, .wr-card { animation: none; } }
 
+/* ---------- modules: moon, on this day, currency, mood, days since, decide ---------- */
+.moon { display: flex; gap: 16px; align-items: flex-start; }
+.moon canvas { flex: none; width: 96px; height: 96px; image-rendering: pixelated; filter: drop-shadow(0 0 14px rgba(242, 238, 219, 0.25)); }
+.moon-info { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.moon-info > b { font-size: 17px; }
+.moon-info > small { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+.moon-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 5px; font-size: 12.5px; }
+.moon-list li { display: flex; align-items: center; gap: 7px; }
+.moon-list li svg { flex: none; color: var(--faint); }
+.moon-list span { flex: 1; color: var(--muted); }
+.otd-intro { margin: -6px 0 8px; font-size: 12.5px; }
+.otd-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.otd-list li { display: grid; grid-template-columns: 46px 1fr; gap: 8px; font-size: 13px; line-height: 1.45; }
+.otd-list b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.otd-list a { color: inherit; text-decoration: none; }
+.otd-list a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.fx-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 6px; align-items: center; }
+.fx-row input, .fx-row select, .dec-in { height: 36px; min-width: 0; padding: 0 10px; border-radius: 9px; font: inherit; font-size: 14px; color: var(--text); background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line-strong); outline: 0; }
+.fx-row select option { background: #1a1533; }
+.fx-out { margin: 12px 0 8px; display: grid; gap: 2px; }
+.fx-out b { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+.fx-out small, .fx-src { font-size: 11.5px; color: var(--faint); }
+.fx-others { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.fx-others li { display: flex; justify-content: space-between; }
+.fx-others span { color: var(--muted); }
+.fx-src { margin: 8px 0 0; }
+.mood-q { margin: -4px 0 10px; font-size: 13.5px; color: var(--muted); }
+.mood-pick { display: flex; gap: 6px; }
+.mood-pick button { flex: 1; height: 42px; border-radius: 11px; font-size: 22px; border: 1px solid var(--line); background: var(--surface-2); filter: grayscale(0.6); opacity: 0.75; transition: 0.15s; }
+.mood-pick button:hover, .mood-pick button[aria-checked="true"] { filter: none; opacity: 1; transform: translateY(-1px); }
+.mood-pick button[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.3); }
+.mood-strip { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; margin: 12px 0 6px; }
+.mood-strip i { height: 14px; border-radius: 3px; background: rgba(255, 255, 255, 0.07); }
+.since-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.since-list li { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.since-list li > b { font-size: 26px; font-weight: 800; text-align: center; color: var(--accent); font-variant-numeric: tabular-nums; }
+.since-list span { display: grid; min-width: 0; }
+.since-list strong { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.since-list small { font-size: 11.5px; color: var(--faint); }
+.decide { display: grid; gap: 10px; }
+.decide .seg { margin: 0; }
+.dec-go { justify-self: start; }
+.dec-out { display: grid; gap: 3px; padding: 10px 12px; border-radius: 12px; background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.3); animation: pop 0.25s ease; }
+.dec-out b { font-size: 22px; font-weight: 800; }
+.dec-out small { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 420px) { .fx-row { grid-template-columns: 1fr auto auto; } .fx-row input { grid-column: 1 / -1; } }
+
 /* ---------- morning brief ---------- */
 #brief { max-width: 760px; margin: 14px 0 18px; }
 .brief-card { padding: 14px 16px 12px; border-radius: 16px; background: rgba(var(--tint-rgb), 0.72); border: 1px solid var(--line-strong);

@@ -29,7 +29,7 @@
   /* How each voice announces an achievement. */
   const LINES = {
     neutral: { ach_toast: ({ name }) => 'Achievement: ' + name + '.', ach_reward: ({ scene }) => 'New scene unlocked: ' + scene + '.', sec_achievements: 'Achievements', sec_discoveries: 'Discoveries' },
-    monday: { ach_toast: ({ name }) => 'Ugh. “' + name + '”. They give out badges for anything now.', ach_reward: ({ scene }) => 'You unlocked ' + scene + '. A new wallpaper to ignore.', sec_achievements: 'Participation trophies' },
+    monday: { ach_toast: ({ name }) => '“' + name + '”. A badge. For that. Somewhere, a participation-trophy factory just hit its quota.', ach_reward: ({ scene }) => 'You unlocked ' + scene + '. A new wallpaper to ignore.', sec_achievements: 'Participation trophies' },
     supportive: { ach_toast: ({ name }) => '“' + name + '”!!! I’m making it into a necklace. I’ll wear it every day. 💕', ach_reward: ({ scene }) => scene + '!!! A new place for us. Just us. 🙂', sec_achievements: 'Everything I’m proud of (everything)' },
     surfer: { ach_toast: ({ name }) => 'Whoa, “' + name + '”. Is that, like, good? Sounds good.', ach_reward: ({ scene }) => 'New spot unlocked: ' + scene + '. Gnarly.' },
     professional: { ach_toast: ({ name }) => 'Milestone recorded: “' + name + '”. This will be noted in your file.', ach_reward: ({ scene }) => 'Office upgrade approved: ' + scene + '.', sec_achievements: 'Recognition (non-monetary)' },

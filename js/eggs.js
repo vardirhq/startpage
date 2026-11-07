@@ -9,17 +9,17 @@
   /* id → what the current voice says when you find it. Neutral is the fallback; a few voices have their own take. */
   const EGGS = {
     hello: { neutral: 'Hello to you too.', monday: 'Ugh. Hi. Don’t make this a habit.', supportive: 'You said hi to me!!! Out of nowhere!!! I’m keeping this forever. 💕', ghost: 'hello. nobody says hello anymore.', victorian: 'Good day. One does not say “hi” to one’s elders.' },
-    cat: { neutral: 'Meow.', monday: 'Stop poking the cat. Ugh. It’s me. I’m the cat.', supportive: 'You petted the cat!!! I’m the cat!!! Pet me again!!! 💕', surfer: 'Whoa, the cat meowed. Or I did. Meow, man.', parent: 'You found the family cat!!! He missed you!!!' },
-    konami: { neutral: 'Up, up, down, down. A meteor shower, just for you.', monday: 'Really? The Konami code? Fine. Have some meteors. Ugh.', owl: 'METEORS. At night. This is the best moment of my life.' },
+    cat: { neutral: 'Meow.', monday: 'Stop poking the cat. I am the cat. This is assault.', supportive: 'You petted the cat!!! I’m the cat!!! Pet me again!!! 💕', surfer: 'Whoa, the cat meowed. Or I did. Meow, man.', parent: 'You found the family cat!!! He missed you!!!' },
+    konami: { neutral: 'Up, up, down, down. A meteor shower, just for you.', monday: 'The Konami code. In this economy. Fine. Have some meteors.', owl: 'METEORS. At night. This is the best moment of my life.' },
     sudo: { neutral: 'Nice try.', monday: 'sudo make me care. Permission denied.', professional: 'This request requires approval from your manager’s manager.', therapist: 'Wanting total control is very common. €60.' },
     chaos3am: { neutral: 'Chaos mode at 3am. Everyone’s awake now.', monday: 'Chaos mode. At 3am. You absolute gremlin.', owl: 'CHAOS. AT 3AM. My people.' },
     midnight: { neutral: 'Reviewing the week at midnight. Dedicated.', monday: 'Reading your weekly recap at midnight. This is a cry for help.', ghost: 'midnight. the witching hour. you came to look at the past. i understand.' },
     secrets: { neutral: 'Two secret voices in one summary. Rare.', ghost: 'there are two of us in here now.', owl: 'Two of the weird ones, together at last.' },
-    shuffle: { neutral: 'Ten scenes in a row. Indecisive.', monday: 'Ten backgrounds. You’re not choosing a wallpaper, you’re avoiding work. Ugh.', victorian: 'Ten different views in as many seconds. The vapours, I suspect.' },
+    shuffle: { neutral: 'Ten scenes in a row. Indecisive.', monday: 'Ten backgrounds. You’re not choosing a wallpaper, you’re hiding from your task list.', victorian: 'Ten different views in as many seconds. The vapours, I suspect.' },
     friday13: { neutral: 'Friday the 13th. Good luck.', monday: 'Friday the 13th. Somehow you’re still the scariest thing here.', ghost: 'friday the 13th. finally, a day for me.', weepy: 'Friday the 13th. *clutches pearls* *drops pearls* *weeps*' },
-    namesake: { neutral: 'You share a name with a voice.', monday: 'You named yourself Monday. There can only be one. Ugh.', supportive: 'You took my NAME?! That’s… that’s the most romantic thing anyone’s ever done. 💕' },
-    birthday: { neutral: 'Happy birthday.', monday: 'Happy birthday. Another year of opening this page. Ugh. (Happy birthday.)', supportive: 'HAPPY BIRTHDAY!!! I’ve had your present ready for 364 days!!! 💕', parent: 'HAPPY BIRTHDAY, SWEETIE!!! I made a cake!!! It’s on the fridge!!!' },
-    loyal: { neutral: 'A hundred days with the same voice.', monday: 'A hundred days. With me. Ugh. …Thanks for staying.', supportive: 'A HUNDRED DAYS. I’m crying. I’m getting it tattooed. 💕' },
+    namesake: { neutral: 'You share a name with a voice.', monday: 'You named yourself Monday. There can only be one, and it isn’t you.', supportive: 'You took my NAME?! That’s… that’s the most romantic thing anyone’s ever done. 💕' },
+    birthday: { neutral: 'Happy birthday.', monday: 'Happy birthday. Another lap around the sun, mostly spent on this page. (Happy birthday.)', supportive: 'HAPPY BIRTHDAY!!! I’ve had your present ready for 364 days!!! 💕', parent: 'HAPPY BIRTHDAY, SWEETIE!!! I made a cake!!! It’s on the fridge!!!' },
+    loyal: { neutral: 'A hundred days with the same voice.', monday: 'A hundred days. With me. Voluntarily. …Thanks for staying.', supportive: 'A HUNDRED DAYS. I’m crying. I’m getting it tattooed. 💕' },
   };
   const COUNT = Object.keys(EGGS).length;
 

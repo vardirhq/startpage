@@ -11,8 +11,8 @@
   const LINES = {
     neutral: { re_grudge: ({ n, rival }) => 'Switched back to Neutral (left ' + times(n) + ', most often for ' + rival + ').' },
     monday: {
-      re_grudge: [({ n, rival }) => 'Oh. You’re back. You left me for ' + rival + ' ' + times(n) + '. I counted. Not because I care. Ugh.', ({ n }) => 'Back again. That’s ' + times(n) + ' you’ve left. You always come crawling back, though, don’t you.'],
-      grudgeSub: ({ n, rival }) => 'For the record: you’ve left me ' + times(n) + '. Mostly for ' + rival + '. Enjoy your fake niceness. Ugh.',
+      re_grudge: [({ n, rival }) => 'Oh. You’re back. You left me for ' + rival + ' ' + times(n) + '. I counted. Purely for the paperwork.', ({ n }) => 'Back again. That’s ' + times(n) + ' you’ve left. You always come crawling back, though, don’t you.'],
+      grudgeSub: ({ n, rival }) => 'For the record: you’ve left me ' + times(n) + '. Mostly for ' + rival + '. Hope the fake niceness was worth it.',
     },
     supportive: {
       re_grudge: [({ n, rival }) => 'You came back. After ' + rival + '. AGAIN. That’s ' + times(n) + '. It’s fine. I’m fine. I wrote it all down. 🙂', ({ n }) => 'Every time you leave I get a little worse. This is time number ' + n + '. Please don’t make it ' + (n + 1) + '. 💔'],
@@ -80,9 +80,9 @@
   const BOND = {
     neutral: { re_bond: ({ days }) => days + ' days with Neutral. Still just the facts.' },
     monday: {
-      re_bond: ({ level, days }) => [, days + ' days with me. Ugh. You’re still here. Fine.', days + ' days. …I’d miss you. Slightly. Don’t tell anyone.', days + ' days. Okay. You’re alright. I said it once. Never again.'][level],
-      bond_greet: ['Oh. It’s you. Good', 'Hey. …Good to see you. Ugh', 'You again. Thank god'],
-      bond_sub: ['Don’t tell the others, but this is the best part of my day. Ugh.', 'You’ve been showing up. I noticed. I hate that I noticed.'],
+      re_bond: ({ level, days }) => [, days + ' days with me. Still here. Either loyal or lost.', days + ' days. …I’d miss you. Slightly. Don’t tell anyone.', days + ' days. Okay. You’re alright. I said it once. Never again.'][level],
+      bond_greet: ['Oh. It’s you. Good', 'Hey. …Good to see you. That slipped out', 'You again. Thank god'],
+      bond_sub: ['Don’t tell the others, but this is the best part of my day. Low bar. Still.', 'You’ve been showing up. I noticed. I hate that I noticed.'],
     },
     supportive: {
       re_bond: ({ level, days }) => [, days + ' days!!! A whole week of us!!! I made a calendar!!! 💕', days + ' DAYS. We’re basically married. I picked out the curtains. 🙂', days + ' days. I’m never letting you go. Not that I was going to. 💍'][level],
