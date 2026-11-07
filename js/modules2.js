@@ -25,7 +25,7 @@
       moonQuip: ({ phase, pct }) => phase + ', ' + pct + '% lit.', otd_intro: 'On this day:', mood_q: 'How are you today?', mood_log: ({ n }) => ['', 'Logged: rough day.', 'Logged: not great.', 'Logged: okay.', 'Logged: good.', 'Logged: great.'][n],
       since_empty: 'Nothing being counted. Add something with +.', since_reset: ({ title, n }) => '“' + title + '” reset after ' + n + (n === 1 ? ' day.' : ' days.'),
       decide_pickPh: 'Pizza, sushi, tacos', ball: ['It is certain.', 'Most likely.', 'Yes.', 'Ask again later.', 'Cannot predict now.', 'Don’t count on it.', 'No.', 'Very doubtful.'],
-      decide_aside: ['Decided.'], wr_mood: ({ avg }) => 'Average mood this week: ' + avg + ' out of 5.',
+      decide_aside: ['Decided.'], decide_edge: 'It landed on its edge. That almost never happens. Flip again.', wr_mood: ({ avg }) => 'Average mood this week: ' + avg + ' out of 5.',
     },
     monday: {
       w_moon: 'A Rock, Glowing', w_onthisday: 'People Who Did Things', w_fx: 'Money You Don’t Have', w_mood: 'Feelings (Yours, Sadly)', w_since: 'Days Since You Messed Up', w_decide: 'Decisions You Can’t Make',
@@ -262,31 +262,113 @@
   };
 
   /* ======================= Decide ======================= */
-  let dec = { mode: 'coin', out: '', aside: '', spin: 0 };
+  /* ---------------- Decide ----------------
+     Each mode has a little object that actually does the thing: a coin that arcs and flips, a die that
+     tumbles in 3D, an 8-ball that shakes until the answer floats up, and a slot reel for "pick one".
+     The result is chosen first; the animation just lands on it. Reduced motion skips straight to the end. */
+  let dec = { mode: 'coin', out: '', aside: '', face: 0, busy: false };
+  const still = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Which way the cube faces for each value (opposite faces add up to 7).
+  const DIE = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
+  const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
+  const dieFace = (n, cls) => '<i class="df ' + cls + '">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => '<b' + (PIPS[n].includes(i) ? ' class="on"' : '') + '></b>').join('') + '</i>';
+  const opts = () => (S().decideOpts || '').split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);
+
+  function stage() {
+    const m = dec.mode;
+    if (m === 'coin') {
+      const r = dec.face === 'edge' ? 90 : dec.face === 'Tails' ? 180 : 0;
+      return '<div class="dec-stage" data-stage aria-hidden="true"><div class="coin" data-obj style="transform: translateY(0) rotateX(' + r + 'deg)">' +
+        '<i class="cf heads">' + SP.logo(34) + '</i><i class="cf tails"><span>T</span></i><i class="cf rim"></i></div><span class="dec-shadow" data-shadow></span></div>';
+    }
+    if (m === 'die') {
+      const [x, y] = DIE[dec.face || 1];
+      return '<div class="dec-stage" data-stage aria-hidden="true"><div class="die" data-obj style="transform: translateY(0) rotateX(' + x + 'deg) rotateY(' + y + 'deg)">' +
+        dieFace(1, 'f1') + dieFace(6, 'f6') + dieFace(3, 'f3') + dieFace(4, 'f4') + dieFace(2, 'f2') + dieFace(5, 'f5') + '</div><span class="dec-shadow" data-shadow></span></div>';
+    }
+    if (m === 'ball') return '<div class="dec-stage" data-stage aria-hidden="true"><div class="ball" data-obj><span class="ball-win"><i class="tri' + (dec.out ? ' up' : '') + '" data-tri>' + (dec.out ? '' : '8') + '</i></span></div><span class="dec-shadow" data-shadow></span></div>';
+    const o = opts();
+    return '<div class="dec-stage reel-stage" data-stage aria-hidden="true"><div class="reel" data-reel><div class="reel-strip" data-strip><span>' + esc(dec.out || (o[0] || '?')) + '</span></div></div></div>';
+  }
+
+  // A small burst of pixel confetti from the middle of the stage.
+  function burst(st, n) {
+    if (still()) return;
+    const cols = ['var(--accent)', '#fbbf24', '#f472b6', '#34d399', '#60a5fa', '#fff'];
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement('i'); c.className = 'confetti'; c.style.background = cols[i % cols.length]; st.appendChild(c);
+      const a = Math.random() * Math.PI * 2, d = 40 + Math.random() * 70, dx = Math.cos(a) * d, dy = Math.sin(a) * d * 0.6 - 30;
+      c.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (Math.random() * 540) + 'deg)', opacity: 1, offset: 0.55 },
+        { transform: 'translate(' + dx * 1.15 + 'px,' + (dy + 60) + 'px) rotate(' + (Math.random() * 720) + 'deg)', opacity: 0 }], { duration: 900 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.4,1)' }).finished.then(() => c.remove());
+    }
+  }
+
+  async function play(el, result) {
+    const st = el.querySelector('[data-stage]'), obj = el.querySelector('[data-obj]'), sh = el.querySelector('[data-shadow]');
+    if (still() || !st || !st.animate) return;
+    const hop = (ms) => sh && sh.animate([{ transform: 'scale(1)', opacity: 0.5 }, { transform: 'scale(0.45)', opacity: 0.2, offset: 0.45 }, { transform: 'scale(1.1)', opacity: 0.55, offset: 0.8 }, { transform: 'scale(1)', opacity: 0.5 }], { duration: ms, easing: 'ease-out' });
+    if (dec.mode === 'coin') {
+      const from = dec.face === 'Tails' ? 180 : dec.face === 'edge' ? 90 : 0;
+      const end = result === 'edge' ? 1890 : 1800 + (result === 'Tails' ? 180 : 0);
+      const T = (y, r) => ({ transform: 'translateY(' + y + 'px) rotateX(' + r + 'deg)' });
+      hop(1250);
+      await obj.animate([T(0, from), Object.assign(T(-78, from + (end - from) * 0.55), { offset: 0.45 }), Object.assign(T(0, end - 20), { offset: 0.8 }), Object.assign(T(-10, end + 8), { offset: 0.9 }), T(0, end)],
+        { duration: 1250, easing: 'cubic-bezier(.3,.6,.4,1)' }).finished;
+      if (result === 'edge') await obj.animate([{ transform: 'translateY(0) rotateX(90deg) rotateZ(0)' }, { transform: 'translateY(0) rotateX(90deg) rotateZ(6deg)' }, { transform: 'translateY(0) rotateX(90deg) rotateZ(-6deg)' }, { transform: 'translateY(0) rotateX(90deg) rotateZ(0)' }], { duration: 700 }).finished;
+    } else if (dec.mode === 'die') {
+      const [x0, y0] = DIE[dec.face || 1], [x1, y1] = DIE[result];
+      const ex = x1 + 720 + 360 * Math.floor(Math.random() * 2), ey = y1 + 360 + 360 * Math.floor(Math.random() * 2);
+      const T = (ty, x, y) => ({ transform: 'translateY(' + ty + 'px) rotateX(' + x + 'deg) rotateY(' + y + 'deg)' });
+      hop(1150);
+      await obj.animate([T(0, x0, y0), Object.assign(T(-64, x0 + (ex - x0) * 0.5, y0 + (ey - y0) * 0.5), { offset: 0.4 }), Object.assign(T(0, ex - 30, ey - 25), { offset: 0.72 }), Object.assign(T(-14, ex - 6, ey - 4), { offset: 0.86 }), T(0, ex, ey)],
+        { duration: 1150, easing: 'cubic-bezier(.25,.6,.35,1)' }).finished;
+      if (result === 6) burst(st, 26);
+      if (result === 1) await obj.animate([T(0, ex, ey), { transform: 'translateY(2px) rotateX(' + (ex + 8) + 'deg) rotateY(' + ey + 'deg)' }, T(0, ex, ey)], { duration: 500, easing: 'ease-in-out' }).finished; // a sad little slump
+    } else if (dec.mode === 'ball') {
+      const tri = el.querySelector('[data-tri]'); if (tri) { tri.classList.remove('up'); tri.textContent = ''; }
+      await obj.animate([0, -14, 12, -10, 9, -6, 4, -2, 0].map((x, i) => ({ transform: 'translateX(' + x + 'px) rotate(' + (i % 2 ? -1 : 1) * Math.min(12, Math.abs(x)) + 'deg)' })), { duration: 900, easing: 'ease-in-out' }).finished;
+    } else {
+      const o = opts(); if (!o.length) return;
+      const strip = el.querySelector('[data-strip]'), h = el.querySelector('[data-reel]').clientHeight || 44;
+      const seq = []; for (let i = 0; i < 22; i++) seq.push(o[Math.floor(Math.random() * o.length)]); seq.push(result);
+      strip.innerHTML = '<span>' + esc(dec.out || o[0]) + '</span>' + seq.map((x) => '<span>' + esc(x) + '</span>').join('');
+      await strip.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-seq.length * h - 6) + 'px)', offset: 0.93 }, { transform: 'translateY(' + -seq.length * h + 'px)' }],
+        { duration: 1900, easing: 'cubic-bezier(.12,.75,.2,1)', fill: 'forwards' }).finished;
+      burst(st, 22);
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+
   W.decide = {
     title: 'Decide', icon: 'dice',
     render() {
       const modes = { coin: 'Coin', die: 'Die', ball: '8-ball', pick: 'Pick' };
-      return head('dice', t('w_decide')) + '<div class="decide"><div class="seg small" role="radiogroup" aria-label="Mode">' + Object.entries(modes).map(([k, n]) => '<button role="radio" aria-checked="' + (dec.mode === k) + '" data-dec-mode="' + k + '">' + n + '</button>').join('') + '</div>' +
+      return head('dice', t('w_decide')) + '<div class="decide' + (dec.busy ? ' busy' : '') + '"><div class="seg small" role="radiogroup" aria-label="Mode">' + Object.entries(modes).map(([k, n]) => '<button role="radio" aria-checked="' + (dec.mode === k) + '" data-dec-mode="' + k + '">' + n + '</button>').join('') + '</div>' +
+        stage() +
         (dec.mode === 'pick' ? '<input class="dec-in" data-dec-opts placeholder="' + esc(t('decide_pickPh')) + '" value="' + esc(S().decideOpts || '') + '" aria-label="Options, separated by commas">' :
           dec.mode === 'ball' ? '<input class="dec-in" data-dec-q placeholder="Ask a yes/no question…" aria-label="Question">' : '') +
-        '<button class="btn primary dec-go" data-dec-go>' + I('dice', 16) + ' ' + ({ coin: 'Flip', die: 'Roll', ball: 'Shake', pick: 'Pick one' }[dec.mode]) + '</button>' +
-        (dec.out ? '<div class="dec-out' + (dec.spin ? ' spin' : '') + '" aria-live="polite"><b>' + esc(dec.out) + '</b>' + (dec.aside ? '<small>' + esc(dec.aside) + '</small>' : '') + '</div>' : '') + '</div>';
+        '<button class="btn primary dec-go" data-dec-go' + (dec.busy ? ' disabled' : '') + '>' + I('dice', 16) + ' ' + ({ coin: 'Flip', die: 'Roll', ball: 'Shake', pick: 'Pick one' }[dec.mode]) + '</button>' +
+        '<div class="dec-out' + (dec.out ? ' show' : '') + '" aria-live="polite">' + (dec.out ? '<b>' + esc(dec.out) + '</b>' + (dec.aside ? '<small>' + esc(dec.aside) + '</small>' : '') : '') + '</div></div>';
     },
     mount(el) {
-      el.querySelectorAll('[data-dec-mode]').forEach((b) => (b.onclick = () => { dec = { mode: b.dataset.decMode, out: '', aside: '', spin: 0 }; rerender('decide'); }));
+      el.querySelectorAll('[data-dec-mode]').forEach((b) => (b.onclick = () => { if (dec.busy) return; dec = { mode: b.dataset.decMode, out: '', aside: '', face: 0, busy: false }; rerender('decide'); }));
       const o = el.querySelector('[data-dec-opts]'); if (o) o.oninput = () => { S().decideOpts = o.value; save(); };
-      el.querySelector('[data-dec-go]').onclick = () => {
+      const st = el.querySelector('[data-stage]'); if (st) st.onclick = () => el.querySelector('[data-dec-go]').click(); // poke the coin itself
+      el.querySelector('[data-dec-go]').onclick = async () => {
+        if (dec.busy) return;
         const R = () => Math.random();
-        if (dec.mode === 'coin') dec.out = R() < 0.5 ? 'Heads' : 'Tails';
-        else if (dec.mode === 'die') { const n = 1 + Math.floor(R() * 6); dec.out = '⚀⚁⚂⚃⚄⚅'[n - 1] + ' ' + n; }
-        else if (dec.mode === 'ball') dec.out = pick('ball');
-        else {
-          const opts = (S().decideOpts || '').split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);
-          dec.out = opts.length ? opts[Math.floor(R() * opts.length)] : 'Add some options first';
-        }
-        dec.aside = dec.mode === 'ball' ? '' : pick('decide_aside');
-        dec.spin = (dec.spin + 1) % 2 || 1; rerender('decide');
+        let result, out, aside = '';
+        if (dec.mode === 'coin') { result = R() < 1 / 150 ? 'edge' : R() < 0.5 ? 'Heads' : 'Tails'; out = result === 'edge' ? 'Edge' : result; aside = result === 'edge' ? pick('decide_edge') : pick('decide_aside'); }
+        else if (dec.mode === 'die') { result = 1 + Math.floor(R() * 6); out = String(result); aside = pick('decide_aside'); }
+        else if (dec.mode === 'ball') { result = out = pick('ball'); }
+        else { const list = opts(); result = out = list.length ? list[Math.floor(R() * list.length)] : ''; if (!list.length) out = 'Add some options first'; else aside = pick('decide_aside'); }
+        // Hide the last answer and lock the button while the thing happens.
+        dec.busy = true; el.querySelector('.decide').classList.add('busy'); el.querySelector('[data-dec-go]').disabled = true;
+        const box = el.querySelector('.dec-out'); box.classList.remove('show');
+        try { await play(el, result); } catch (e) { /* the card was re-rendered mid-flight; just show the answer */ }
+        Object.assign(dec, { out, aside, face: dec.mode === 'pick' ? 0 : result, busy: false });
+        rerender('decide');
+        document.querySelectorAll('.card[data-w="decide"] .decide').forEach((d) => d.classList.add('landed', dec.mode + '-mode')); // play the landing once
       };
     },
   };

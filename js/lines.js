@@ -748,6 +748,21 @@
     },
   };
 
+  /* The coin lands on its edge about once in 150 flips. Everyone has an opinion. */
+  const EDGE = {
+    monday: 'It landed on its edge. Even the coin refuses to decide for you.',
+    supportive: 'On its EDGE?! It couldn’t choose either! It wants you to stay and flip again 🙂',
+    surfer: 'Whoa. It’s standing up. On its side. Is that a thing? That’s a thing now.',
+    professional: 'Result: edge. The coin has abstained. Please escalate.',
+    therapist: 'It landed on its edge. Maybe neither option is right. What would a third option look like?',
+    weepy: 'On its edge. Torn between two fates. I know exactly how it feels.',
+    victorian: 'The coin has landed upon its edge. Most irregular. I shall write to the Royal Mint.',
+    owl: 'EDGE. On its edge. It’s 3am somewhere and the laws of physics have clocked off.',
+    ghost: 'on its edge. caught between. like me.',
+    parent: 'On its EDGE!!! I’m taking a photo!!! Nobody will believe this!!!',
+  };
+  for (const [k, line] of Object.entries(EDGE)) FILL[k].decide_edge = line;
+
   /* VARY, continued: the newer screens (counters, Ask, On this day, mood) and the rarer reactions. */
   const MORE = {
     monday: {
