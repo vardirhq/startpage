@@ -33,7 +33,7 @@
         bm('Notion', 'https://www.notion.so'), bm('Blender', 'https://www.blender.org'), bm('Figma', 'https://www.figma.com')],
     },
     tasks: [
-      { id: 't1', text: 'Set your name and location in Customize → Settings', done: false },
+      { id: 't1', text: 'Set your name and location in Customize → You', done: false },
       { id: 't2', text: 'Double-click a task to edit it', done: false },
       { id: 't3', text: 'Tick this one off, then clear it with the bin', done: false },
       { id: 't4', text: 'Open your new startpage', done: true },
