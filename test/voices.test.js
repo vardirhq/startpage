@@ -11,8 +11,9 @@ const rich = {
 };
 const empty = { voice: 'neutral', tasks: [], habits: [], presence: {} };
 
-global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} }, widgets: {}, widgetMeta: {}, widgetOrder: [], widgetHead: () => '' } };
-global.document = { body: { classList: { contains: () => false } }, addEventListener() {}, querySelector: () => null, documentElement: { dataset: {} } };
+global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} }, widgets: {}, widgetMeta: {}, widgetOrder: [], widgetHead: () => '', on() {}, emit() {} } };
+global.addEventListener = () => {};
+global.document = { body: { classList: { contains: () => false } }, addEventListener() {}, querySelector: () => null, getElementById: () => null, querySelectorAll: () => [], documentElement: { dataset: {} } };
 require('../js/voices.js');
 require('../js/react.js');
 require('../js/secrets.js');
@@ -28,12 +29,20 @@ require('../js/dares.js');
 require('../js/eggs.js');
 require('../js/panel.js');
 require('../js/modules2.js');
+require('../js/sound.js');
+require('../js/pet.js');
+require('../js/capsule.js');
+require('../js/birthday.js');
+require('../js/faceoff.js');
+require('../js/levels.js');
+require('../js/roasts.js');
 require('../js/lines.js');
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
-  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31, q: 'sync', phase: 'Waxing crescent', pct: 23, avg: '3.4' };
+  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31, q: 'sync', phase: 'Waxing crescent', pct: 23, avg: '3.4',
+  you: 'Rock', them: 'Scissors', w: 3, l: 2, host: 'youtube.com', kind: 'video' };
 
 /* Every variation a value can produce: functions may return arrays, arrays may hold functions. */
 function expand(val, ctx) {
@@ -309,4 +318,31 @@ test('the lines you see most have at least three variations in every voice', () 
     }
   }
   assert.deepEqual(short, []);
+});
+
+/* ---- Batch 4: levels, roasts, face-offs, birthdays ---- */
+test('levels: 100 points for level 2, then 300, 600, 1000…; titles go on past ten', () => {
+  const L = window.SP.levels;
+  assert.deepEqual([0, 99, 100, 299, 300, 600, 999, 1000, 4500].map(L.levelOf), [1, 1, 2, 2, 3, 4, 4, 5, 10]);
+  assert.equal(L.title(3, 'professional'), 'Associate');
+  assert.equal(L.title(12, 'professional'), 'Chief Everything Officer III');
+  assert.equal(L.title(1, 'victorian'), 'Scullery maid');
+});
+test('roasts: sites are sorted into the right kind', () => {
+  const k = window.SP.roasts.kind;
+  assert.deepEqual(['youtube.com', 'old.reddit.com', 'github.com', 'claude.ai', 'amazon.de', 'example.org', 'x.com'].map(k), ['video', 'social', 'work', 'ai', 'shop', 'other', 'social']);
+});
+test('face-offs: ISO week numbers, one day a week', () => {
+  const F = window.SP.faceoff;
+  assert.equal(F.week(new Date(2026, 0, 1)), '2026-W01');
+  assert.equal(F.week(new Date(2025, 11, 29)), '2026-W01');
+  assert.equal(F.week(new Date(2027, 0, 1)), '2026-W53');
+  assert.equal(F.week(new Date(2026, 10, 7)), '2026-W45');
+  for (const w of ['2026-W45', '2026-W46', '2027-W01']) { const d = F.day(w); assert.ok(d >= 0 && d <= 6 && Number.isInteger(d)); }
+});
+test('birthdays: matched on month and day; 29 February is celebrated on the 28th in other years', () => {
+  const S = window.SP.store.state, B = window.SP.birthday, prev = S.birthday;
+  S.birthday = '11-07'; assert.ok(B.today(new Date(2026, 10, 7))); assert.ok(!B.today(new Date(2026, 10, 8)));
+  S.birthday = '02-29'; assert.ok(B.today(new Date(2027, 1, 28))); assert.ok(!B.today(new Date(2028, 1, 28))); assert.ok(B.today(new Date(2028, 1, 29)));
+  S.birthday = prev;
 });

@@ -6,7 +6,7 @@ Startpage is a new tab page. It has no server, no account and no analytics. The 
 
 ## What is stored, and where
 
-Everything you enter (name, location, tasks, notes, habits, bookmarks, mood log, counters, settings, and a small daily activity log used for the weekly recap) is stored **only in your browser**, in `localStorage` and IndexedDB. Uninstalling the extension or clearing site data deletes it.
+Everything you enter (name, birthday if you give it, location, tasks, notes, habits, bookmarks and how often you open them, time capsules, mood log, counters, settings, and a small daily activity log used for the weekly recap) is stored **only in your browser**, in `localStorage` and IndexedDB. Uninstalling the extension or clearing site data deletes it.
 
 ## What leaves your browser
 

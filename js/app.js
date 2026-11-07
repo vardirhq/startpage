@@ -11,7 +11,7 @@
     focus: { label: 'Focus', spans: {} },
     split: { label: 'Two columns', spans: { bookmarks: 24, music: 24 } },
     grid: { label: 'Classic', spans: { clock: 7, weather: 8, github: 9, bookmarks: 11, tasks: 6.5, notes: 6.5, music: 13, quote: 11,
-      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8, moon: 8, onthisday: 10, fx: 8, mood: 7, since: 8, decide: 7 } },
+      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8, moon: 8, onthisday: 10, fx: 8, mood: 7, since: 8, decide: 7, capsule: 8 } },
     dense: { label: 'Dense', spans: { bookmarks: 12, github: 12, music: 12, quote: 12, forecast: 12, news: 12, habits: 12, onthisday: 12 } },
   };
   const DEFAULT_SPAN = { focus: 24, split: 12, grid: 8, dense: 6 };
@@ -81,11 +81,11 @@
     g.hidden = !s.showGreeting;
     if (s.showGreeting) {
       const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
-      const hello = greet(); // no comma after a greeting that ends in "?" or "!"
-      g.innerHTML = '<p class="g-date">' + esc(date) + '</p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
+      const hello = SP.birthday.today() ? SP.voice.t('bday_greet') : greet(); // no comma after a greeting that ends in "?" or "!"
+      g.innerHTML = '<p class="g-date">' + esc(date) + ' <span class="g-lvl" title="' + esc(SP.levels.info().title) + '">· Level ' + SP.levels.info().level + '</span></p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
         (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
-        (s.showSummary ? '<p class="g-sub">' + esc(SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' + heckleHtml() : '') + SP.dares.html() + SP.season.bannerHtml();
-      SP.season.bindBanner(g); SP.dares.bind(g);
+        (s.showSummary ? '<p class="g-sub">' + esc(SP.faceoff.sulk() || SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' + heckleHtml() : '') + SP.birthday.bannerHtml() + SP.faceoff.html() + SP.dares.html() + SP.season.bannerHtml();
+      SP.season.bindBanner(g); SP.dares.bind(g); SP.birthday.bind(g); SP.faceoff.bind(g);
     }
     const sw = $('#search-wrap');
     const want = sp.widgets.includes('search');
@@ -269,6 +269,7 @@
     if (!SP.wrapped.maybeShow()) { SP.brief.maybeShow(); setTimeout(() => SP.react.visit(away0, true), 900); }
     SP.maker.fromHash();
     setTimeout(() => SP.eggs.checkAll(), 2500);
+    SP.emit('ready'); // the pet, time capsules, birthdays and roasts start here
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }

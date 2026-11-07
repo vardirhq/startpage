@@ -125,5 +125,24 @@
     return t;
   }
 
-  SP.ui = { $, $$, esc, uid, normalizeUrl, safeUrl, host, favicon, ago, dialog, form, confirm, menu, closeMenu, toast };
+  /* A toast that waits its turn: shown once nothing else is on screen (news that can wait, like a roast). */
+  const queue = [];
+  function toastLater(msg, o) {
+    queue.push([msg, o]);
+    if (queue.length > 1) return;
+    const step = () => {
+      if (!queue.length) return;
+      if (document.querySelector('.toast') || document.body.classList.contains('onboarding') || document.visibilityState === 'hidden') return setTimeout(step, 700);
+      const [m, opt] = queue.shift(); toast(m, opt); setTimeout(step, (opt && opt.ms) || 5000);
+    };
+    setTimeout(step, 600);
+  }
+
+  /* A tiny event bus, so features can notice each other without being wired together:
+     'stat' (a task done, a focus session...), 'achievement', 'decide'. */
+  const bus = new EventTarget();
+  SP.on = (name, fn) => bus.addEventListener(name, (e) => { try { fn(e.detail || {}); } catch (err) { console.warn('startpage:', name, err); } });
+  SP.emit = (name, detail) => bus.dispatchEvent(new CustomEvent(name, { detail }));
+
+  SP.ui = { $, $$, esc, uid, normalizeUrl, safeUrl, host, favicon, ago, dialog, form, confirm, menu, closeMenu, toast, toastLater };
 })(window.SP = window.SP || {});

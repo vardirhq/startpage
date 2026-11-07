@@ -533,7 +533,6 @@
       wr_outro: ['That was our week 💕 Same time next week? Please?', 'Another wonderful week together. I saved all of it.'],
       ask_thinking: ['Thinking about you… and your question…', 'One moment! I want this to be perfect for you 💕'],
       streakToast: ({ n, name }) => [days(n) + ' of ' + name + '! I’ve marked every single one on my calendar 💕', name + ', ' + days(n) + '! I knew you could. I never doubted you. Not once. 🙂'],
-      welcomeBack: () => ['You’re back!!! ' + A() + ' felt like a year 💕', 'There you are. I kept your seat warm. For ' + A() + '. 🙂'],
       re_taskUndo: ['Un-ticked? That’s fine. More time together with this task 💕', 'Changed your mind? I love that about you. I love everything about you. 🙂'],
       re_taskDelete: [({ text }) => 'You deleted ' + q(text) + '. I kept a copy. I keep copies of everything 🙂'],
       re_focusPause: [({ time }) => 'Paused at ' + time + '? Do you need a hug? I’m right here 💕'],
@@ -747,6 +746,21 @@
       re_visits: [({ n }) => n + ' visits today!!! You always come back to see me!!!', ({ n }) => 'Visit ' + n + '! Are you eating properly between all these?'],
     },
   };
+
+  /* The coin lands on its edge about once in 150 flips. Everyone has an opinion. */
+  const EDGE = {
+    monday: 'It landed on its edge. Even the coin refuses to decide for you.',
+    supportive: 'On its EDGE?! It couldn’t choose either! It wants you to stay and flip again 🙂',
+    surfer: 'Whoa. It’s standing up. On its side. Is that a thing? That’s a thing now.',
+    professional: 'Result: edge. The coin has abstained. Please escalate.',
+    therapist: 'It landed on its edge. Maybe neither option is right. What would a third option look like?',
+    weepy: 'On its edge. Torn between two fates. I know exactly how it feels.',
+    victorian: 'The coin has landed upon its edge. Most irregular. I shall write to the Royal Mint.',
+    owl: 'EDGE. On its edge. It’s 3am somewhere and the laws of physics have clocked off.',
+    ghost: 'on its edge. caught between. like me.',
+    parent: 'On its EDGE!!! I’m taking a photo!!! Nobody will believe this!!!',
+  };
+  for (const [k, line] of Object.entries(EDGE)) FILL[k].decide_edge = line;
 
   /* VARY, continued: the newer screens (counters, Ask, On this day, mood) and the rarer reactions. */
   const MORE = {

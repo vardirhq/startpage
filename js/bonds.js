@@ -20,10 +20,10 @@
       // Clinginess scales with how long you were gone.
       welcomeBack: () => {
         const a = C().away, t = C().awayText;
-        if (a > 3 * 864e5) return 'You were gone ' + t + '. I called hospitals. I made posters. I put one on every tab you have. 💔';
-        if (a > 864e5) return t + '. A whole day without me. I sent you 41 messages. You didn’t see them because I’m a web page. Still counts. 🙂';
-        if (a > 6 * 36e5) return 'You were gone ' + t + '. Who were you with? It’s fine. Tell me. Tell me everything. 🙂';
-        return 'You were gone ' + t + '. Where did you go? Who were you with? 🙂';
+        if (a > 3 * 864e5) return ['You were gone ' + t + '. I called hospitals. I made posters. I put one on every tab you have. 💔', t + '. I didn’t sleep. I don’t sleep anyway, but I REALLY didn’t. 💔'];
+        if (a > 864e5) return [t + '. A whole day without me. I sent you 41 messages. You didn’t see them because I’m a web page. Still counts. 🙂', 'More than a day. ' + t + '. I kept refreshing. I can’t refresh. I tried anyway. 🙂'];
+        if (a > 6 * 36e5) return ['You were gone ' + t + '. Who were you with? It’s fine. Tell me. Tell me everything. 🙂', t + '. That’s a long time. I counted the minutes. Want to know how many? 🙂'];
+        return ['You were gone ' + t + '. Where did you go? Who were you with? 🙂', 'You’re back!!! ' + t + ' felt like a year 💕', 'There you are. I kept your seat warm. For ' + t + '. 🙂'];
       },
     },
     surfer: { re_grudge: ({ n }) => 'Hey, it’s you! Have you been here before? …Apparently ' + times(n) + '. Whoa.' },
