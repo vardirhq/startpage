@@ -533,7 +533,6 @@
       wr_outro: ['That was our week 💕 Same time next week? Please?', 'Another wonderful week together. I saved all of it.'],
       ask_thinking: ['Thinking about you… and your question…', 'One moment! I want this to be perfect for you 💕'],
       streakToast: ({ n, name }) => [days(n) + ' of ' + name + '! I’ve marked every single one on my calendar 💕', name + ', ' + days(n) + '! I knew you could. I never doubted you. Not once. 🙂'],
-      welcomeBack: () => ['You’re back!!! ' + A() + ' felt like a year 💕', 'There you are. I kept your seat warm. For ' + A() + '. 🙂'],
       re_taskUndo: ['Un-ticked? That’s fine. More time together with this task 💕', 'Changed your mind? I love that about you. I love everything about you. 🙂'],
       re_taskDelete: [({ text }) => 'You deleted ' + q(text) + '. I kept a copy. I keep copies of everything 🙂'],
       re_focusPause: [({ time }) => 'Paused at ' + time + '? Do you need a hug? I’m right here 💕'],

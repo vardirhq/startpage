@@ -120,7 +120,7 @@
     S().onboarded = true; SP.store.save();
     root().hidden = true; root().innerHTML = '';
     document.body.classList.remove('onboarding');
-    SP.app.renderAll();
+    SP.app.renderAll(); SP.emit('ready');
     if (prevFocus && prevFocus.focus) prevFocus.focus();
   }
 

@@ -40,6 +40,7 @@
     if (se === 'autumn' && !wet) out.push('leaves');
     if (se === 'winter' && !wet) out.push('flurries');
     const e = event(now); if (e && e.fx) out.push(...e.fx);
+    if (SP.birthday && SP.birthday.today(now)) out.push('balloons');
     return out;
   }
 

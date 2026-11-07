@@ -128,13 +128,17 @@
       return section('sec_theme', themePicker()) +
         section('sec_background', bgRow()) +
         section('sec_accent', accentRow(true)) +
-        section('sec_motion', toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + toggle('seasons', 'tgl_seasons', S().seasons !== false));
+        section('sec_motion', toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + toggle('seasons', 'tgl_seasons', S().seasons !== false) +
+          (() => { const lv = SP.pet.level() || 'off'; return '<div class="field" data-find="cat pet kitten lazy lively cpu"><span>' + L('tgl_pet') + '</span><div class="seg" role="radiogroup" aria-label="The cat">' +
+            [['off', 'Off'], ['lazy', 'Lazy'], ['normal', 'Normal'], ['lively', 'Lively']].map(([k, n]) => '<button role="radio" data-pet="' + k + '" aria-checked="' + (lv === k) + '">' + n + '</button>').join('') +
+            '</div><small class="muted">Lazy naps a lot and barely moves. Lively wanders, plays and chases your pointer, and uses a little more CPU.</small></div>'; })());
     },
     voice() {
       return section('sec_voice', voicePicker()) +
         section('sec_talk', toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) +
           toggle('dares', 'tgl_dares', S().dares !== false) + toggle('brief', 'tgl_brief', S().brief !== false) +
-          (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
+          (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + (SP.sound.supported() ? toggle('sounds', 'tgl_sounds', !!S().sounds) : '') +
+          toggle('faceoffs', 'tgl_faceoffs', S().faceoffs !== false) + toggle('roasts', 'tgl_roasts', S().roasts !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
         section('sec_myvoices', '<p class="small muted">Describe a personality and Claude writes it, using your API key. Share your voices as a link or a file.</p>' + SP.maker.sectionHtml()) +
         section('sec_ask', SP.ask.settingsHtml());
     },
@@ -144,6 +148,7 @@
       return section('sec_profile',
           field('fld_name', '<input data-set="name" value="' + esc(s.name) + '" autocomplete="given-name">') +
           field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">') +
+          field('fld_birthday', SP.birthday.fieldHtml()) +
           '<button class="link" data-onboard>' + I('sparkles', 14) + ' ' + L('ob_rerun') + '</button>') +
         section('sec_location',
           '<p class="small muted">' + (s.location ? T('locIntro', { name: s.location.name }) : T('locNone')) + '</p>' +
@@ -160,7 +165,8 @@
           details('What the token is for', '<p class="small muted">Without a token you get public activity (60 API calls an hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge, and <code>gist</code> enables sync. The token is stored only in this browser.</p>') + '</div>');
     },
     progress() {
-      return section('sec_wrapped', '<p class="small muted">Your week, narrated by the current voice. It also opens by itself on the first tab each Sunday.</p><button class="btn" data-wrapped>' + I('gift', 16) + ' ' + L('wr_open') + '</button>') +
+      return section('sec_level', SP.levels.sectionHtml()) +
+        section('sec_wrapped', '<p class="small muted">Your week, narrated by the current voice. It also opens by itself on the first tab each Sunday.</p><button class="btn" data-wrapped>' + I('gift', 16) + ' ' + L('wr_open') + '</button>') +
         section('sec_achievements', SP.achieve.sectionHtml()) +
         section('sec_discoveries', SP.eggs.sectionHtml());
     },
@@ -214,6 +220,7 @@
   function bind(p) {
     SP.ask.bindSettings(p);
     SP.maker.bind(p);
+    SP.birthday.bindField(p);
     const on = (sel, ev, fn) => $$(sel, p).forEach((n) => n.addEventListener(ev, fn));
     on('[data-close]', 'click', close);
     on('[data-tab]', 'click', (e) => { tab = e.currentTarget.dataset.tab; render(); });
@@ -234,6 +241,7 @@
       catch (err) { toast('Couldn’t save that image'); }
     });
     on('[data-voice]', 'click', (e) => setVoice(e.currentTarget.dataset.voice));
+    on('[data-pet]', 'click', (e) => { S().pet = e.currentTarget.dataset.pet; save(); SP.pet.refresh(); render(); });
     on('[data-onboard]', 'click', () => SP.onboarding.start());
     on('[data-wrapped]', 'click', () => SP.wrapped.open());
     on('[data-weekstart]', 'change', (e) => { S().weekStart = +e.target.value; save(); SP.app.renderWidget('calendar'); SP.app.renderWidget('habits'); });
@@ -243,7 +251,8 @@
       if (k === 'showQuote') return setWidget('quote', v);
       if (k === 'syncAuto') { S().sync.auto = v; save(); return; }
       if (k === 'animate') { S().animate = v; save(); SP.app.applyTheme(); render(); return; }
-      if (k === 'showSummary' || k === 'heckles' || k === 'dares') { S()[k] = v; save(); SP.app.renderHero(); return; }
+      if (k === 'showSummary' || k === 'heckles' || k === 'dares' || k === 'faceoffs') { S()[k] = v; save(); SP.app.renderHero(); return; }
+      if (k === 'sounds') { S().sounds = v; save(); if (v) SP.sound.play('tick'); return; }
       if (k === 'speak') { S().speak = v; save(); if (v) SP.speak.say(SP.voice.t('speakHello'), null, true); else SP.speak.stop(); return; }
       if (k === 'chaos') { S().chaos = v; save(); SP.app.renderMain(); SP.achieve.check(); if (v) toast(SP.voice.t('chaosOn'), { who: SP.voice.key() === 'neutral' ? '' : SP.voice.current().name }); return; }
       S()[k] = v; save();

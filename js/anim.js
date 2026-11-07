@@ -8,7 +8,8 @@
   // Live extras on top of the theme: real weather and the calendar ('rain', 'storm', 'snow', 'flurries', 'fog', 'fireworks', 'bats').
   let fx = [], drops = [], wflakes = [], fogs = [], sparks = [], bats = [], flash = 0, nextRocket = 0;
   // Seasons and events: 'petals', 'leaves', 'summerflies', 'hearts', 'lights', 'meteors'.
-  let drift = [], bugs = [], meteors = [], meteorUntil = 0;
+  let drift = [], bugs = [], meteors = [], meteorUntil = 0, balloons = [];
+  const BALLOON = [[239, 68, 68], [250, 204, 21], [59, 130, 246], [236, 72, 153], [34, 197, 94], [168, 85, 247]];
   const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a.toFixed(3) + ')';
   const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -35,6 +36,7 @@
     drift = [];
     for (const k of Object.keys(DRIFT)) if (has(k)) for (let i = 0; i < (k === 'hearts' ? 14 : 26); i++)
       drift.push({ k, x: Math.random() * W, y: Math.random() * H, vy: (k === 'hearts' ? -6 : 7) - Math.random() * 5 * (k === 'hearts' ? 1 : -1), vx: 4 + Math.random() * 8, ph: Math.random() * 6.28, c: DRIFT[k][i % DRIFT[k].length] });
+    balloons = has('balloons') ? Array.from({ length: 9 }, (_, i) => ({ x: (i + 0.5) * W / 9 + (Math.random() - 0.5) * 20, y: H + Math.random() * H, v: 9 + Math.random() * 8, ph: Math.random() * 6.28, c: BALLOON[i % BALLOON.length] })) : [];
     bugs = has('summerflies') && M.fx !== 'fireflies' ? Array.from({ length: 12 }, () => ({ x: Math.random() * W, y: M.horizon + Math.random() * (H - M.horizon), vx: 0, vy: 0, ph: Math.random() * 6.28 })) : [];
   }
   /* A short burst of shooting stars (an easter egg). */
@@ -84,6 +86,13 @@
         for (let i = 0; i < 26; i++) { const a = (i / 26) * 6.283, sp = 22 + Math.random() * 16; sparks.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1.1 + Math.random() * 0.5, c }); } }
       sparks = sparks.filter((p) => (p.life -= dt) > 0);
       for (const p of sparks) { p.vy += 18 * dt; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = rgba(p.c, Math.min(1, p.life)); ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1); }
+    }
+    for (const b of balloons) { // birthday: balloons rise, sway, and drift off the top
+      b.y -= b.v * dt; b.x += Math.sin(t * 0.9 + b.ph) * 5 * dt; if (b.y < -14) { b.y = H + 6; b.x = Math.random() * W; }
+      const x = Math.round(b.x), y = Math.round(b.y);
+      ctx.fillStyle = rgba(b.c, 0.95); ctx.fillRect(x - 1, y, 3, 4); ctx.fillRect(x - 2, y + 1, 5, 2); ctx.fillRect(x, y + 4, 1, 1);
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(x - 1, y + 1, 1, 1);
+      ctx.fillStyle = 'rgba(230,230,240,0.55)'; for (let i = 0; i < 6; i++) ctx.fillRect(x + Math.round(Math.sin(t * 2 + b.ph + i * 0.7) * 0.8), y + 5 + i, 1, 1);
     }
     for (const b of bats) {
       b.x += b.v * dt; b.y += Math.sin(t * 3 + b.ph) * 6 * dt; if (b.x > W + 4) { b.x = -4; b.y = 20 + Math.random() * horizon * 0.5; }

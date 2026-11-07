@@ -94,8 +94,10 @@ Customize → Voice → **Create a voice**. Describe a personality, say “a pir
 - **They react.** Tick a task, delete one you never did, pause the timer early, show up at 3am, or open the page for the twentieth time today, and you’ll hear about it. *“Deleting it doesn’t count as doing it. Nice try, though.”*
 - **They hold grudges.** Leave Monday for Super Supportive twice, then come back: *“You left me for Super Supportive twice. I counted. Purely for the paperwork.”*
 - **They grow on you.** At 7, 30 and 90 days with the same voice, it lets its guard down a little. *“30 days. …I’d miss you. Slightly. Don’t tell anyone.”* Ghost becomes less see-through the longer you stay.
-- **They argue.** Every so often another voice butts in under the summary line. *“Weepy: Why does Monday get to speak? Nobody ever asks me. \*sniff\*”*
+- **They argue.** Every so often another voice butts in under the summary line. *“Weepy: Why does Monday get to speak? Nobody ever asks me. I have so much to say. Most of it is about loss.”*
 - **Chaos mode** gives every card on the page its own voice. It’s exactly as calm as it sounds.
+- **They fight about you.** One day a week, two voices argue under the greeting about your to-do list, your sleep, your streaks or your focus, using your real numbers. You vote. The winner gloats; if your voice loses, it sulks on the summary line for the rest of the day. *“I lost the face-off. Today’s summary is cancelled. Figure it out yourself.”*
+- **They notice your bookmarks.** Open YouTube for the fifth time and Monday has thoughts: *“5 trips to youtube.com. “Just one video.” Sure.”* Counted only in your browser.
 - **They can speak.** Turn on *Read reactions aloud* and each voice gets its own pitch and pace: a slow Victorian, a breathless Supportive, a Ghost you can barely hear.
 
 ## Little rituals
@@ -103,10 +105,17 @@ Customize → Voice → **Create a voice**. Describe a personality, say “a pir
 - **Morning brief.** On the first tab of the day: the weather, what’s on your list, the streak you’ll lose if you skip today, and what’s coming up this week. In voice, of course.
 - **Daily dares.** One small, optional dare a day. *“Finish one task before you open YouTube. I dare you.”* Say no and you just get a look: *“Saw that coming from a mile away. Two miles.”* No penalties, ever.
 - **Wrapped.** On the first tab each Sunday, your week, narrated: tasks done, focus time, streaks, how often you opened this page (and how many of those visits were after midnight). Save it as an image to share.
+- **Levels.** Tasks, focus sessions, dares and habits earn points, and every voice has its own titles. Professional promotes you from Intern to Chief Everything Officer; Victorian lets you up from the scullery; Monday goes from *Mild disappointment* to *Fine, you win*.
+- **Time capsule.** Write a note to future you and seal it for a week, a month, three months or a year. No peeking. When it’s due, you break a wax seal and the voice of the day introduces it: *“8 days ago, you wrote this. Let’s see how that aged.”*
+- **Your birthday.** Tell it the date (Customize → You) and on the day the greeting changes, balloons rise through the scene, the cat wears a party hat, and every voice leaves you a card. The one you’ve spent the most days with gets the big one. Secret voices you haven’t earned leave sealed cards.
 - **Achievements.** Fourteen of them, three of which unlock new scenes (Dunes, Harbor, Polar Night).
 - **Discoveries.** Twelve things are hidden on this page. We’re not listing them. (Fine, one: the Konami code works.)
 
 <p align="center"><img src="docs/wrapped.png" width="360" alt="A weekly recap image narrated by Monday"></p>
+
+## The cat
+
+A small ginger pixel cat lives on top of your cards. It wanders, naps, sleeps at night, sits under an umbrella when it rains, looks up at fireworks, and runs over when you finish a task. Poke it and it answers; hover over it and it purrs. Pick how lively it is in Customize → Look: **Lazy** mostly naps, **Lively** plays and chases your pointer (and uses a little more CPU), or turn it off.
 
 ## The sky is real
 
@@ -131,7 +140,11 @@ Widgets you can put on any space (Home, Work, Gaming, Dev, or your own), each wi
 | **Daily** | clock · weather · forecast (with air quality) · moon · on this day · daily quote |
 | **Getting things done** | tasks · notes · focus timer · habits with streaks and a heatmap · countdowns · calendar with week numbers · days since |
 | **For developers** | GitHub activity and CI · repo vitals (which of your repos are alive, fading or dead) · Hacker News / dev.to |
-| **Everything else** | bookmarks and folders · music player (your own streams) · currency converter · mood check-in · decide (coin, dice, magic 8-ball, pick-one) |
+| **Everything else** | bookmarks and folders · music player (your own streams) · currency converter · mood check-in · time capsule · decide (see below) |
+
+**Decide** is for when you can’t: a coin that actually flips (and very occasionally lands on its edge), a die that tumbles, a magic 8-ball that shakes, a slot reel that picks one of your options, rock-paper-scissors against your voice (beat it three times in a row and it starts peeking), and **would you rather**, where two voices each pitch you an option and react to whichever you choose.
+
+Sounds are off by default. Turn them on in Customize → Voice for a clinking coin, clattering dice, a ticking reel and a small fanfare for achievements. They’re generated in the browser, so there are no audio files.
 
 ## The search bar is doing a lot
 
@@ -203,6 +216,8 @@ scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 | `js/sky.js`, `js/season.js` | Real weather and daylight in the scene; seasons and holiday events |
 | `js/voices.js` | The eight voices. Neutral is the complete baseline; every other voice overrides it |
 | `js/react.js`, `js/bonds.js`, `js/secrets.js` | Reactions, heckles, the activity log; grudges and bond levels; the three secret voices |
+| `js/pet.js`, `js/sound.js` | The cat (a 20×17 sprite on a timer, not every frame); synthesised sound effects (Web Audio) |
+| `js/capsule.js`, `js/birthday.js`, `js/faceoff.js`, `js/levels.js`, `js/roasts.js` | Time capsules, birthday mode, weekly face-offs, levels and titles, bookmark roasts |
 | `js/lines.js` | Fills every voice’s gaps, and adds variations to the lines you see most (page copy rotates hourly; toasts pick fresh each time) |
 | `js/widgets.js`, `js/modules.js`, `js/modules2.js` | Every card on the page |
 | `js/palette.js` | The search bar’s maths parser, unit, currency and date conversions, and `>` commands |

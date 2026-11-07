@@ -60,6 +60,7 @@
       const a = fresh[fresh.length - 1], k = SP.voice.key();
       const msg = t('ach_toast', { name: a.name }) + (a.reward ? '\n' + t('ach_reward', { scene: SP.scene.themes[a.reward].name }) : '');
       // Wait for any toast on screen (an unlock, a reaction) to finish first: badges are the least urgent news.
+      SP.emit('achievement', { id: a.id, name: a.name });
       later(() => SP.ui.toast(msg, {
         who: (k === 'neutral' ? '' : V[k].name + ' · ') + 'achievement',
         action: a.reward ? { label: 'Use ' + SP.scene.themes[a.reward].name, run: () => { S().theme = a.reward; S().customBg = false; SP.store.save(); SP.app.renderAll(); } } : null,

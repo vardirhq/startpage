@@ -158,6 +158,7 @@
     const keys = Object.keys(st);
     if (keys.length > 70) keys.sort().slice(0, keys.length - 70).forEach((x) => delete st[x]);
     if (SP.dares && name !== 'dares' && name !== 'visits') setTimeout(() => SP.dares.check(), 0); // a dare may be done now
+    if (SP.emit) SP.emit('stat', { name, by: by === undefined ? 1 : by });
   }
 
   // Reactions should feel like a voice noticing, not a slot machine: one at a time, and the

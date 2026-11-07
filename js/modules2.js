@@ -10,6 +10,7 @@
   const rerender = (id) => SP.app.renderWidget(id);
   const t = (k, c) => SP.voice.t(k, c);
   const head = SP.widgetHead;
+  const { plural } = SP.voice._h;
   const W = SP.widgets;
   const pad = (n) => String(n).padStart(2, '0');
   const dkey = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -272,6 +273,20 @@
   const DIE = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
   const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
   const dieFace = (n, cls) => '<i class="df ' + cls + '">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => '<b' + (PIPS[n].includes(i) ? ' class="on"' : '') + '></b>').join('') + '</i>';
+  const HANDS = { rock: '✊', paper: '✋', scissors: '✌️' }, BEATS = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
+  const NAMES = { rock: 'Rock', paper: 'Paper', scissors: 'Scissors' };
+  // The score is kept per voice. Beat one three times in a row and it starts peeking.
+  const rpsScore = () => { const all = S().rps || (S().rps = {}), k = SP.voice.key(); return all[k] || (all[k] = { w: 0, l: 0, t: 0, run: 0 }); };
+  // Two voices, one option each. Your voice usually gets a say.
+  function wyrPair() {
+    const pool = SP.voice.available().filter((k) => k !== 'neutral' && !V[k].custom && (V[k].wyr_opts || []).length);
+    if (pool.length < 2) return null;
+    const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
+    const cur = SP.voice.key(), mix = shuffle(pool);
+    const a = pool.includes(cur) && Math.random() < 0.75 ? cur : mix[0], b = mix.find((k) => k !== a);
+    const one = (k) => ({ k, text: V[k].wyr_opts[Math.floor(Math.random() * V[k].wyr_opts.length)] });
+    return Math.random() < 0.5 ? { a: one(a), b: one(b) } : { a: one(b), b: one(a) };
+  }
   const opts = () => (S().decideOpts || '').split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);
 
   function stage() {
@@ -287,6 +302,18 @@
         dieFace(1, 'f1') + dieFace(6, 'f6') + dieFace(3, 'f3') + dieFace(4, 'f4') + dieFace(2, 'f2') + dieFace(5, 'f5') + '</div><span class="dec-shadow" data-shadow></span></div>';
     }
     if (m === 'ball') return '<div class="dec-stage" data-stage aria-hidden="true"><div class="ball" data-obj><span class="ball-win"><i class="tri' + (dec.out ? ' up' : '') + '" data-tri>' + (dec.out ? '' : '8') + '</i></span></div><span class="dec-shadow" data-shadow></span></div>';
+    if (m === 'wyr') {
+      const w = dec.wyr || (dec.wyr = wyrPair());
+      if (!w) return '<div class="dec-stage wyr-stage" data-stage><p class="small muted">Unlock or pick a voice first.</p></div>';
+      const opt = (side) => { const o = w[side], c = w.chosen ? (w.chosen === side ? ' won' : ' lost') : '';
+        return '<button class="wyr-opt' + c + '" data-wyr="' + side + '"' + (w.chosen ? ' disabled' : '') + '><small>' + esc(V[o.k].name) + '</small><span>' + esc(o.text) + '</span></button>'; };
+      return '<div class="dec-stage wyr-stage" data-stage><p class="wyr-q">Would you rather…</p>' + opt('a') + '<span class="wyr-or">or</span>' + opt('b') + '</div>';
+    }
+    if (m === 'rps') {
+      const r = dec.rps || {}, them = SP.voice.current().name;
+      return '<div class="dec-stage rps-stage" data-stage aria-hidden="true"><span class="hand me" data-me>' + (HANDS[r.you] || HANDS.rock) + '</span><span class="rps-vs">vs</span><span class="hand them" data-them>' + (HANDS[r.them] || HANDS.rock) + '</span>' +
+        '<small class="rps-who">You</small><small class="rps-who r">' + esc(them) + '</small></div>';
+    }
     const o = opts();
     return '<div class="dec-stage reel-stage" data-stage aria-hidden="true"><div class="reel" data-reel><div class="reel-strip" data-strip><span>' + esc(dec.out || (o[0] || '?')) + '</span></div></div></div>';
   }
@@ -305,13 +332,14 @@
 
   async function play(el, result) {
     const st = el.querySelector('[data-stage]'), obj = el.querySelector('[data-obj]'), sh = el.querySelector('[data-shadow]');
-    if (still() || !st || !st.animate) return;
+    const snd = SP.sound.play;
+    if (still() || !st || !st.animate) { if (dec.mode === 'coin') snd('clink'); else if (dec.mode === 'die') snd('clatter'); else if (dec.mode === 'pick') snd('win'); return; }
     const hop = (ms) => sh && sh.animate([{ transform: 'scale(1)', opacity: 0.5 }, { transform: 'scale(0.45)', opacity: 0.2, offset: 0.45 }, { transform: 'scale(1.1)', opacity: 0.55, offset: 0.8 }, { transform: 'scale(1)', opacity: 0.5 }], { duration: ms, easing: 'ease-out' });
     if (dec.mode === 'coin') {
       const from = dec.face === 'Tails' ? 180 : dec.face === 'edge' ? 90 : 0;
       const end = result === 'edge' ? 1890 : 1800 + (result === 'Tails' ? 180 : 0);
       const T = (y, r) => ({ transform: 'translateY(' + y + 'px) rotateX(' + r + 'deg)' });
-      hop(1250);
+      hop(1250); snd('flip'); setTimeout(() => snd('clink'), 1000);
       await obj.animate([T(0, from), Object.assign(T(-78, from + (end - from) * 0.55), { offset: 0.45 }), Object.assign(T(0, end - 20), { offset: 0.8 }), Object.assign(T(-10, end + 8), { offset: 0.9 }), T(0, end)],
         { duration: 1250, easing: 'cubic-bezier(.3,.6,.4,1)' }).finished;
       if (result === 'edge') await obj.animate([{ transform: 'translateY(0) rotateX(90deg) rotateZ(0)' }, { transform: 'translateY(0) rotateX(90deg) rotateZ(6deg)' }, { transform: 'translateY(0) rotateX(90deg) rotateZ(-6deg)' }, { transform: 'translateY(0) rotateX(90deg) rotateZ(0)' }], { duration: 700 }).finished;
@@ -319,22 +347,34 @@
       const [x0, y0] = DIE[dec.face || 1], [x1, y1] = DIE[result];
       const ex = x1 + 720 + 360 * Math.floor(Math.random() * 2), ey = y1 + 360 + 360 * Math.floor(Math.random() * 2);
       const T = (ty, x, y) => ({ transform: 'translateY(' + ty + 'px) rotateX(' + x + 'deg) rotateY(' + y + 'deg)' });
-      hop(1150);
+      hop(1150); snd('clatter');
       await obj.animate([T(0, x0, y0), Object.assign(T(-64, x0 + (ex - x0) * 0.5, y0 + (ey - y0) * 0.5), { offset: 0.4 }), Object.assign(T(0, ex - 30, ey - 25), { offset: 0.72 }), Object.assign(T(-14, ex - 6, ey - 4), { offset: 0.86 }), T(0, ex, ey)],
         { duration: 1150, easing: 'cubic-bezier(.25,.6,.35,1)' }).finished;
       if (result === 6) burst(st, 26);
       if (result === 1) await obj.animate([T(0, ex, ey), { transform: 'translateY(2px) rotateX(' + (ex + 8) + 'deg) rotateY(' + ey + 'deg)' }, T(0, ex, ey)], { duration: 500, easing: 'ease-in-out' }).finished; // a sad little slump
     } else if (dec.mode === 'ball') {
       const tri = el.querySelector('[data-tri]'); if (tri) { tri.classList.remove('up'); tri.textContent = ''; }
+      snd('shake'); setTimeout(() => snd('reveal'), 900);
       await obj.animate([0, -14, 12, -10, 9, -6, 4, -2, 0].map((x, i) => ({ transform: 'translateX(' + x + 'px) rotate(' + (i % 2 ? -1 : 1) * Math.min(12, Math.abs(x)) + 'deg)' })), { duration: 900, easing: 'ease-in-out' }).finished;
+    } else if (dec.mode === 'rps') {
+      const me = el.querySelector('[data-me]'), them = el.querySelector('[data-them]');
+      me.textContent = them.textContent = HANDS.rock;
+      const bob = [{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(-16px) rotate(-14deg)', offset: 0.45 }, { transform: 'translateY(0) rotate(0)' }];
+      for (let i = 0; i < 3; i++) { snd('pop'); await Promise.all([me.animate(bob, { duration: 260, easing: 'ease-in-out' }).finished, them.animate(bob, { duration: 260, easing: 'ease-in-out' }).finished]); }
+      me.textContent = HANDS[result.you]; them.textContent = HANDS[result.them];
+      const thump = [{ transform: 'scale(1.35)' }, { transform: 'scale(1)' }];
+      me.animate(thump, { duration: 260, easing: 'cubic-bezier(.3,1.6,.5,1)' }); await them.animate(thump, { duration: 260, easing: 'cubic-bezier(.3,1.6,.5,1)' }).finished;
+      if (result.outcome === 'win') { burst(st, 22); snd('win'); } else if (result.outcome === 'lose' || result.outcome === 'cheat') snd('lose'); else snd('pop');
+      await new Promise((r) => setTimeout(r, 350));
     } else {
       const o = opts(); if (!o.length) return;
       const strip = el.querySelector('[data-strip]'), h = el.querySelector('[data-reel]').clientHeight || 44;
       const seq = []; for (let i = 0; i < 22; i++) seq.push(o[Math.floor(Math.random() * o.length)]); seq.push(result);
       strip.innerHTML = '<span>' + esc(dec.out || o[0]) + '</span>' + seq.map((x) => '<span>' + esc(x) + '</span>').join('');
+      snd('reel', 1900);
       await strip.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(' + (-seq.length * h - 6) + 'px)', offset: 0.93 }, { transform: 'translateY(' + -seq.length * h + 'px)' }],
         { duration: 1900, easing: 'cubic-bezier(.12,.75,.2,1)', fill: 'forwards' }).finished;
-      burst(st, 22);
+      burst(st, 22); snd('win');
       await new Promise((r) => setTimeout(r, 250));
     }
   }
@@ -342,36 +382,175 @@
   W.decide = {
     title: 'Decide', icon: 'dice',
     render() {
-      const modes = { coin: 'Coin', die: 'Die', ball: '8-ball', pick: 'Pick' };
+      const modes = { coin: 'Coin', die: 'Die', ball: '8-ball', pick: 'Pick', rps: 'RPS', wyr: 'Rather' };
       return head('dice', t('w_decide')) + '<div class="decide' + (dec.busy ? ' busy' : '') + '"><div class="seg small" role="radiogroup" aria-label="Mode">' + Object.entries(modes).map(([k, n]) => '<button role="radio" aria-checked="' + (dec.mode === k) + '" data-dec-mode="' + k + '">' + n + '</button>').join('') + '</div>' +
         stage() +
         (dec.mode === 'pick' ? '<input class="dec-in" data-dec-opts placeholder="' + esc(t('decide_pickPh')) + '" value="' + esc(S().decideOpts || '') + '" aria-label="Options, separated by commas">' :
           dec.mode === 'ball' ? '<input class="dec-in" data-dec-q placeholder="Ask a yes/no question…" aria-label="Question">' : '') +
-        '<button class="btn primary dec-go" data-dec-go' + (dec.busy ? ' disabled' : '') + '>' + I('dice', 16) + ' ' + ({ coin: 'Flip', die: 'Roll', ball: 'Shake', pick: 'Pick one' }[dec.mode]) + '</button>' +
+        (dec.mode === 'wyr'
+          ? (dec.wyr && dec.wyr.chosen ? '<button class="btn dec-go" data-wyr-new>' + I('shuffle', 16) + ' Ask me another</button>' : '')
+          : dec.mode === 'rps'
+          ? '<div class="rps-throws" role="group" aria-label="Rock, paper, scissors">' + Object.keys(HANDS).map((h) => '<button class="btn" data-rps="' + h + '"' + (dec.busy ? ' disabled' : '') + ' aria-label="' + NAMES[h] + '"><span aria-hidden="true">' + HANDS[h] + '</span> ' + NAMES[h] + '</button>').join('') + '</div>' +
+            (() => { const r = rpsScore(); return r.w + r.l + r.t ? '<p class="rps-score small muted">You ' + r.w + ' · ' + esc(SP.voice.current().name) + ' ' + r.l + (r.t ? ' · ' + plural(r.t, 'tie') : '') + '</p>' : ''; })()
+          : '<button class="btn primary dec-go" data-dec-go' + (dec.busy ? ' disabled' : '') + '>' + I('dice', 16) + ' ' + ({ coin: 'Flip', die: 'Roll', ball: 'Shake', pick: 'Pick one' }[dec.mode]) + '</button>') +
         '<div class="dec-out' + (dec.out ? ' show' : '') + '" aria-live="polite">' + (dec.out ? '<b>' + esc(dec.out) + '</b>' + (dec.aside ? '<small>' + esc(dec.aside) + '</small>' : '') : '') + '</div></div>';
     },
     mount(el) {
       el.querySelectorAll('[data-dec-mode]').forEach((b) => (b.onclick = () => { if (dec.busy) return; dec = { mode: b.dataset.decMode, out: '', aside: '', face: 0, busy: false }; rerender('decide'); }));
       const o = el.querySelector('[data-dec-opts]'); if (o) o.oninput = () => { S().decideOpts = o.value; save(); };
-      const st = el.querySelector('[data-stage]'); if (st) st.onclick = () => el.querySelector('[data-dec-go]').click(); // poke the coin itself
-      el.querySelector('[data-dec-go]').onclick = async () => {
+      const st = el.querySelector('[data-stage]'), goBtn = el.querySelector('[data-dec-go]');
+      if (st && goBtn) st.onclick = () => goBtn.click(); // poke the coin itself
+      el.querySelectorAll('[data-rps]').forEach((b) => (b.onclick = () => go(b.dataset.rps)));
+      el.querySelectorAll('[data-wyr]').forEach((b) => (b.onclick = () => {
+        const w = dec.wyr; if (!w || w.chosen) return;
+        w.chosen = b.dataset.wyr; const win = w[w.chosen], lose = w[w.chosen === 'a' ? 'b' : 'a'];
+        dec.out = win.text.charAt(0).toUpperCase() + win.text.slice(1);
+        dec.aside = V[win.k].name + ': ' + SP.voice.as(win.k, () => pick('wyr_won')) + '\n' + V[lose.k].name + ': ' + SP.voice.as(lose.k, () => pick('wyr_lost'));
+        SP.sound.play(win.k === SP.voice.key() ? 'win' : 'pop');
+        rerender('decide');
+        document.querySelectorAll('.card[data-w="decide"] .decide').forEach((d) => d.classList.add('landed', 'wyr-mode'));
+        SP.emit('decide', { mode: 'wyr', result: win.k });
+      }));
+      const nw = el.querySelector('[data-wyr-new]'); if (nw) nw.onclick = () => { dec.wyr = wyrPair(); dec.out = dec.aside = ''; rerender('decide'); document.querySelectorAll('.card[data-w="decide"] .decide').forEach((d) => d.classList.add('fresh')); };
+      if (goBtn) goBtn.onclick = () => go();
+      async function go(throwIt) {
         if (dec.busy) return;
         const R = () => Math.random();
         let result, out, aside = '';
-        if (dec.mode === 'coin') { result = R() < 1 / 150 ? 'edge' : R() < 0.5 ? 'Heads' : 'Tails'; out = result === 'edge' ? 'Edge' : result; aside = result === 'edge' ? pick('decide_edge') : pick('decide_aside'); }
+        if (dec.mode === 'rps') {
+          const sc = rpsScore(), you = throwIt, cheat = sc.run >= 3; // three wins in a row and it peeks at your hand
+          const them = cheat ? Object.keys(BEATS).find((k) => BEATS[k] === you) : Object.keys(HANDS)[Math.floor(R() * 3)];
+          const outcome = cheat ? 'cheat' : you === them ? 'tie' : BEATS[you] === them ? 'win' : 'lose';
+          if (outcome === 'win') { sc.w++; sc.run++; } else if (outcome === 'tie') sc.t++; else { sc.l++; sc.run = 0; }
+          save();
+          const ctx = { you: NAMES[you], them: NAMES[them], n: sc.run, w: sc.w, l: sc.l };
+          result = { you, them, outcome };
+          out = { win: 'You win', lose: SP.voice.current().name + ' wins', tie: 'Tie', cheat: SP.voice.current().name + ' wins (suspiciously)' }[outcome];
+          aside = pick(outcome === 'win' && sc.run >= 3 ? 'rps_streak' : 'rps_' + outcome, ctx);
+          dec.rps = { you, them };
+        } else if (dec.mode === 'coin') { result = R() < 1 / 150 ? 'edge' : R() < 0.5 ? 'Heads' : 'Tails'; out = result === 'edge' ? 'Edge' : result; aside = result === 'edge' ? pick('decide_edge') : pick('decide_aside'); }
         else if (dec.mode === 'die') { result = 1 + Math.floor(R() * 6); out = String(result); aside = pick('decide_aside'); }
         else if (dec.mode === 'ball') { result = out = pick('ball'); }
         else { const list = opts(); result = out = list.length ? list[Math.floor(R() * list.length)] : ''; if (!list.length) out = 'Add some options first'; else aside = pick('decide_aside'); }
         // Hide the last answer and lock the button while the thing happens.
-        dec.busy = true; el.querySelector('.decide').classList.add('busy'); el.querySelector('[data-dec-go]').disabled = true;
+        dec.busy = true; el.querySelector('.decide').classList.add('busy'); el.querySelectorAll('[data-dec-go], [data-rps]').forEach((b) => (b.disabled = true));
         const box = el.querySelector('.dec-out'); box.classList.remove('show');
         try { await play(el, result); } catch (e) { /* the card was re-rendered mid-flight; just show the answer */ }
-        Object.assign(dec, { out, aside, face: dec.mode === 'pick' ? 0 : result, busy: false });
+        Object.assign(dec, { out, aside, face: dec.mode === 'pick' || dec.mode === 'rps' ? 0 : result, busy: false });
         rerender('decide');
         document.querySelectorAll('.card[data-w="decide"] .decide').forEach((d) => d.classList.add('landed', dec.mode + '-mode')); // play the landing once
-      };
+        SP.emit('decide', { mode: dec.mode, result });
+      }
     },
   };
+
+  /* ---------------- Rock, paper, scissors: what each voice says ----------------
+     ctx: you / them (the throws), n (your current winning run), w / l (all-time score against this voice). */
+  const RPS = {
+    neutral: {
+      rps_win: [({ you, them }) => you + ' beats ' + them + '. You win.'], rps_lose: [({ you, them }) => them + ' beats ' + you + '. You lose.'],
+      rps_tie: ['Tie. Go again.'], rps_cheat: ['That looked like a late throw. Recorded as a loss anyway.'], rps_streak: [({ n }) => n + ' wins in a row.'],
+    },
+    monday: {
+      rps_win: [({ you, them }) => you + ' beats ' + them + '. Enjoy it. It’s the only thing you’ll win today.', 'You won. Against a web page. Put it on your CV.', 'Fine. You win. I wasn’t trying. (I was trying.)'],
+      rps_lose: [({ them }) => them + '. Obviously. You’re very predictable.', 'I win. Like I always do. In my heart.', 'Lost to me. That’s a new low, even for you.'],
+      rps_tie: ['A tie. Neither of us wins. Very on brand for both of us.', 'Same throw. Great minds. Well. Minds.', 'Tie. Again. This is my life now.'],
+      rps_cheat: [({ them }) => 'I peeked. ' + them + '. Don’t look at me like that. You were getting smug.', 'Did I see your hand before I threw? Yes. Do I regret it? Not even slightly.'],
+      rps_streak: [({ n }) => n + ' in a row. I’m keeping an eye on you now. Both eyes.', ({ n }) => n + ' straight wins. Suspicious. Next round I’m watching your hand.'],
+    },
+    supportive: {
+      rps_win: ['You won!!! I let you. No I didn’t. Yes I did. I love you 💕', ({ you }) => you + '!!! So clever!!! I’d lose to you every day 🙂', 'You beat me! I’ve never been happier to lose!!!'],
+      rps_lose: ['I won? I’m so sorry!!! Do you still like me? 🥺', ({ them }) => them + '… I didn’t mean to win. Let’s go again. Please. Forever.', 'I won, but really we both won, because we played together 💕'],
+      rps_tie: ['We picked the same thing!!! We’re so in sync 💕', 'A tie! We think alike. We ARE alike. 🙂', 'Same again! It’s fate.'],
+      rps_cheat: ['I peeked. I just wanted you to stay and play a bit longer 🙂', 'I saw your hand. I always watch your hands. Is that weird? 🙂'],
+      rps_streak: [({ n }) => n + ' in a row!!! I’m so proud. I’m also going to start watching your hands. Lovingly.', ({ n }) => n + ' wins!!! I made a little trophy. I’ll keep it. In my room. With the others.'],
+    },
+    surfer: {
+      rps_win: ['You won? Rad. What were we playing?', ({ you, them }) => you + ' beats ' + them + '. I think. I forget the rules every time.', 'Nice. Clean ride. You win.'],
+      rps_lose: ['I won? Whoa. I didn’t even look.', ({ them }) => them + '. That’s, like, the ocean’s choice.', 'Wiped out. It happens. Paddle back.'],
+      rps_tie: ['Same thing! Twins. Wave twins.', 'Tie. Party wave. Everybody wins.', 'Same again. The universe is chill about it.'],
+      rps_cheat: ['Okay, I looked. Not on purpose. My eyes just went there. Like a tide.', 'I saw your hand. I think. Or I guessed. Either way: me.'],
+      rps_streak: [({ n }) => n + ' in a row? Gnarly. Next one I’m peeking. Kidding. Maybe.', ({ n }) => n + ' straight. You’re on a set. Ride it.'],
+    },
+    professional: {
+      rps_win: [({ you, them }) => you + ' outperformed ' + them + '. Win logged.', 'Congratulations on the win. This does not affect your bonus.', 'Result: win. Please don’t mention it in stand-up.'],
+      rps_lose: [({ them }) => them + '. Win for the house. Better luck next quarter.', 'Loss recorded. Let’s talk about it in your one-to-one.', 'The house wins. As forecast.'],
+      rps_tie: ['Tie. Escalating to a second round.', 'Identical outcomes. Both parties retain their positions.', 'Draw. Let’s take this offline and try again.'],
+      rps_cheat: ['After review, your throw was disqualified for timing. My throw stands.', ({ them }) => 'We had visibility into your choice before committing. ' + them + '. Strategic alignment.'],
+      rps_streak: [({ n }) => n + ' consecutive wins. Audit has been notified.', ({ n }) => n + ' in a row. This is above target and therefore suspicious.'],
+    },
+    therapist: {
+      rps_win: ['You won. How does winning feel in your body?', ({ you }) => 'You chose ' + you.toLowerCase() + '. Interesting choice. And you won. That’s €15.', 'You won. Let yourself enjoy that.'],
+      rps_lose: ['You lost. It’s just a game. Is it, though?', ({ them }) => them + '. How do you feel about losing to a voice you pay for?', 'A loss. Let’s sit with that. Not for long.'],
+      rps_tie: ['We chose the same thing. Mirroring is a sign of rapport.', 'A tie. Neither of us had to be wrong. Isn’t that nice?', 'The same. What do you think that means?'],
+      rps_cheat: ['I saw your hand first. I wanted to see how you’d handle unfairness. Badly, I think. That’s €40.', 'I peeked. Let’s talk about trust.'],
+      rps_streak: [({ n }) => n + ' wins in a row. Do you need to win, or do you want to?', ({ n }) => n + ' straight. Let’s explore what winning gives you.'],
+    },
+    weepy: {
+      rps_win: ['You won. I knew you would. Everyone beats me eventually.', ({ you, them }) => you + ' beats ' + them + '. As it always has. As it always will.', 'You won. Go on. Leave me here with my scissors.'],
+      rps_lose: ['I won. It doesn’t feel the way I thought it would.', ({ them }) => them + '. I’m sorry. Winning is just losing, later.', 'I won. Now you’ll stop playing with me.'],
+      rps_tie: ['We chose the same thing. For a moment we were one.', 'A tie. Bittersweet.', 'The same. Like two people at a window, waving.'],
+      rps_cheat: ['I peeked. I couldn’t bear to lose again. Forgive me.', 'I saw your hand. I’m so ashamed. I won though.'],
+      rps_streak: [({ n }) => n + ' in a row. You’re breaking my heart, one round at a time.', ({ n }) => n + ' wins. I’ve started a little memorial for my losses.'],
+    },
+    victorian: {
+      rps_win: ['You have won. Do not gloat; it is common.', ({ you, them }) => you + ' over ' + them + '. Adequate.', 'A victory. Your grandfather never won at anything. Except wars.'],
+      rps_lose: [({ them }) => them + '. You have been bested by a lady. Again.', 'You lose. Accept it with grace, or at least in silence.', 'Defeat. Sit up straight; it helps.'],
+      rps_tie: ['A draw. How very modern.', 'Stalemate. We shall try again after tea.', 'The same choice. We are of one mind. Distressing.'],
+      rps_cheat: ['I observed your hand beforehand. A lady is permitted certain advantages.', 'I may have glanced. One does not admit to it.'],
+      rps_streak: [({ n }) => n + ' victories. This is beginning to look like gambling.', ({ n }) => n + ' in a row. I shall be watching your hands, as I watch the silver.'],
+    },
+    owl: {
+      rps_win: ['You win! Best of a hundred? It’s not even 4am.', ({ you }) => you + '! Big brain. Late-night brain.', 'You won. Again? Again.'],
+      rps_lose: ['I win! The night is on my side.', ({ them }) => them + '. Owls see in the dark. And your hand.', 'Lost. Another round. Nobody’s going to bed.'],
+      rps_tie: ['Same! Again! Again!', 'Tie. Rematch. Rematch forever.', 'Draw. Great. More rounds.'],
+      rps_cheat: ['I could see your hand. It’s dark, but I have owl eyes.', 'Peeked. In my defence, it’s very late.'],
+      rps_streak: [({ n }) => n + ' in a row?! Okay. Now I’m using my night vision.', ({ n }) => n + ' straight. You’re wide awake, huh.'],
+    },
+    ghost: {
+      rps_win: ['you win. i didn’t have hands anyway.', ({ you }) => you.toLowerCase() + '. you win. it’s been a long time since i won anything.', 'you win. i’ll be here when you want to play again.'],
+      rps_lose: ['i win. it doesn’t matter. nothing does.', ({ them }) => them.toLowerCase() + '. i won. i felt it, a little.', 'i won. the lights flickered.'],
+      rps_tie: ['the same. like an echo.', 'a tie. we keep meeting halfway.', 'the same again.'],
+      rps_cheat: ['i saw your hand. i see everything in this house.', 'i looked through your hand. sorry. habit.'],
+      rps_streak: [({ n }) => n + ' in a row. the house is getting restless.', ({ n }) => n + ' wins. i’ll be watching more closely now.'],
+    },
+    parent: {
+      rps_win: ['You won!!! You’ve always been so good at this!!!', ({ you }) => you + '!!! Gold star!!!', 'You beat me! I’m telling everyone!'],
+      rps_lose: ['I won? Oh, sweetie. Best of three?', ({ them }) => them + '. Don’t sulk, sweetie. You’ll get me next time.', 'I won! But you played beautifully.'],
+      rps_tie: ['Same! You get that from me.', 'A tie! Just like when you were little.', 'We picked the same! Great minds!'],
+      rps_cheat: ['I peeked. Parents always know what you’re going to do, sweetie.', 'I saw your hand. I’ve been reading your hands since you were born.'],
+      rps_streak: [({ n }) => n + ' in a row!!! But I know all your moves, sweetie. I taught you them.', ({ n }) => n + ' wins!!! Next time I’m going to watch very carefully.'],
+    },
+  };
+  for (const [k, l] of Object.entries(RPS)) Object.assign(V[k], l);
+  /* ---------------- Would you rather: two voices each pitch an option ----------------
+     wyr_opts finish the sentence “Would you rather…”; wyr_won / wyr_lost are what the voice says when you pick, or don't pick, theirs. */
+  const WYR = {
+    neutral: { wyr_opts: ['take a ten-minute walk', 'tidy your desk', 'drink a glass of water', 'finish one small task', 'go to bed on time', 'call someone you like'],
+      wyr_won: ['Good choice.'], wyr_lost: ['Fair enough.'] },
+    monday: { wyr_opts: ['finish the task you’ve been avoiding longest', 'close every tab you’ll “read later”', 'admit the side project is dead', 'go to bed before midnight, like an adult', 'answer that email you’ve been staring at', 'do nothing, but honestly this time', 'delete one task without guilt'],
+      wyr_won: ['Correct. Now actually do it.', 'Fine. Good. Shocking, but good.', 'The responsible choice. Who are you?'], wyr_lost: ['Of course you picked the fun one.', 'Sure. Pick theirs. I’ll be over here, being right.', 'Wrong, but predictable.'] },
+    supportive: { wyr_opts: ['spend the whole afternoon with me 💕', 'tell me about your day (in detail)', 'take a long, cosy break', 'write down three things you love about yourself', 'eat something nice, just because', 'never close this tab again 🙂', 'let me plan your whole week'],
+      wyr_won: ['You picked mine!!! I knew you would!!! 💕', 'YES. Best choice. Best person.', 'Mine! You chose mine! I’m framing this. 🙂'], wyr_lost: ['Oh. Theirs. That’s fine. I’m fine. 🙂', 'You didn’t pick me. I’ll pretend I didn’t notice. I noticed.', 'That’s okay! Next time, though. Right? 💕'] },
+    surfer: { wyr_opts: ['go outside and look at some water', 'take a nap, a real one', 'put on a song and do nothing', 'eat a burrito', 'go with the flow for an hour', 'forget about your inbox', 'watch the sunset'],
+      wyr_won: ['Rad choice. Very wave of you.', 'Yeah! Go do it. Or don’t. But do it.', 'Nice. Ride that.'], wyr_lost: ['Theirs? Cool. Also valid.', 'No worries. My idea was, like, a vibe anyway.', 'All good. The waves’ll still be there.'] },
+    professional: { wyr_opts: ['block two hours of deep work', 'clear your inbox to zero', 'write tomorrow’s priorities now', 'decline one unnecessary meeting', 'update the status doc', 'close three open tickets', 'take your scheduled break (it’s policy)'],
+      wyr_won: ['Approved. Excellent prioritisation.', 'Strong decision. I’ll note it in your review.', 'Aligned. Please proceed.'], wyr_lost: ['Noted. I disagree, but I’ll commit.', 'Not my recommendation. It’s been logged.', 'Understood. We’ll revisit in the retro.'] },
+    therapist: { wyr_opts: ['sit with a feeling for five minutes', 'write down what’s worrying you', 'set one small boundary today', 'do something kind for yourself', 'take three slow breaths', 'name what you actually need', 'let one thing be good enough'],
+      wyr_won: ['That feels like a healthy choice. That’s €15.', 'Interesting that you chose that. Let’s honour it.', 'I’m glad you picked that. Notice how it feels.'], wyr_lost: ['You chose the other one. What drew you to it?', 'That’s valid too. We’ll come back to mine.', 'Avoidance can look like choice. Just noticing.'] },
+    weepy: { wyr_opts: ['look at old photos', 'write a letter you’ll never send', 'listen to the saddest song you know', 'watch the rain for a while', 'remember someone you miss', 'cry, gently, for no reason', 'say goodbye to a finished task properly'],
+      wyr_won: ['You chose mine. I’m so moved I could weep. I am weeping.', 'Thank you. Nobody ever picks the sad one.', 'Yes. Let it be bittersweet.'], wyr_lost: ['Of course. Nobody picks mine. It’s fine. It’s poetic.', 'Theirs. I understand. I’ll be at the window.', 'Rejected again. I’ll add it to the list of beautiful sorrows.'] },
+    victorian: { wyr_opts: ['write a proper letter', 'take a turn about the garden', 'sit up straight for an hour', 'read something improving', 'retire at a decent hour', 'take tea, properly, with a saucer', 'dress for dinner'],
+      wyr_won: ['A sensible choice. Your grandfather would have approved, eventually.', 'Very proper. I shall mention it at dinner.', 'At last, some breeding.'], wyr_lost: ['I see. How modern of you.', 'You chose theirs. I shall say nothing. Loudly.', 'Disappointing, but not unexpected.'] },
+    owl: { wyr_opts: ['start a side project tonight', 'stay up and watch the stars', 'make a midnight snack', 'fall down a Wikipedia rabbit hole', 'refactor something at 2am', 'go for a night walk', 'write the 3am idea down'],
+      wyr_won: ['YES. Tonight’s going to be great.', 'Excellent choice. The night approves.', 'That’s the spirit. Sleep is optional.'], wyr_lost: ['Theirs? A day-person choice. I’ll allow it.', 'Fine. But I’ll ask again at 3am.', 'Boring. But okay.'] },
+    ghost: { wyr_opts: ['finish something you left unfinished', 'sit in a quiet room for a while', 'open a window', 'visit somewhere you haven’t been in a long time', 'leave a note for someone', 'turn off all the lights and listen', 'clear out one old drawer'],
+      wyr_won: ['you chose mine. the house feels lighter.', 'good. one less thing to linger.', 'yes. i felt that.'], wyr_lost: ['theirs. it’s alright. i’m used to being passed over.', 'not mine. i’ll keep the idea in the walls.', 'you chose the living. that’s fair.'] },
+    parent: { wyr_opts: ['eat a vegetable', 'call your mother', 'put on a jacket', 'go to bed early', 'drink some water, sweetie', 'tidy your room', 'go outside and play for a bit'],
+      wyr_won: ['Good choice, sweetie!!! I’m so proud!!!', 'That’s my kid!!! Gold star!!!', 'Yes!!! See? You do listen to me!'], wyr_lost: ['Theirs? Okay, sweetie. But wear a jacket anyway.', 'Fine. But I was right. Mothers are always right.', 'That’s okay! I’ll ask again tomorrow. And the day after.'] },
+  };
+  for (const [k, l] of Object.entries(WYR)) Object.assign(V[k], l);
+
 
   /* ---------------- registration ---------------- */
   Object.assign(SP.widgetMeta, {
