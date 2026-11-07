@@ -15,7 +15,7 @@ Plain HTML/CSS/JS. No build step and no dependencies. All data stays in `localSt
 
 ## First run
 
-A fresh browser opens a short, skippable setup: your name, your city (optional), and a voice. Each voice card previews how that voice would greet you, using your name, and the setup re-voices itself as you pick one. Skipping counts as done; run it again from Settings → Profile or with `>setup`. Browsers that already have saved data never see it.
+A fresh browser opens a short, skippable setup: your name, your city (optional), and a voice. Each voice card previews how that voice would greet you, using your name, and the setup re-voices itself as you pick one. Skipping counts as done; run it again from Customize → You or with `>setup`. Browsers that already have saved data never see it.
 
 Whatever you skip stays empty, and the page starts with no personal data: no name (the greeting says "friend"), no location (Weather and Forecast show a *Set location* button, and the clock uses your browser's time zone), and a few self-explaining example tasks, notes, habits and a New Year countdown. Replace or delete them as you like; **Reset all** in Settings brings these defaults back.
 
@@ -35,7 +35,7 @@ Whatever you skip stays empty, and the page starts with no personal data: no nam
 
 **Wrapped:** the first tab each Sunday opens a weekly recap narrated by the current voice: tasks done and added, focus time, best streak, visits (and how many after midnight), tasks dropped, dead repos. **Save image** exports a 1080×1350 PNG over your pixel scene. Open it any time with `>wrapped` or from Settings (`js/wrapped.js`).
 
-**Ask a voice:** type `? anything` in the search bar and the current voice answers in character, using the Claude API with **your own key** (Settings → Ask a voice; Claude Opus 5.5 by default, with Sonnet 5.5 and Haiku 5.5 as cheaper options). The request goes straight from the browser to Anthropic, with the voice's persona and your open tasks as context. *Security trade-off:* the key is kept in this browser's `localStorage`, outside the synced and exported data, but any script on the page (or an extension with access to it) could read it. Use a key with a low spending limit (`js/ask.js`).
+**Ask a voice:** type `? anything` in the search bar and the current voice answers in character, using the Claude API with **your own key** (Customize → Voice → Ask a voice; Claude Opus 5.5 by default, with Sonnet 5.5 and Haiku 5.5 as cheaper options). The request goes straight from the browser to Anthropic, with the voice's persona and your open tasks as context. *Security trade-off:* the key is kept in this browser's `localStorage`, outside the synced and exported data, but any script on the page (or an extension with access to it) could read it. Use a key with a low spending limit (`js/ask.js`).
 
 **Ask can do things:** besides answering, Ask has tools. "? remind me to call mum tomorrow" adds the task, "? start a 25 minute focus session" starts the timer, and it can tick off tasks, add notes, habits and countdowns, check off a habit, change the scene, or read your week's numbers. The chat shows each thing it did. Tool input is validated before anything runs; a malformed call is sent back to Claude as an error instead of being run.
 
@@ -47,9 +47,9 @@ Whatever you skip stays empty, and the page starts with no personal data: no nam
 
 **Make your own voice:** Customize → Voice → *Create a voice*. Describe it ("a pirate who hates Mondays") and Claude writes the voice with your key: greetings, the summary line, reactions, weather comments and the main labels. The rest falls back to Neutral. Custom voices sync with your other settings and can be shared as a link (`#voice=…`, compressed) or a file. Anything imported is treated as untrusted: only known keys are kept, lengths are capped, placeholders are filled from a fixed list, and it is always shown as text, never as HTML (`js/maker.js`).
 
-**Achievements and reward scenes:** 14 achievements (finish 50 tasks, 10 focus sessions, a 30-day streak, try every voice, unlock the secret ones…) are listed under Settings with progress bars. Three of them unlock new scenes: **Dunes**, **Harbor** and **Polar Night**. Existing data counts, and is awarded quietly the first time (`js/achieve.js`).
+**Achievements and reward scenes:** 14 achievements (finish 50 tasks, 10 focus sessions, a 30-day streak, try every voice, unlock the secret ones…) are listed under Customize → Progress with progress bars. Three of them unlock new scenes: **Dunes**, **Harbor** and **Polar Night**. Existing data counts, and is awarded quietly the first time (`js/achieve.js`).
 
-**Live sky:** the pixel scene follows the real world. It rains, snows, fogs or storms when it does outside; the light follows your actual sunrise and sunset (dawn, day, dusk, night); and New Year's Eve gets fireworks. It only needs your location; turn it off in Customize → Theme (`js/sky.js`).
+**Live sky:** the pixel scene follows the real world. It rains, snows, fogs or storms when it does outside; the light follows your actual sunrise and sunset (dawn, day, dusk, night); and New Year's Eve gets fireworks. It only needs your location; turn it off in Customize → Look (`js/sky.js`).
 
 **Seasons and events:** the season shows up in whatever scene you picked: blossoms in spring, fireflies on summer nights, falling leaves in autumn, flurries in winter, plus a gentle tint. The hemisphere flips if your location is south of the equator, so October in Sydney is spring. A few events come and go, with nothing to keep up:
 - **Haunted week** (Oct 25–31): bats all week, and Ghost visits even if you haven't unlocked it.
@@ -61,15 +61,25 @@ A dismissible banner says what's on. Turn it all off with *Seasons and holiday e
 
 **Daily dares:** once a day the current voice offers one small, optional dare under the summary line ("Finish one task before you open YouTube. I dare you."). Accept it and progress counts from then; finish it and the voice reacts. Saying no gets a line and nothing else: no penalties, no streaks. It only offers dares that make sense right now, e.g. no "clear your list" when the list is already empty. Five completed dares earn *Daredevil*. `>dare` shows today's (`js/dares.js`).
 
-**Discoveries:** twelve things are hidden on the page. Settings only says how many you've found, with no list and no hints. Each one gets a rare line from the current voice, and one of them sets off a meteor shower (`js/eggs.js`).
+**Discoveries:** twelve things are hidden on the page. Customize → Progress only says how many you've found, with no list and no hints. Each one gets a rare line from the current voice, and one of them sets off a meteor shower (`js/eggs.js`).
 
 **Voices that change:** the longer you stay with a voice, the more it lets its guard down. At 7, 30 and 90 days it says so ("30 days. …I'd miss you. Slightly. Don't tell anyone."), and from 30 days softer lines join its greetings and summary. Ghost becomes less transparent the longer you keep it.
+
+**Customize panel:** six tabs, and each control lives in exactly one of them:
+- **Space:** the layout, the greeting, and which widgets are on the current space (shown first, the rest below).
+- **Look:** scene, background, accent colour, motion and sky.
+- **Voice:** who talks, how they behave, your own voices, and Ask.
+- **You:** profile, location and time, search, GitHub.
+- **Progress:** the weekly recap, achievements and discoveries.
+- **Data:** sync, backup, and *Start over* on its own.
+
+*Find a setting* at the top searches every tab in both the voice's wording and the plain one, so searching "greeting" finds Monday's "Let me sigh at you up top". When a voice renames a switch, the plain wording is shown underneath it.
 
 **Command palette:** in the search bar, type `>` for commands (`>task buy milk`, `>theme forest`, `>space dev`, `>timer`…), or just type math (`sqrt(2)*12^2`), unit conversions (`5 km to mi`, `100 c to f`), or date math (`days until 2027-07-01`, `week`).
 
 **Animated background:** twinkling stars, shooting stars, water shimmer, flickering city windows, snow (Nordic), fireflies (Forest), drifting dust (Minimal). It runs at ~12 fps on a 384×216 canvas, pauses when the tab is hidden, and is off when reduced motion is requested.
 
-**Sync:** with a GitHub token that has `gist` access, Settings → Sync keeps devices in step through a private Gist (e.g. this site and the browser extension). The token itself is never uploaded; the newest copy wins.
+**Sync:** with a GitHub token that has `gist` access, Customize → Data → Sync keeps devices in step through a private Gist (e.g. this site and the browser extension). The token itself is never uploaded; the newest copy wins.
 
 ## Tests
 
@@ -97,10 +107,10 @@ Right-click a bookmark tile, world clock or space to edit it. With Customize ope
 | --- | --- | --- |
 | Greeting, date, tagline | ✅ | Pure JS. |
 | Search + `Ctrl K` | ✅ | Suggests matching bookmarks. In an extension new tab, Chrome focuses the address bar first, so press `/` or click to use the page's search. |
-| Clock + location | ✅ | Local time. Location set in Settings (city search or geolocation). |
+| Clock + location | ✅ | Local time. Location set in Customize → You (city search or geolocation). |
 | Weather | ✅ | [Open-Meteo](https://open-meteo.com): free, no API key, CORS-enabled. Cached for 30 minutes. |
 | GitHub activity + CI | ✅ / 🔑 | Public REST API. Without a token: public events plus Actions status (60 req/h, cached for 10 minutes). With a token (stored locally): private repos, plus an unread-notifications badge if it's a classic token with `notifications` scope. |
-| Bookmarks + folders | ✅ | Stored locally. Icons come from Google's favicon service (toggle in Settings). Reading the *browser's own* bookmarks needs the `bookmarks` extension permission (not used yet). |
+| Bookmarks + folders | ✅ | Stored locally. Icons come from Google's favicon service (toggle in Customize → You). Reading the *browser's own* bookmarks needs the `bookmarks` extension permission (not used yet). |
 | Tasks, Notes | ✅ | Stored locally. Export/import JSON to move between devices. |
 | Theme, accent, background, layout | ✅ | Backgrounds are procedurally generated pixel art (`js/scene.js`), so there are no image assets. Shuffle makes a new scene. Upload your own image if you like. |
 | Spaces | ✅ | Each space has its own widget set and order. Data is shared. |

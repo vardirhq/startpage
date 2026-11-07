@@ -496,7 +496,7 @@
           // With a token, /user/repos includes private repos you own.
           const url = token ? 'https://api.github.com/user/repos?per_page=100&sort=pushed&affiliation=owner' : 'https://api.github.com/users/' + encodeURIComponent(user) + '/repos?per_page=100&sort=pushed';
           const r = await fetch(url, { headers: h });
-          if (!r.ok) throw new Error(r.status === 403 || r.status === 429 ? 'GitHub rate limit hit, add a token in Settings' : 'GitHub returned ' + r.status);
+          if (!r.ok) throw new Error(r.status === 403 || r.status === 429 ? 'GitHub rate limit hit, add a token in Customize → You' : 'GitHub returned ' + r.status);
           repos = (await r.json()).filter((x) => !x.fork).map((x) => ({ name: x.name, html_url: x.html_url, pushed_at: x.pushed_at, archived: x.archived }));
           SP.store.cache.set(key, repos);
         }

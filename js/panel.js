@@ -1,4 +1,7 @@
-/* Customize side panel: Layout overview, Widgets, Theme, Settings. */
+/* Customize side panel. Six tabs, each control in exactly one place:
+   Space (layout + widgets) · Look (scene, background, accent, sky) · Voice (who talks, how, your own voices, Ask)
+   · You (profile, location, search, GitHub) · Progress (recap, achievements, discoveries) · Data (sync, backup, reset).
+   "Find a setting" searches all of them, in the voiced and the plain wording. */
 (function (SP) {
   'use strict';
   const { $, $$, esc, toast, confirm } = SP.ui;
@@ -7,12 +10,32 @@
   const save = () => SP.store.save();
 
   const ACCENTS = ['#a78bfa', '#3b82f6', '#22d3ee', '#4ade80', '#facc15', '#fb923c', '#f472b6'];
-  const TABS = ['layout', 'widgets', 'theme', 'settings'];
+  const TABS = [['space', 'layout', 'tab_layout'], ['look', 'image', 'tab_theme'], ['voice', 'chat', 'tab_voice'], ['you', 'pin', 'tab_you'], ['progress', 'flame', 'tab_progress'], ['data', 'cloudSync', 'tab_data']];
+  const ALIAS = { layout: 'space', widgets: 'space', theme: 'look', settings: 'you' }; // older names, still accepted by open()
   /* Voiced text. `T` escapes; `L` wraps it with the neutral wording as a tooltip so a
      renamed control ("Sell the estate") is still understandable ("Reset all"). */
   const T = (k, c) => esc(SP.voice.t(k, c));
   const L = (k, c) => { const v = SP.voice.t(k, c), p = SP.voice.plain(k, c); return v === p ? esc(v) : '<span title="' + esc(p) + '">' + esc(v) + '</span>'; };
-  let tab = 'layout';
+  let tab = 'space', query = '';
+
+  /* Names for the new tabs and sections, in every voice (neutral is the fallback). */
+  const LINES = {
+    neutral: { tab_voice: 'Voice', tab_you: 'You', tab_progress: 'Progress', tab_data: 'Data', sec_motion: 'Motion & sky', sec_talk: 'How voices behave', sec_myvoices: 'Your voices',
+      sec_time: 'Time & units', sec_wrapped: 'Weekly recap', sec_backup: 'Backup', sec_danger: 'Start over', find_ph: 'Find a setting…', find_none: ({ q }) => 'No settings match “' + q + '”.' },
+    monday: { tab_voice: 'Mouth', tab_you: 'You. Ugh', tab_progress: 'Trophies', tab_data: 'Evidence', sec_motion: 'Shiny things that move', sec_talk: 'How much I nag', sec_myvoices: 'Voices you made up (lonely?)',
+      sec_time: 'Time you’re wasting', sec_wrapped: 'Your week, unfortunately', sec_backup: 'Copies of your mess', sec_danger: 'Burn it all down', find_ph: 'Can’t find it? Shocking…', find_none: ({ q }) => 'Nothing called “' + q + '”. Ugh. Try a real word.' },
+    supportive: { tab_voice: 'Me 💕', tab_you: 'You (my favourite)', tab_progress: 'Our memories', tab_data: 'Our data', sec_motion: 'Pretty things for you', sec_talk: 'How often I talk to you (always)', sec_myvoices: 'Other voices you made?? (who are they)',
+      sec_time: 'Our time together', sec_wrapped: 'Our week', sec_backup: 'Keep us safe', sec_danger: 'Leave me (please don’t)', find_ph: 'Looking for something? I’ll help!!!', find_none: ({ q }) => 'I looked EVERYWHERE for “' + q + '”. I’m so sorry. 🥺' },
+    surfer: { tab_voice: 'Vibes', tab_you: 'You, dude', tab_progress: 'Rad stuff', tab_data: 'The data, man', sec_motion: 'Moving pixels', sec_talk: 'How chatty we get', sec_myvoices: 'Your homemade dudes', sec_time: 'Time, or whatever', sec_wrapped: 'The week', sec_backup: 'Save it, man', sec_danger: 'Wipeout', find_ph: 'Find a thing, bro…', find_none: ({ q }) => 'No “' + q + '” out there, man.' },
+    professional: { tab_voice: 'Comms', tab_you: 'Profile', tab_progress: 'KPIs', tab_data: 'Records', sec_motion: 'Visual assets', sec_talk: 'Communication policy', sec_myvoices: 'Contractors', sec_time: 'Working hours', sec_wrapped: 'Weekly report', sec_backup: 'Data retention', sec_danger: 'Offboarding', find_ph: 'Search the knowledge base…', find_none: ({ q }) => 'No results for “' + q + '”. Please raise a ticket.' },
+    therapist: { tab_voice: 'Voices', tab_you: 'You', tab_progress: 'Growth', tab_data: 'Your file', sec_motion: 'Soothing visuals', sec_talk: 'How we communicate', sec_myvoices: 'Parts of you', sec_time: 'Your relationship with time', sec_wrapped: 'Weekly reflection', sec_backup: 'Keeping records', sec_danger: 'Ending therapy', find_ph: 'What are you looking for? Really?…', find_none: ({ q }) => 'There is no “' + q + '”. What were you hoping to find?' },
+    weepy: { tab_voice: 'Voices *sniff*', tab_you: 'You', tab_progress: 'Memories', tab_data: 'Keepsakes', sec_motion: 'Things that flicker and fade', sec_talk: 'How much we cry at you', sec_myvoices: 'Voices you brought to life', sec_time: 'Time, slipping away', sec_wrapped: 'The week we lost', sec_backup: 'Preserve the memories', sec_danger: 'The end of everything', find_ph: 'Searching… for meaning…', find_none: ({ q }) => '“' + q + '” is gone. Like everything. *sobs*' },
+    victorian: { tab_voice: 'Elocution', tab_you: 'Your person', tab_progress: 'Distinctions', tab_data: 'The ledgers', sec_motion: 'Moving pictures (vulgar)', sec_talk: 'Matters of conversation', sec_myvoices: 'Acquaintances of your own invention', sec_time: 'Timekeeping', sec_wrapped: 'The weekly account', sec_backup: 'Copies for the solicitor', sec_danger: 'Selling the estate', find_ph: 'Enquire after a setting…', find_none: ({ q }) => 'There is no such thing as “' + q + '” in this house.' },
+    owl: { tab_voice: 'Voices', tab_you: 'You (awake)', tab_progress: 'Night trophies', tab_data: 'Data', sec_motion: 'Night lights', sec_talk: 'How much we talk at 3am', find_ph: 'Find something (it’s late)…' },
+    ghost: { tab_voice: 'echoes', tab_you: 'you', tab_progress: 'what remains', tab_data: 'belongings', sec_motion: 'flickering things', sec_talk: 'how loudly we whisper', sec_danger: 'let it all go', find_ph: 'search the house…', find_none: ({ q }) => 'there’s no “' + q + '” here. not anymore.' },
+    parent: { tab_voice: 'Voices', tab_you: 'Our kid', tab_progress: 'The fridge', tab_data: 'The attic', sec_motion: 'Twinkly lights', sec_talk: 'How much we talk (a lot)', sec_wrapped: 'Your amazing week', sec_danger: 'Moving out', find_ph: 'Lost something, sweetie?…', find_none: ({ q }) => 'Couldn’t find “' + q + '”, sweetie. Did you look under the bed?' },
+  };
+  for (const [k, l] of Object.entries(LINES)) Object.assign(SP.voice.list[k], l);
   const thumbs = {};
 
   function thumb(theme, seed) {
@@ -24,8 +47,12 @@
     }
     return thumbs[k];
   }
-  const toggle = (name, key, on) => '<label class="switch-row"><span>' + L(key) + '</span><input type="checkbox" role="switch" aria-label="' + esc(SP.voice.plain(key)) + '" data-toggle="' + name + '"' + (on ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label>';
-  const section = (key, body, cls) => '<section class="p-sec ' + (cls || '') + '"><h3>' + L(key) + '</h3>' + body + '</section>';
+  // When a voice renames a switch, the plain wording sits underneath (tooltips don't exist on phones).
+  const plainNote = (key) => { const v = SP.voice.t(key), p = SP.voice.plain(key); return v === p ? '' : '<small>' + esc(p) + '</small>'; };
+  const toggle = (name, key, on) => '<label class="switch-row"><span class="sr-t"><span>' + esc(SP.voice.t(key)) + '</span>' + plainNote(key) + '</span><input type="checkbox" role="switch" aria-label="' + esc(SP.voice.plain(key)) + '" data-toggle="' + name + '"' + (on ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label>';
+  // data-find holds the plain wording too, so "Find a setting" works whatever the voice calls things.
+  const section = (key, body, cls) => '<section class="p-sec ' + (cls || '') + '" data-find="' + esc(SP.voice.plain(key)) + '"><h3>' + L(key) + '</h3>' + body + '</section>';
+  const details = (summary, body) => '<details class="p-more"><summary>' + esc(summary) + '</summary>' + body + '</details>';
   const field = (key, input) => '<label class="field"><span>' + L(key) + '</span>' + input + '</label>';
 
   function layoutPicker() {
@@ -37,10 +64,6 @@
     };
     return '<div class="layout-pick" role="radiogroup" aria-label="Layout">' + Object.keys(shapes).map((k) =>
       '<button role="radio" aria-checked="' + (S().layout === k) + '" data-layout="' + k + '" title="' + SP.app.LAYOUTS[k].label + '"><span class="lp-shape">' + shapes[k] + '</span></button>').join('') + '</div>';
-  }
-  function widgetTiles(ids) {
-    const on = SP.app.space().widgets;
-    return '<div class="w-pick">' + ids.map((id) => '<button aria-pressed="' + on.includes(id) + '" data-widget="' + id + '" title="' + T('desc_' + id) + '"><span>' + I(SP.widgetMeta[id].icon, 22) + '</span>' + esc(SP.widgetMeta[id].title) + '</button>').join('') + '</div>';
   }
   function themePicker() {
     return '<div class="theme-pick">' + Object.entries(SP.scene.themes).map(([k, t]) => !SP.achieve.sceneUnlocked(k)
@@ -90,72 +113,94 @@
         ? '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-voice="' + k + '"' + (v.secret ? ' class="secret"' : '') + '><b>' + esc(v.name) + '</b><span>' + esc((cur.blurb && cur.blurb[k]) || base.blurb[k] || v.descriptor) + '</span></button>'
         : '<button role="radio" aria-checked="false" aria-disabled="true" class="locked" title="Locked"><b>' + I('lock', 14) + ' ???</b><span>' + esc(v.hint) + '</span></button>').join('') + '</div>';
   }
-  const voiceToggles = () => toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos) + (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + toggle('brief', 'tgl_brief', S().brief !== false) + toggle('dares', 'tgl_dares', S().dares !== false) + SP.maker.sectionHtml();
-
   const VIEWS = {
-    layout() {
-      return section('sec_layout', layoutPicker()) +
-        section('sec_widgets', widgetTiles(['search', 'bookmarks', 'weather', 'clock', 'tasks', 'notes', 'github', 'music']) +
-          '<button class="more-btn" data-tab="widgets">' + I('plus', 14) + ' ' + L('moreWidgets') + '</button>') +
-        section('sec_theme', themePicker()) +
+    space() {
+      const sp = SP.app.space(), on = sp.widgets, ids = SP.widgetOrder;
+      const row = (id) => '<li><span class="wl-ic">' + I(SP.widgetMeta[id].icon, 20) + '</span><span class="wl-t"><b>' + esc(SP.widgetMeta[id].title) + '</b><small>' + T('desc_' + id) + '</small></span>' +
+        '<label class="switch-row bare"><input type="checkbox" role="switch" aria-label="Show ' + esc(SP.widgetMeta[id].title) + '" data-wtoggle="' + id + '"' + (on.includes(id) ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label></li>';
+      const shown = on.filter((id) => ids.includes(id)), hidden = ids.filter((id) => !on.includes(id));
+      return section('sec_layout', layoutPicker() + toggle('showGreeting', 'tgl_greeting', S().showGreeting)) +
+        section('sec_widgets', '<p class="small muted">' + T('widgetsIntro', { space: sp.name }) + '</p>' +
+          '<ul class="w-list">' + shown.map(row).join('') + '</ul>' +
+          (hidden.length ? '<h4 class="p-sub">' + L('moreWidgets') + '</h4><ul class="w-list">' + hidden.map(row).join('') + '</ul>' : ''));
+    },
+    look() {
+      return section('sec_theme', themePicker()) +
         section('sec_background', bgRow()) +
-        section('sec_accent', accentRow(false)) +
-        section('sec_voice', voicePicker()) +
-        '<section class="p-sec">' + toggle('showGreeting', 'tgl_greeting', S().showGreeting) + toggle('showQuote', 'tgl_quote', SP.app.space().widgets.includes('quote')) +
-          toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + toggle('seasons', 'tgl_seasons', S().seasons !== false) + '</section>';
+        section('sec_accent', accentRow(true)) +
+        section('sec_motion', toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + toggle('seasons', 'tgl_seasons', S().seasons !== false));
     },
-    widgets() {
-      const on = SP.app.space().widgets;
-      return '<p class="small muted">' + T('widgetsIntro', { space: SP.app.space().name }) + '</p>' +
-        '<ul class="w-list">' + SP.widgetOrder.map((id) => '<li><span class="wl-ic">' + I(SP.widgetMeta[id].icon, 20) + '</span><span class="wl-t"><b>' + esc(SP.widgetMeta[id].title) + '</b><small>' + T('desc_' + id) + '</small></span>' +
-          '<label class="switch-row bare"><input type="checkbox" role="switch" aria-label="Show ' + esc(SP.widgetMeta[id].title) + '" data-wtoggle="' + id + '"' + (on.includes(id) ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label></li>').join('') + '</ul>';
+    voice() {
+      return section('sec_voice', voicePicker()) +
+        section('sec_talk', toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) +
+          toggle('dares', 'tgl_dares', S().dares !== false) + toggle('brief', 'tgl_brief', S().brief !== false) +
+          (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
+        section('sec_myvoices', '<p class="small muted">Describe a personality and Claude writes it, using your API key. Share your voices as a link or a file.</p>' + SP.maker.sectionHtml()) +
+        section('sec_ask', SP.ask.settingsHtml());
     },
-    theme() {
-      return section('sec_theme', themePicker()) + section('sec_background', bgRow() + toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false)) +
-        section('sec_accent', accentRow(true)) + section('sec_voice', voicePicker() + voiceToggles());
-    },
-    settings() {
+    you() {
       const s = S();
       const engines = Object.entries(SP.search.engines).map(([k, e]) => '<option value="' + k + '"' + (s.engine === k ? ' selected' : '') + '>' + e.name + '</option>').join('');
       return section('sec_profile',
-          field('fld_name', '<input data-set="name" value="' + esc(s.name) + '">') +
+          field('fld_name', '<input data-set="name" value="' + esc(s.name) + '" autocomplete="given-name">') +
           field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">') +
-          '<button class="link" data-onboard>' + I('sparkles', 14) + ' ' + L('ob_rerun') + '</button> <button class="link" data-wrapped>' + I('gift', 14) + ' ' + L('wr_open') + '</button>') +
+          '<button class="link" data-onboard>' + I('sparkles', 14) + ' ' + L('ob_rerun') + '</button>') +
         section('sec_location',
           '<p class="small muted">' + (s.location ? T('locIntro', { name: s.location.name }) : T('locNone')) + '</p>' +
           '<form class="loc-search" data-loc-form><input name="city" placeholder="' + T('locPlaceholder') + '" aria-label="City"><button class="btn">' + L('btn_find') + '</button></form>' +
-          '<ul class="loc-results" data-loc-results></ul><button class="link" data-geo>' + I('pin', 14) + ' ' + L('btn_geo') + '</button>' +
-          '<div class="seg" role="radiogroup" aria-label="Units"><button data-units="celsius" aria-checked="' + (s.units === 'celsius') + '" role="radio">°C</button><button data-units="fahrenheit" aria-checked="' + (s.units === 'fahrenheit') + '" role="radio">°F</button></div>' +
-          toggle('clock24', 'tgl_24h', s.clock24) +
-          field('fld_weekStart', '<select data-weekstart><option value="1"' + (s.weekStart === 1 ? ' selected' : '') + '>Monday</option><option value="0"' + (s.weekStart === 0 ? ' selected' : '') + '>Sunday</option></select>')) +
-        section('sec_voice', voicePicker() + voiceToggles()) +
-        section('sec_search', field('fld_engine', '<select data-set="engine">' + engines + '</select>') +
-          '<p class="small muted">Shortcuts: <kbd>Ctrl</kbd> <kbd>K</kbd> or <kbd>/</kbd> to focus, <code>&gt;</code> for commands, math and unit conversion inline. Bangs: ' + Object.keys(SP.search.bangs).map((b) => '<code>!' + b + '</code>').join(' ') + '</p>' +
-          toggle('favicons', 'tgl_favicons', s.favicons)) +
+          '<ul class="loc-results" data-loc-results></ul><button class="link" data-geo>' + I('pin', 14) + ' ' + L('btn_geo') + '</button>') +
+        section('sec_time',
+          '<div class="p-grid"><div class="field"><span>Temperature</span><div class="seg" role="radiogroup" aria-label="Units"><button data-units="celsius" aria-checked="' + (s.units === 'celsius') + '" role="radio">°C</button><button data-units="fahrenheit" aria-checked="' + (s.units === 'fahrenheit') + '" role="radio">°F</button></div></div>' +
+          field('fld_weekStart', '<select data-weekstart><option value="1"' + (s.weekStart === 1 ? ' selected' : '') + '>Monday</option><option value="0"' + (s.weekStart === 0 ? ' selected' : '') + '>Sunday</option></select>') + '</div>' +
+          toggle('clock24', 'tgl_24h', s.clock24)) +
+        section('sec_search', field('fld_engine', '<select data-set="engine">' + engines + '</select>') + toggle('favicons', 'tgl_favicons', s.favicons) +
+          details('Search shortcuts', '<p class="small muted"><kbd>Ctrl</kbd> <kbd>K</kbd> or <kbd>/</kbd> to focus. <code>&gt;</code> for commands, <code>?</code> to ask the voice, math and unit conversion inline. Bangs: ' + Object.keys(SP.search.bangs).map((b) => '<code>!' + b + '</code>').join(' ') + '</p>')) +
         section('sec_github', '<div id="gh-settings"><label class="field"><span>Username</span><input data-gh="user" value="' + esc(s.github.user) + '" placeholder="octocat" autocomplete="off"></label>' +
           '<label class="field"><span>Token (optional)</span><input data-gh="token" type="password" value="' + esc(s.github.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
-          '<p class="small muted">Without a token you get public activity (60 API calls/hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge, and <code>gist</code> enables sync. The token is stored only in this browser.</p></div>') +
+          details('What the token is for', '<p class="small muted">Without a token you get public activity (60 API calls an hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge, and <code>gist</code> enables sync. The token is stored only in this browser.</p>') + '</div>');
+    },
+    progress() {
+      return section('sec_wrapped', '<p class="small muted">Your week, narrated by the current voice. It also opens by itself on the first tab each Sunday.</p><button class="btn" data-wrapped>' + I('gift', 16) + ' ' + L('wr_open') + '</button>') +
         section('sec_achievements', SP.achieve.sectionHtml()) +
-        section('sec_discoveries', SP.eggs.sectionHtml()) +
-        section('sec_ask', SP.ask.settingsHtml()) +
-        section('sec_sync', s.github.token
+        section('sec_discoveries', SP.eggs.sectionHtml());
+    },
+    data() {
+      const s = S();
+      return section('sec_sync', s.github.token
           ? '<p class="small muted">' + T('syncIntro') + '</p>' +
             '<div class="btn-row"><button class="btn" data-sync-now>' + I('cloudSync', 16) + ' ' + L(s.sync.gistId ? 'btn_syncNow' : 'btn_syncOn') + '</button>' +
             (s.sync.gistId ? '<a class="btn ghost" href="https://gist.github.com/' + esc(s.sync.gistId) + '">' + L('btn_viewGist') + '</a>' : '') + '</div>' +
             '<p class="small muted" data-sync-status>' + esc(SP.sync.label()) + '</p>' + (s.sync.gistId ? toggle('syncAuto', 'tgl_syncAuto', s.sync.auto) : '')
-          : '<p class="small muted">Add a GitHub token above (with the <code>gist</code> scope, or Gists read/write for fine-grained tokens) to sync across devices, e.g. between this site and the browser extension.</p>') +
-        section('sec_data', '<div class="btn-row"><button class="btn" data-export>' + I('download', 16) + ' ' + L('btn_export') + '</button><label class="btn">' + I('upload', 16) + ' ' + L('btn_import') + '<input type="file" accept="application/json" hidden data-import></label>' +
-          '<button class="btn ghost danger" data-reset>' + L('btn_reset') + '</button></div><p class="small muted">' + T('dataHelp') + '</p>');
+          : '<p class="small muted">Sync needs a GitHub token with the <code>gist</code> scope (or Gists read/write for fine-grained tokens). It keeps this browser, the extension and your phone in step.</p><button class="btn" data-goto="you" data-focus="github">' + I('github', 16) + ' Add a GitHub token</button>') +
+        section('sec_backup', '<p class="small muted">' + T('dataHelp') + '</p><div class="btn-row"><button class="btn" data-export>' + I('download', 16) + ' ' + L('btn_export') + '</button><label class="btn">' + I('upload', 16) + ' ' + L('btn_import') + '<input type="file" accept="application/json" hidden data-import></label></div>') +
+        section('sec_danger', '<p class="small muted">Puts every space, task, note, habit and setting back to the defaults. Export first if you might want it back.</p><button class="btn ghost danger" data-reset>' + I('trash', 16) + ' ' + L('btn_reset') + '</button>', 'danger-zone');
     },
   };
 
   function render() {
-    const p = $('#panel'), y = p.querySelector('.p-body') ? p.querySelector('.p-body').scrollTop : 0;
+    const p = $('#panel'), y = p.querySelector('.p-body') ? p.querySelector('.p-body').scrollTop : 0, hadFocus = document.activeElement && document.activeElement.matches('[data-find-input]');
     p.innerHTML = '<header class="p-head"><h2>' + I('customize', 20) + ' ' + L('panelTitle') + '</h2><button class="icon-btn" data-close aria-label="Close customize panel">' + I('x', 20) + '</button></header>' +
-      '<nav class="p-tabs" role="tablist">' + TABS.map((k) => '<button role="tab" data-tab="' + k + '" aria-selected="' + (tab === k) + '">' + L('tab_' + k) + '</button>').join('') + '</nav>' +
-      '<div class="p-body">' + VIEWS[tab]() + '</div>';
-    p.querySelector('.p-body').scrollTop = y; // switching voice re-renders; don't jump to the top
+      '<div class="p-find">' + I('search', 16) + '<input type="search" data-find-input placeholder="' + T('find_ph') + '" aria-label="Find a setting" value="' + esc(query) + '" autocomplete="off" spellcheck="false"></div>' +
+      (query ? '' : '<nav class="p-tabs" role="tablist">' + TABS.map(([k, icon, key]) => '<button role="tab" data-tab="' + k + '" aria-selected="' + (tab === k) + '" title="' + esc(SP.voice.plain(key)) + '">' + I(icon, 17) + '<span>' + esc(SP.voice.t(key)) + '</span></button>').join('') + '</nav>') +
+      '<div class="p-body">' + (query ? TABS.map(([k]) => VIEWS[k]()).join('') : VIEWS[tab]()) + '</div>';
+    if (query) find(p);
+    p.querySelector('.p-body').scrollTop = query ? 0 : y; // switching voice re-renders; don't jump to the top
     bind(p);
+    if (hadFocus) { const f = p.querySelector('[data-find-input]'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+  }
+  /* Show only the sections (and, inside them, the switches) that match the search, in either wording. */
+  function find(p) {
+    const q = query.toLowerCase(), body = p.querySelector('.p-body');
+    const text = (n) => (n.textContent + ' ' + [n, ...n.querySelectorAll('[title],[aria-label],[placeholder],[data-find]')].map((x) => [x.title, x.getAttribute('aria-label'), x.getAttribute('placeholder'), x.dataset.find].join(' ')).join(' ')).toLowerCase();
+    let hits = 0;
+    body.querySelectorAll('.p-sec').forEach((sec) => {
+      if (text(sec.querySelector('h3')) .includes(q) || (sec.dataset.find || '').toLowerCase().includes(q)) { hits++; return; } // the whole section
+      const rows = [...sec.querySelectorAll('.switch-row:not(.bare), .field, .w-list li, .voice-pick button, .theme-pick button, .ach-list li')];
+      const match = rows.filter((r) => text(r).includes(q));
+      if (match.length) { hits++; rows.forEach((r) => { if (!match.includes(r)) r.hidden = true; }); sec.querySelectorAll('p.small.muted').forEach((n) => { if (!text(n).includes(q)) n.hidden = true; }); }
+      else sec.hidden = true;
+    });
+    if (!hits) body.innerHTML = '<p class="p-none muted">' + T('find_none', { q: query }) + '</p>';
   }
 
   function setWidget(id, on) {
@@ -172,9 +217,11 @@
     const on = (sel, ev, fn) => $$(sel, p).forEach((n) => n.addEventListener(ev, fn));
     on('[data-close]', 'click', close);
     on('[data-tab]', 'click', (e) => { tab = e.currentTarget.dataset.tab; render(); });
+    on('[data-goto]', 'click', (e) => open(e.currentTarget.dataset.goto, e.currentTarget.dataset.focus));
+    on('[data-find-input]', 'input', (e) => { query = e.target.value.trim(); render(); });
+    on('[data-find-input]', 'keydown', (e) => { if (e.key === 'Escape' && query) { e.preventDefault(); e.stopPropagation(); query = ''; render(); } });
     on('[data-layout]', 'click', (e) => { S().layout = e.currentTarget.dataset.layout; save(); SP.app.renderMain(); render(); });
-    on('[data-widget]', 'click', (e) => { const id = e.currentTarget.dataset.widget; setWidget(id, !SP.app.space().widgets.includes(id)); render(); });
-    on('[data-wtoggle]', 'change', (e) => setWidget(e.target.dataset.wtoggle, e.target.checked));
+    on('[data-wtoggle]', 'change', (e) => { setWidget(e.target.dataset.wtoggle, e.target.checked); render(); });
     on('[data-theme]', 'click', (e) => { if (!SP.achieve.sceneUnlocked(e.currentTarget.dataset.theme)) return; S().theme = e.currentTarget.dataset.theme; S().customBg = false; save(); SP.app.applyTheme(); SP.app.renderMain(); render(); });
     on('[data-accent]', 'click', (e) => { S().accent = e.currentTarget.dataset.accent; save(); SP.app.applyTheme(); render(); });
     on('[data-accent-custom]', 'input', (e) => { S().accent = e.target.value; save(); SP.app.applyTheme(); });
@@ -250,7 +297,7 @@
   }
 
   function open(t, focus) {
-    if (t) tab = t;
+    if (t) { tab = ALIAS[t] || t; query = ''; }
     const p = $('#panel');
     p.hidden = false;
     document.body.classList.add('panel-open', 'editing');

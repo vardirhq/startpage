@@ -136,7 +136,7 @@
     if (t) h.Authorization = 'Bearer ' + t;
     const r = await fetch('https://api.github.com' + path, { headers: h });
     if (!r.ok) {
-      const err = new Error(r.status === 403 || r.status === 429 ? 'GitHub rate limit hit, add a token in Settings' : r.status === 404 ? 'GitHub user not found' : r.status === 401 ? 'GitHub token rejected' : 'GitHub returned ' + r.status);
+      const err = new Error(r.status === 403 || r.status === 429 ? 'GitHub rate limit hit, add a token in Customize → You' : r.status === 404 ? 'GitHub user not found' : r.status === 401 ? 'GitHub token rejected' : 'GitHub returned ' + r.status);
       err.status = r.status; throw err;
     }
     return r.json();

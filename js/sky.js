@@ -1,6 +1,6 @@
 /* Live sky: the pixel scene follows the real world. Rain, snow, fog and storms come from the current
    weather, the light follows your actual sunrise and sunset, and the calendar adds a few extras
-   (New Year fireworks; seasons and holiday events come from js/season.js). Turn it off in Customize → Theme. */
+   (New Year fireworks; seasons and holiday events come from js/season.js). Turn it off in Customize → Look. */
 (function (SP) {
   'use strict';
   const S = () => SP.store.state;
