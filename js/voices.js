@@ -686,7 +686,13 @@
         else if (Array.isArray(val)) val = val.length ? val[random ? Math.floor(Math.random() * val.length) : (h + depth * 7) % val.length] : undefined;
         else break;
       }
-      return val;
+      return typeof val === 'string' ? this.clean(val) : val;
+    },
+    /* Brutal swears. With swearing switched off (Customize → Voice), the words are masked: f***, s***. */
+    clean(s) {
+      if (!SP.store || SP.store.state.swear !== false || typeof s !== 'string') return s;
+      // Whole words only, so “hello”, “assume” and “class” are left alone.
+      return s.replace(/\b(fuck\w*|bullshit|shit\w*|goddamn\w*|damn(?:ed|s|it)?|ass(?:es)?|arse|piss(?:ed|ing)?|bastards?|crap(?:py)?|hell)\b/gi, (w) => w.toLowerCase().startsWith('bull') ? w.slice(0, 5) + '*'.repeat(w.length - 5) : w[0] + '*'.repeat(w.length - 1));
     },
     /* A one-off line (a toast, a reaction): a fresh variation each time. */
     line(key, ctx, vk) {

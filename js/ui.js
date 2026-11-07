@@ -130,10 +130,14 @@
   function toastLater(msg, o) {
     queue.push([msg, o]);
     if (queue.length > 1) return;
+    // Lowest priority: wait until the screen has been clear for a moment, so anything more urgent
+    // (an achievement, a reaction) that was also waiting gets there first.
+    let clear = 0;
     const step = () => {
       if (!queue.length) return;
-      if (document.querySelector('.toast') || document.body.classList.contains('onboarding') || document.visibilityState === 'hidden') return setTimeout(step, 700);
-      const [m, opt] = queue.shift(); toast(m, opt); setTimeout(step, (opt && opt.ms) || 5000);
+      if (document.querySelector('.toast') || document.body.classList.contains('onboarding') || document.visibilityState === 'hidden') { clear = 0; return setTimeout(step, 500); }
+      if ((clear += 500) < 1500) return setTimeout(step, 500);
+      clear = 0; const [m, opt] = queue.shift(); toast(m, opt); setTimeout(step, (opt && opt.ms) || 5000);
     };
     setTimeout(step, 600);
   }

@@ -64,13 +64,15 @@ Every finished task is a little death, and every closed tab a goodbye. Tick some
 Your grandmother, in a browser. Has views on your tabs, your spelling and your posture. Open a tab at 2am and:
 > “It is 02:14. Decent people are asleep. I am awake only to disapprove of you.”
 
-### Brutal · *no mercy*
+### Brutal · *no mercy, no filter*
 ![Brutal: “Evening. Explain yourself, Alex.”](docs/voices/brutal.png)
 
-Monday is tired of you. Brutal is disappointed in you, and says so. Cold, direct, your own numbers read back to you, and the occasional grade on your weekly recap. It goes after your work, your habits and your excuses, never after who you are. Pause the focus timer early and:
-> “11:20 to go and you stopped. That’s the whole problem, right there.”
+Monday is tired of you. Brutal thinks you’re wasting your life, and tells you so: cold, direct, your own numbers read back to you, and a grade on your weekly recap. It goes after your work, your habits and your excuses, never after who you are. Pause the focus timer early and:
+> “Paused with 11:20 left. Of course you fucking did.”
 
-Finish everything, though, and you get a rare, grudging nod: *“All of it. Fine. That’s what you’re capable of. Remember it next time you complain.”*
+Finish everything, though, and you get a rare, grudging nod: *“All of it. Fine. That’s what you’re capable of. Remember it next time you whine.”*
+
+> **Heads-up: Brutal swears.** It’s tagged *Swears* in the voice picker and during setup. To keep the meanness but lose the language, switch off *Let Brutal swear* (Customize → Voice). The words are then masked (f\*\*\*, s\*\*\*), and read-aloud says “bleep”. No other voice swears.
 
 ### …and three you have to earn
 

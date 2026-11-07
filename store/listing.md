@@ -23,7 +23,7 @@ Then pick a voice, and the entire page, settings included, is rewritten in that 
 • Therapist: bills by the minute.
 • Weepy: mourns every task you finish.
 • Victorian: disapproves of you, the internet, and tabs.
-• Brutal: no mercy, no filter. Grades your week. Mean about your work, never about you.
+• Brutal: no mercy, no filter. Grades your week. Mean about your work, never about you. Swears (clearly labelled, and you can switch it off: the words are masked).
 • …and three secret voices you have to earn.
 
 The voices react as things happen: finishing a task, pausing the timer at 23:41, breaking a streak, opening a tab at 3am. Now and then they interrupt each other. Every Sunday you get a weekly recap narrated by your voice, which you can save as an image. Bring your own Claude API key and you can ask your voice anything.
@@ -37,6 +37,7 @@ Private by design: no account, no analytics, no server. Your data stays in your 
 - Single purpose: replaces the new tab page with a customizable dashboard.
 - Permissions: none requested.
 - Remote code: none. All code ships in the package.
+- Content: one optional voice (Brutal) uses profanity. It is labelled “Swears” wherever you pick a voice, is never the default, and can be masked with a setting.
 - Data usage: the extension does not collect or transmit user data to the developer. Requests go directly from the user's browser to the third-party services listed in PRIVACY.md, and only when the user enables them.
 - Privacy policy URL: https://github.com/vardirhq/startpage/blob/main/PRIVACY.md
 

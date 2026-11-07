@@ -821,6 +821,15 @@
     },
   };
 
+  /* The swearing switch, in every voice (only Brutal swears). */
+  const SWEAR = {
+    neutral: 'Let Brutal swear (off: the words are masked)', monday: 'Let Brutal swear (it will anyway, in spirit)', supportive: 'Let Brutal swear (I’d rather it didn’t 🥺)',
+    surfer: 'Let Brutal swear (whoa, language)', professional: 'Permit profanity from Brutal (off: redacted)', therapist: 'Let Brutal swear (anger needs somewhere to go)',
+    weepy: 'Let Brutal swear (it’s so harsh)', victorian: 'Permit Brutal its foul language (off: asterisks, thank heaven)', brutal: 'Let me swear (off: I’ll still mean every word)',
+    owl: 'Let Brutal swear (it’s after midnight, who’s listening)', ghost: 'let brutal swear', parent: 'Let Brutal swear (LANGUAGE!!!)',
+  };
+  for (const [k, line] of Object.entries(SWEAR)) V[k].tgl_swear = line;
+
   /* What everyone thinks of Brutal (and who it picks fights with). */
   const ON_BRUTAL = {
     neutral: 'Harsh. Direct. No filter.', monday: 'Like me, but awake. Terrifying.', supportive: 'Too mean!!! Don’t listen to them!!! I’m right here 💕',

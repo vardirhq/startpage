@@ -21,7 +21,7 @@
   };
   const ok = () => 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
   function clean(text) {
-    return String(text || '').replace(/\*[^*]+\*/g, ' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim();
+    return String(text || '').replace(/\b\w+\*{2,}\w*/g, 'bleep') /* masked swearing (f***) */.replace(/\*[^*]+\*/g, ' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ' ').replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim();
   }
   function pickVoice(p) {
     const vs = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
