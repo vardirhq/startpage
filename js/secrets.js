@@ -219,7 +219,7 @@
     surfer: { owl: 'Dawn patrol, but backwards.', ghost: 'Spooky, man. Or I forgot who it is.', parent: 'Wants to know if I have a job, man.' },
     professional: { owl: 'Works unpaid overtime. Ideal.', ghost: 'Hasn’t badged in for a week.', parent: 'Keeps emailing your manager.' },
     therapist: { owl: 'Let’s talk about your sleep hygiene.', ghost: 'Unresolved grief. Lucrative.', parent: 'Ah. So this is where it comes from.' },
-    weepy: { owl: 'We cry at 4am together.', ghost: 'A kindred spirit. Literally.', parent: 'Proud of you. *sobs* I can’t handle it.' },
+    weepy: { owl: 'We cry at 4am together.', ghost: 'A kindred spirit. Literally.', parent: 'Proud of everything. All that pride. I can’t handle it.' },
     victorian: { owl: 'Keeps the hours of a highwayman.', ghost: 'My late husband. Ignore him.', parent: 'The middle classes, delighted.' },
   };
   for (const [k, o] of Object.entries(OPINIONS)) V[k].blurb = Object.assign({}, V[k].blurb, o);

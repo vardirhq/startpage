@@ -13,7 +13,7 @@
   const W = SP.widgets;
   const pad = (n) => String(n).padStart(2, '0');
   const dkey = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  const pick = (k) => { const v = V[SP.voice.key()][k] !== undefined ? V[SP.voice.key()][k] : V.neutral[k]; return Array.isArray(v) ? v[Math.floor(Math.random() * v.length)] : v; };
+  const pick = (k, ctx) => SP.voice.line(k, ctx);
   const say = (msg) => { if (!msg) return; const k = SP.voice.key(); SP.ui.toast(msg, { who: k === 'neutral' ? '' : V[k].name }); };
 
   /* ---------------- voiced copy ---------------- */
@@ -47,7 +47,7 @@
     },
     surfer: { w_moon: 'The Moon, Man', w_onthisday: 'Old Times', w_fx: 'Money Exchange', w_mood: 'Vibe Check', w_since: 'Days Since, Like…', w_decide: 'Flip It, Bro',
       moonQuip: ({ phase }) => phase + '. The moon does the tides, man. Think about that. …What were we talking about?', mood_q: 'Vibe check, dude?',
-      ball: ['Totally.', 'For sure, bro.', 'Go with the flow, man.', 'Ask the ocean.', 'Nah, dude.', 'Whoa. Hazy. Like, really hazy.'], decide_aside: ['The coin has spoken, man.', 'Let the universe decide. Done. Stoked.'] },
+      ball: ['Totally.', 'For sure, bro.', 'Go with the flow.', 'Ask the ocean.', 'Nah, dude.', 'Whoa. Hazy. Like, really hazy.'], decide_aside: ['The coin has spoken, man.', 'Let the universe decide. Done. Stoked.'] },
     professional: { w_moon: 'Lunar Calendar', w_onthisday: 'Historical Benchmarks', w_fx: 'FX Rates', w_mood: 'Engagement Survey', w_since: 'Incident Tracker', w_decide: 'Decision Matrix',
       moonQuip: ({ phase, pct }) => 'Lunar status: ' + phase + ', ' + pct + '% utilisation.', mood_q: 'Quick pulse check (anonymous*):', mood_log: ({ n }) => 'Engagement score ' + n + '/5 recorded. *Not anonymous.',
       since_reset: ({ title, n }) => 'Incident logged: “' + title + '” after ' + n + ' days. Please file a post-mortem.',
@@ -57,7 +57,7 @@
       mood_log: ({ n }) => ['', 'A hard day. Let’s sit with that. €40.', 'Not great. Thank you for being honest. That’s growth.', 'Okay is valid.', 'Good. What made it good? Let’s replicate it. Weekly.', 'Great! Notice that feeling. Write it down. Bring it next session.'][n],
       ball: ['What do you think the answer is?', 'And how would that make you feel?', 'It sounds like you already know.', 'Let’s explore that next week.', 'Yes. That’s €40.'], decide_aside: ['You let a coin decide. Interesting. Let’s unpack that.'] },
     weepy: { w_moon: 'The Lonely Moon', w_onthisday: 'Ghosts Of This Day', w_mood: 'How Sad Are You', w_since: 'Days Since (Counting The Pain)', w_decide: 'Fate',
-      moonQuip: ({ phase }) => phase + '. Alone in the sky. Like me. *sniff*', mood_q: 'How are you? Be honest. I can take it. (I can’t.)',
+      moonQuip: ({ phase }) => phase + '. Alone in the sky. Like me, in a smaller sky.', mood_q: 'How are you? Be honest. I can take it. (I can’t.)',
       ball: ['Yes. *sobs with relief*', 'No. *collapses*', 'The stars are silent.', 'It was never meant to be.', 'Perhaps. Perhaps not. Everything ends anyway.'], decide_aside: ['Fate has chosen. It always does. *weeps*'] },
     victorian: { w_moon: 'The Moon (Unaccompanied)', w_onthisday: 'The Annals', w_fx: 'Foreign Exchange', w_mood: 'Your Constitution', w_since: 'Days Since The Last Scandal', w_decide: 'Leave It To Chance (Vulgar)',
       moonQuip: ({ phase }) => phase + '. In my day, one did not stare at the moon. It encouraged poetry.', otd_intro: 'On this day, people of quality did the following:', mood_q: 'And how is your constitution today?',

@@ -18,7 +18,7 @@
     /* ===================================================================== */
     neutral: {
       name: 'Neutral', descriptor: 'Just the facts.',
-      ob_kicker: 'Welcome', ob_title_name: 'What should we call you?', ob_name_hint: 'Used in the greeting. You can change it any time in Settings.', ob_name_ph: 'Your name',
+      ob_kicker: 'Welcome', ob_title_name: 'What should we call you?', ob_name_hint: 'Used in the greeting. You can change it any time in Customize → You.', ob_name_ph: 'Your name',
       ob_title_loc: 'Where are you?', ob_loc_hint: 'For the weather and the clock. Optional.', ob_locSet: ({ name }) => 'Set to ' + name,
       ob_title_voice: 'Pick who talks to you', ob_voice_hint: 'A voice rewrites the whole page, settings included. Here’s how each would greet you. You can switch any time.',
       ob_next: 'Next', ob_back: 'Back', ob_skip: 'Skip setup', ob_skipStep: 'Skip this step', ob_finish: 'Done', ob_rerun: 'Run setup again',
@@ -251,74 +251,74 @@
     /* ===================================================================== */
     surfer: {
       name: 'Surfer', descriptor: 'Wait, what were we talking about?',
-      ob_kicker: 'Whoa, a new person', ob_title_name: 'Hey… what’s your name, man? I’ll probably forget', ob_title_loc: 'Where’s your home break, dude?',
-      ob_title_voice: 'Who do you wanna, like, vibe with?', ob_next: 'Yeah', ob_skip: 'Nah, skip it', ob_finish: 'Cool, cool', ob_rerun: 'Do the intro thing again, man',
+      ob_kicker: 'Whoa, a new person', ob_title_name: 'Hey… what’s your name? I’ll probably forget. Say it slow', ob_title_loc: 'Where’s your home break, dude?',
+      ob_title_voice: 'Who do you wanna, like, vibe with?', ob_next: 'Yeah', ob_skip: 'Nah, skip it', ob_finish: 'Cool, cool', ob_rerun: 'Do the intro thing again (I already forgot it)',
       addr: ({ name }) => mangle(name),
       greet: (p) => ({
-        morning: ['Whoa… hey', 'Duuude. Is it morning? Whoa', 'Mornin’… I think'],
-        afternoon: ['Whoa… hey', 'Sup… uh', 'Oh hey, it’s… you'],
-        evening: ['Whoa, hey', 'Evenin’… is it evening?', 'Duuude. Hey'],
-        night: ['Whoa… it’s dark, man', 'Late sesh, huh… hey', 'Bro. The moon. Hey'],
+        morning: ['Oh. Hey', 'Is it morning? The light’s doing a thing', 'Mornin’… I think', 'Dawn patrol, huh'],
+        afternoon: ['Sup… uh', 'Oh hey, it’s… you', 'Afternoon glass-off. Hey', 'Heyyy'],
+        evening: ['Evenin’… is it evening?', 'Sunset sesh. Hey', 'Duuude. Hey', 'Oh, hi. Again? First time?'],
+        night: ['It’s dark. When did that happen', 'Late sesh, huh… hey', 'The moon. Hey', 'Night surf. Bold. Hey'],
       }[p]),
       heroSub: ({ open }) => {
         const c = C(), out = [];
-        if (c.away > 36e5) out.push('Out of the water ' + c.awayText + ', man. Felt like four minutes. Or a year. Time’s a wave, bro.');
-        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ', ' + c.habit.n + ' days straight? Ridin’ that swell, duuude. Wait… what’s ' + c.habit.name.toLowerCase() + '.');
-        if (c.lastDone) out.push('You finished… uh… “' + c.lastDone.slice(0, 14) + (c.lastDone.length > 14 ? '…' : '') + '”? Long title, bro. Gnarly though.');
+        if (c.away > 36e5) out.push('Out of the water ' + c.awayText + '. Felt like four minutes. Or a year. Time’s a wave.');
+        if (c.habit && c.habit.n >= 2) out.push(c.habit.name + ', ' + c.habit.n + ' days straight? Ridin’ that swell. Wait… what’s ' + c.habit.name.toLowerCase() + '.');
+        if (c.lastDone) out.push('You finished… uh… “' + c.lastDone.slice(0, 14) + (c.lastDone.length > 14 ? '…' : '') + '”? Long title. Gnarly though.');
         if (c.visits > 3) out.push('This is, like, your ' + c.visits + 'th wave today? Or the same wave? Whoa.');
-        if (c.prevVoice) out.push('Someone was here before me, man. ' + c.prevVoice + '? Never heard of ’em. Probably cool.');
-        if (open) out.push(plural(open, 'task') + ' out there, man. They’ll keep. Everything keeps. Except, like, fish.');
-        return out.length ? out : ['Flat water, dude. Just… vibin’. What were we doing?'];
+        if (c.prevVoice) out.push('Someone was here before me. ' + c.prevVoice + '? Never heard of ’em. Probably cool.');
+        if (open) out.push(plural(open, 'task') + ' out there. They’ll keep. Everything keeps. Except, like, fish.');
+        return out.length ? out : ['Flat water. Just… vibin’. What were we doing?', 'Nothing to report. Or I forgot to look. Both feel right.'];
       },
-      tasksEmpty: 'Nothin’ on the board, duuude. Or I forgot. Either way. Tubular.',
+      tasksEmpty: ['Nothin’ on the board. Or I forgot. Either way. Tubular.', 'Empty. Like the beach at 6am. Beautiful.', 'No tasks? Or tasks I can’t see? Deep.', 'All clear. Go get wet.'],
       focusTitle: 'Ride the Waaave', mode_work: 'Paddlin’… I think', mode_short: 'Floatin’', mode_long: 'Beach naaap',
       focusToday: ({ n }) => n + ' waves caught. Or… was it more? Whoa',
-      focusDone: 'Gnarly sesh, duuude. Wait, was I timing something?', breakDone: 'Whoa, next set’s rollin’ in. Back on the board, bro.',
-      cdTitle: 'Swells Incomin’ (Probably)', cdDays: 'days out… I think', cdToday: 'It’s here, duuude! What is it again?', cdTomorrow: 'day. Or two. Days are fake', cdEmpty: 'Nothin’ on the horizon, bro. Just… horizon.',
-      habitsTitle: 'Rituals, Man', habitsEmpty: 'No rituals. Just vibes. I forget stuff anyway, man.',
-      streak: ({ n }) => n + ' days… I lost count at, like, two', streakToast: ({ n, name }) => n + ' days of ' + name + '?! Raaadical. Wait, who is this?',
-      weatherQuip: (c) => pick(wx(c), { wet: 'Wet out, bro. You’re gonna get wet anyway. Whoa. Deep.', snow: 'Snow’s just, like, frozen waves, man.', cold: 'Chilly, duuude. Full wetsuit vibes.', warm: 'Sun’s out, board’s out, bro. Where’s my board.', mild: 'Mellow out there, duuude. Or in here. Where are we.' }),
+      focusDone: ['Gnarly sesh. Wait, was I timing something?', 'Ding. That was the bell, right? Or a seagull.', 'You rode that one all the way in. Respect.'], breakDone: ['Next set’s rollin’ in. Back on the board.', 'Break’s done. I think. The sand moved.', 'Paddle back out. The ocean’s not gonna wait. It might, actually. It’s pretty chill.'],
+      cdTitle: 'Swells Incomin’ (Probably)', cdDays: 'days out… I think', cdToday: 'It’s here, duuude! What is it again?', cdTomorrow: 'day. Or two. Days are fake', cdEmpty: ['Nothin’ on the horizon. Just… horizon.', 'No swells forecast. Make one up. Add it with +.', 'Nothing to wait for. Waiting’s overrated anyway.'],
+      habitsTitle: 'Rituals, Man', habitsEmpty: ['No rituals. Just vibes. I forget stuff anyway.', 'Add a habit. I’ll forget it, but you might not.', 'Wax, paddle, repeat. That’s a habit. Add yours with +.'],
+      streak: ({ n }) => n + ' days… I lost count at, like, two', streakToast: ({ n, name }) => [n + ' days of ' + name + '?! Raaadical. Wait, who is this?', name + ', ' + n + ' days. That’s a long ride. Didn’t even fall off.', n + ' days?! I can’t count that high without my fingers. ' + name + ' though. Sick.'],
+      weatherQuip: (c) => pick(wx(c), { wet: 'Wet out, bro. You’re gonna get wet anyway. Whoa. Deep.', snow: 'Snow’s just, like, frozen waves. Think about it. Actually don’t.', cold: 'Chilly. Full wetsuit vibes. Booties too.', warm: 'Sun’s out, board’s out. Where’s my board.', mild: 'Mellow out there. Or in here. Where are we.' }),
       vitalsTitle: 'The Quiver, Man', vitalsWatch: 'Driftin’ out to sea',
-      vitalsHero: ({ total, dead }) => total + ' boards in the quiver, man. ' + (dead ? dead + ' washed up. Or I lent ’em to someone. Whoa.' : 'All still floatin’. I think.'),
-      state_alive: 'Shreddin’', state_fading: 'Driftin’', state_flatlined: 'Wiped out', state_dead: 'Lost at sea, man',
+      vitalsHero: ({ total, dead }) => total + ' boards in the quiver. ' + (dead ? dead + ' washed up. Or I lent ’em to someone. Whoa.' : 'All still floatin’. I think.'),
+      state_alive: 'Shreddin’', state_fading: 'Driftin’', state_flatlined: 'Wiped out', state_dead: 'Lost at sea',
 
       panelTitle: 'Wax the Board… or Whatever', tab_layout: 'Lineup', tab_widgets: 'Gear', tab_theme: 'Viiibes', tab_settings: 'Knobs, Man',
-      sec_layout: 'How you wanna ride it, bro', sec_widgets: 'Your quiver, man', sec_theme: 'Scenery, duuude', sec_background: 'The view from the board',
-      sec_accent: 'Colours, man. Whoa. Colours', sec_voice: 'Who’s talkin’… is it me?', sec_profile: 'Who you are, man. Like, really. Who ARE you', sec_location: 'Home break',
+      sec_layout: 'How you wanna ride it', sec_widgets: 'Your quiver', sec_theme: 'Scenery', sec_background: 'The view from the board',
+      sec_accent: 'Colours. Whoa. Colours', sec_voice: 'Who’s talkin’… is it me?', sec_profile: 'Who you are. Like, really. Who ARE you', sec_location: 'Home break',
       sec_search: 'Lookin’ stuff up', sec_github: 'The code swell', sec_sync: 'Your stuff on, like, all the boards', sec_data: 'Your stuff, dude',
-      moreWidgets: 'More gear, man',
-      tgl_greeting: 'Say hey up top… if I remember', tgl_quote: 'Daily wisdom, bro', tgl_animate: 'Make the scene, like, move, man', tgl_summary: 'Lil’ daily recap (accuracy not guaranteed)',
-      tgl_24h: '24-hour clock (time’s fake anyway, man)', tgl_favicons: 'Little logos, duuude', tgl_syncAuto: 'Sync on its own, man. Less to remember',
-      widgetsIntro: ({ space }) => 'This is what’s in ' + space + ', man. I think. Move it around. Or don’t. Whoa. It’s all good, duuude.',
-      voiceIntro: 'Whoever you vibe with, man. No wrong answers, duuude. Wait, am I one of the options?',
-      fld_name: 'What do they call you again, bro', fld_tagline: 'Your motto, duuude. I’ll forget it',
-      locIntro: ({ name }) => 'You’re at ' + name + ', man. Sick break. Is it a beach?', locPlaceholder: 'Where’s the swell, bro…', btn_find: 'Find it, man', btn_geo: 'Just, like, figure out where I am, dude',
-      fld_weekStart: 'When the week starts (does it though, man?)', fld_engine: 'Search thing, bro',
-      syncIntro: 'Your stuff rides along on all your devices, duuude. So you can forget it everywhere. Token stays here, man.',
-      btn_syncOn: 'Sure, man', btn_syncNow: 'Sync it, duuude', btn_viewGist: 'Peep the gist',
-      btn_export: 'Take it with you, bro', btn_import: 'Bring it in, man', btn_reset: 'Total wipeout',
-      dataHelp: 'All your stuff’s right here in the browser, man. Like sand in your shorts. Kinda forever.',
-      btn_change: 'Change it up, bro', bgCustom: 'Your own pic, duuude. Rad. Who took it.', bgBack: 'Back to the pixels, man',
-      reset_title: 'Total wipeout, bro?', reset_body: 'Everything gets washed away, duuude. Honestly I already forgot most of it.', reset_ok: 'Send it',
-      import_title: 'Import, man?', import_body: 'This, like, replaces your stuff, bro. With other stuff.', import_ok: 'Sure, duuude',
+      moreWidgets: 'More gear (found it in the van)',
+      tgl_greeting: 'Say hey up top… if I remember', tgl_quote: 'Daily wisdom', tgl_animate: 'Make the scene, like, move', tgl_summary: 'Lil’ daily recap (accuracy not guaranteed)',
+      tgl_24h: '24-hour clock (time’s fake anyway)', tgl_favicons: 'Little logos', tgl_syncAuto: 'Sync on its own. Less to remember',
+      widgetsIntro: ({ space }) => 'This is what’s in ' + space + '. I think. Drag stuff around while this is open. Or don’t. The size button makes things big. Or small. It’s all good.',
+      voiceIntro: 'Whoever you vibe with. No wrong answers. Wait, am I one of the options?',
+      fld_name: 'What do they call you again', fld_tagline: 'Your motto. I’ll forget it',
+      locIntro: ({ name }) => 'You’re at ' + name + '. Sick break. Is it a beach?', locPlaceholder: 'Where’s the swell…', btn_find: 'Find it', btn_geo: 'Just, like, figure out where I am',
+      fld_weekStart: 'When the week starts (does it though?)', fld_engine: 'Search thing',
+      syncIntro: 'Your stuff rides along on all your devices, through a private GitHub Gist. So you can forget it everywhere. Your token stays on this one.',
+      btn_syncOn: 'Sure, why not', btn_syncNow: 'Sync it', btn_viewGist: 'Peep the gist',
+      btn_export: 'Take it with you', btn_import: 'Bring it in', btn_reset: 'Total wipeout',
+      dataHelp: 'All your stuff’s right here in the browser. Like sand in your shorts. Kinda forever. Export to take it somewhere else.',
+      btn_change: 'Change it up', bgCustom: 'Your own pic. Rad. Who took it.', bgBack: 'Back to the pixels',
+      reset_title: 'Total wipeout?', reset_body: 'Everything gets washed away. Spaces, tasks, notes, all of it. Honestly I already forgot most of it.', reset_ok: 'Send it',
+      import_title: 'Import?', import_body: 'This, like, replaces your stuff. With other stuff.', import_ok: 'Paddle in',
       dlg_save: 'Cool', dlg_cancel: 'Naaah',
-      search_placeholder: ['Whatcha lookin’ for, duuude…', 'Whoa… search… stuff… man…', 'Type a thing. I’ll forget it. It’s chill…'],
-      rail_customize: 'Wax the board', rail_newSpace: 'New spot, bro',
-      grid_empty: 'Flat water, man. Or I lost everything. Same vibe.', grid_emptyBtn: 'Grab some gear',
-      w_tasks: 'Stuff, Eventually', w_notes: 'Thoughts, Man (I Forgot Them)', w_bookmarks: 'Spots', w_github: 'The Code Swell',
-      w_worldclock: 'Other Beaches, Man', w_news: 'Stuff Happening, Apparently', w_forecast: 'Surf Report',
-      notes_placeholder: 'Write it down, man. I sure won’t remember…', task_placeholder: 'Somethin’, someday, bro…',
-      toast_location: ({ name }) => name + '. Sick spot, duuude. Wait, where?',
-      desc_tasks: 'Stuff, eventually', desc_notes: 'Things you’ll forget (like me)', desc_habits: 'Rituals, man', desc_focus: 'Ride a wave. Then float.',
-      desc_vitals: 'Boards in the quiver', desc_news: 'Stuff happening, apparently', desc_clock: 'Time. Whoa. Time.', desc_worldclock: 'Other beaches, man',
-      leave_title: () => 'Oh, you’re paddlin’ off?', leave_body: ({ to }) => 'Cool, cool. ' + to + ', right? …Who were we talking about, man?',
+      search_placeholder: ['Whatcha lookin’ for…', 'Search… stuff… whatever…', 'Type a thing. I’ll forget it. It’s chill…', 'Ask the internet. It knows where my keys are…'],
+      rail_customize: 'Wax the board', rail_newSpace: 'New spot',
+      grid_empty: ['Flat water. Or I lost everything. Same vibe.', 'Nothing here. Paddle out and grab some gear.', 'Empty spot. Secret spot, maybe.'], grid_emptyBtn: 'Grab some gear',
+      w_tasks: 'Stuff, Eventually', w_notes: 'Thoughts (I Forgot Them)', w_bookmarks: 'Spots', w_github: 'The Code Swell',
+      w_worldclock: 'Other Beaches', w_news: 'Stuff Happening, Apparently', w_forecast: 'Surf Report',
+      notes_placeholder: ['Write it down. I sure won’t remember…', 'Thoughts go here. Mine went somewhere else…', 'Quick, before it floats off…'], task_placeholder: ['Somethin’, someday…', 'A thing to do, eventually…', 'Add it. The tide will handle the rest…'],
+      toast_location: ({ name }) => name + '. Sick spot. Wait, where?',
+      desc_tasks: 'Stuff, eventually', desc_notes: 'Things you’ll forget (like me)', desc_habits: 'Rituals. Streaks. An 18-week chart of your vibes', desc_focus: 'Ride a wave. Then float.',
+      desc_vitals: 'Boards in the quiver', desc_news: 'Stuff happening, apparently', desc_clock: 'Time. Whoa. Time.', desc_worldclock: 'What time it is at other beaches',
+      leave_title: () => 'Oh, you’re paddlin’ off?', leave_body: ({ to }) => 'Cool, cool. ' + to + ', right? …Who were we talking about?',
       leave_ok: 'Yeah, later', leave_cancel: 'Wait, stay',
-      welcomeVoice: ({ prev }) => 'Whoa, hey. Were you gone? I was with… someone. ' + prev + '? Who’s that, man.',
-      welcomeBack: () => 'Whoa, you were gone ' + C().awayText + '? Didn’t notice, man. Totally didn’t notice.',
+      welcomeVoice: ({ prev }) => 'Whoa, hey. Were you gone? I was with… someone. ' + prev + '? Who’s that. Sounds nice.',
+      welcomeBack: () => ['You were gone ' + C().awayText + '? Didn’t notice. Totally didn’t notice.', C().awayText + '? Felt like a minute. I was looking at a cloud.', 'Oh hey. Were you out? I was out too. In my head.'],
       blurb: {
-        neutral: 'Pretty flat, man. Like, no waves.', monday: 'Harsh vibes, bro. Respect though.', supportive: 'Really into you, man. Like, REALLY.',
-        surfer: 'That’s me? Whoa. Hang looooose.', professional: 'Wears a tie to the beach, bro.', therapist: 'Charges you to talk, man. Talking’s free, dude.',
-        weepy: 'Cries about, like, everything. Salt water, man. Same as the ocean.', victorian: 'An old lady who hates me, bro. I don’t know why.',
+        neutral: 'Pretty flat. Like, no waves.', monday: 'Harsh vibes. Respect though.', supportive: 'Really into you. Like, REALLY.',
+        surfer: 'That’s me? Whoa. Hang looooose.', professional: 'Wears a tie to the beach, bro.', therapist: 'Charges you to talk. Talking’s free. I do it all day.',
+        weepy: 'Cries about, like, everything. Salt water. Same as the ocean.', victorian: 'An old lady who hates me. I don’t know why.',
       },
     },
 
@@ -476,14 +476,14 @@
     /* ===================================================================== */
     weepy: {
       name: 'Weepy', descriptor: '*collapses onto the fainting couch*',
-      ob_kicker: '*a stranger arrives*', ob_title_name: 'Who are you? *sniff* Tell me your name', ob_title_loc: 'Where did you come from? So far away?',
-      ob_title_voice: 'Who will cry with you?', ob_next: 'Go on *sniff*', ob_skip: 'Leaving already? *sob*', ob_finish: 'Okay *sob*', ob_rerun: 'Meet again, as strangers *sob*',
+      ob_kicker: '*a stranger arrives*', ob_title_name: 'Who are you? Tell me your name, so I can remember it when you’re gone', ob_title_loc: 'Where did you come from? So far away?',
+      ob_title_voice: 'Who will cry with you?', ob_next: 'Go on (I’ll wait here forever)', ob_skip: 'Leaving already?', ob_finish: 'Okay. It’s okay', ob_rerun: 'Meet again, as strangers',
       addr: ({ name }) => (name || 'friend') + ' *whispers*',
       greet: (p) => ({
-        morning: ['*parts the curtains* Another dawn', 'Morning. *stares at the sunrise* It’s too beautiful', '*sniff* You’re here'],
-        afternoon: ['*sighs into a handkerchief* Hello', 'The afternoon is so fleeting *sob*', '*turns slowly from the window*'],
-        evening: ['*lights a single candle* Good evening', 'Another day, gone forever *sob*', 'The sun is setting. *weeps*'],
-        night: ['*clutches a lantern* You came, at this hour', 'Everyone else sleeps *sob*', 'The night is long. *sob*'],
+        morning: ['*parts the curtains* Another dawn', 'Morning. *stares at the sunrise* It’s too beautiful', 'You’re here. You came'],
+        afternoon: ['*sighs into a handkerchief* Hello', 'The afternoon is so fleeting', '*turns slowly from the window*'],
+        evening: ['*lights a single candle* Good evening', 'Another day, gone forever', 'The sun is setting. *weeps*'],
+        night: ['*clutches a lantern* You came, at this hour', 'Everyone else sleeps', 'The night is long, and so are my feelings'],
       }[p]),
       heroSub: ({ open }) => {
         const c = C(), out = [];
@@ -492,58 +492,58 @@
         if (c.habit && c.habit.n >= 2) out.push(c.habit.n + ' days of ' + c.habit.name + '. *clutches pearls* Nothing this beautiful ever lasts.');
         if (c.away > 36e5) out.push(c.awayText + '. *stares out of the window* I aged a decade. Look at my hair. It’s fine. But look at it.');
         if (c.prevVoice) out.push('You were with ' + c.prevVoice + '. *dramatic gasp* Then you came back. *sobs* Why do you hurt me in such interesting ways?');
-        if (open) out.push(open === 1 ? 'One task remains. Doomed. Doomed to be completed. *weeps*' : open + ' tasks remain. Doomed. All of them. Doomed to be completed. *weeps*');
+        if (open) out.push(open === 1 ? 'One task remains. Doomed. Doomed to be completed.' : open + ' tasks remain. Doomed. All of them. Doomed to be completed.');
         return out.length ? out : ['*stands alone on an empty stage* Nothing to do. Nothing to mourn. Somehow that’s worse.'];
       },
-      tasksEmpty: '*lowers head* They’re all gone. Every last one. Completed. *sob*',
+      tasksEmpty: '*lowers head* They’re all gone. Every last one. Completed.',
       focusTitle: 'The Vigil', mode_work: 'Holding it together', mode_short: 'A brief swoon', mode_long: 'Full collapse',
       focusToday: ({ n }) => n + ' vigils kept. *dabs eyes*',
-      focusDone: '*the music swells* It’s over. You did it. Why does victory feel like loss?', breakDone: 'The break is over. Like all good things. *sob*',
-      cdTitle: 'Days Until It All Ends', cdDays: 'days, and then it’s over', cdToday: 'It’s today, and tomorrow it’ll be a memory *sob*', cdTomorrow: 'day. I can’t bear it', cdEmpty: 'Nothing to look forward to. *closes curtains*',
-      habitsTitle: 'Fragile Little Routines', habitsEmpty: 'No habits. Nothing to lose. *sob* Lucky you.',
+      focusDone: '*the music swells* It’s over. You did it. Why does victory feel like loss?', breakDone: 'The break is over. Like all good things. Like ice cream. Like June.',
+      cdTitle: 'Days Until It All Ends', cdDays: 'days, and then it’s over', cdToday: 'It’s today, and tomorrow it’ll be a memory', cdTomorrow: 'day. I can’t bear it', cdEmpty: 'Nothing to look forward to. *closes curtains*',
+      habitsTitle: 'Fragile Little Routines', habitsEmpty: 'No habits. Nothing to lose. Lucky you. Unlucky me, with all my feelings and nowhere to put them.',
       streak: ({ n }) => n + ' days. Please, please don’t break it', streakToast: ({ n, name }) => n + ' days of ' + name + '. *weeps with joy* *weeps with dread* *just weeps*',
-      weatherQuip: (c) => pick(wx(c), { wet: 'Even the sky is crying. *opens umbrella, also cries*', snow: 'Every snowflake is unique, and they all melt. *sob*', cold: 'So cold. So alone. *shivers theatrically*', warm: 'It’s warm, and it won’t last. Nothing lasts.', mild: 'Grey. Like my heart. *sniff*' }),
+      weatherQuip: (c) => pick(wx(c), { wet: 'Even the sky is crying. *opens umbrella, also cries*', snow: 'Every snowflake is unique, and they all melt.', cold: 'So cold. So alone. *shivers theatrically*', warm: 'It’s warm, and it won’t last. Nothing lasts.', mild: 'Grey. Like my heart. Like an old photograph of my heart.' }),
       vitalsTitle: 'In Memoriam', vitalsWatch: 'Fading before our eyes',
-      vitalsHero: ({ dead, total }) => dead ? dead + ' of ' + total + ' repos lie in the graveyard. *places flowers on each one* I visit them daily.' : 'All ' + total + ' still breathe. For now. *sob*',
+      vitalsHero: ({ dead, total }) => dead ? dead + ' of ' + total + ' repos lie in the graveyard. *places flowers on each one* I visit them daily.' : 'All ' + total + ' still breathe. For now. Cherish them.',
       state_alive: 'Still with us', state_fading: 'Fading away', state_flatlined: 'On the deathbed', state_dead: 'Rest in peace',
 
-      panelTitle: '*sniffs* Change Things (Gently)', tab_layout: 'Layout *sniff*', tab_widgets: 'Little Friends', tab_theme: 'Sad Scenery', tab_settings: 'Settings *sob*',
+      panelTitle: 'Change Things (Gently)', tab_layout: 'Rearrange (it was nicer before)', tab_widgets: 'Little Friends', tab_theme: 'Sad Scenery', tab_settings: 'Settings (handle with care)',
       sec_layout: 'They all look so lonely', sec_widgets: 'My little friends (mortal, all of them)', sec_theme: 'Such beautiful sadness', sec_background: 'The backdrop to our tragedy',
-      sec_accent: 'A colour to weep about', sec_voice: 'Who will cry with you', sec_profile: 'You. *sniff* Just you.', sec_location: 'Where you are (so far away)',
+      sec_accent: 'A colour to weep about', sec_voice: 'Who will cry with you', sec_profile: 'You. Just you. Don’t ever change.', sec_location: 'Where you are (so far away)',
       sec_search: 'Searching (for meaning)', sec_github: 'Everything we built (and lost)', sec_sync: 'Don’t leave me on just one device', sec_data: 'Our memories (fragile)',
       moreWidgets: 'More little friends to lose',
       tgl_greeting: 'Let me greet you (it may be the last time)', tgl_quote: 'A quote to cry about', tgl_animate: 'The stars twinkle like tears', tgl_summary: 'A daily eulogy',
-      tgl_24h: '24-hour clock (every hour slips away)', tgl_favicons: 'Little faces *sniff*', tgl_syncAuto: 'Never let us drift apart',
-      widgetsIntro: ({ space }) => 'These are all the little things in ' + space + '. If you hide one, it’ll be okay. It won’t. But it will. *sob*',
-      voiceIntro: 'Choose who speaks to you. *turns away* Don’t look at me while you decide. *sob*',
+      tgl_24h: '24-hour clock (every hour slips away)', tgl_favicons: 'Little faces', tgl_syncAuto: 'Never let us drift apart',
+      widgetsIntro: ({ space }) => 'These are all the little things in ' + space + '. Drag them around while this is open, or make them bigger with the size button. If you hide one, it’ll be okay. It won’t. But it will.',
+      voiceIntro: 'Choose who speaks to you. *turns away* Don’t look at me while you decide.',
       fld_name: 'Your name (I’ll carve it into a tree)', fld_tagline: 'Your words (I’ll read them at your funeral. Not soon. Probably.)',
-      locIntro: ({ name }) => 'You’re in ' + name + '. *gazes at a map* So far away.', locPlaceholder: 'Where did you go? *sniff*', btn_find: 'Find (please)', btn_geo: 'Tell me where you are. I worry.',
-      fld_weekStart: 'When the week starts hurting', fld_engine: 'Who you ask instead of me *sniff*',
+      locIntro: ({ name }) => 'You’re in ' + name + '. *gazes at a map* So far away.', locPlaceholder: 'Where did you go? Wherever it is, I hope it has a window', btn_find: 'Find (please)', btn_geo: 'Tell me where you are. I worry.',
+      fld_weekStart: 'When the week starts hurting', fld_engine: 'Who you ask instead of me',
       syncIntro: 'So we can be together on every device. *clasps hands* Your token stays here, safe, where nothing bad can happen to it.',
-      btn_syncOn: 'Never leave me', btn_syncNow: 'Reunite *sob*', btn_viewGist: 'Read our letters',
+      btn_syncOn: 'Never leave me', btn_syncNow: 'Reunite', btn_viewGist: 'Read our letters',
       btn_export: 'Take a piece of me with you', btn_import: 'Bring back the memories', btn_reset: 'Burn the letters',
       dataHelp: 'Everything we have is right here in this browser. One cache clear and it’s all gone. Like tears in rain.',
-      btn_change: 'Change it (I’ll mourn the old one)', bgCustom: 'You chose your own picture. *sob* It’s beautiful.', bgBack: 'Go back (I missed the pixels so much)',
+      btn_change: 'Change it (I’ll mourn the old one)', bgCustom: 'You chose your own picture. It’s beautiful. I’ll never be that beautiful.', bgBack: 'Go back (I missed the pixels so much)',
       reset_title: 'Burn the letters?', reset_body: 'All your tasks and habits and notes, gone, like tears in rain. *sobs into the curtain*', reset_ok: 'Burn them (*crying*)',
-      import_title: 'Replace our memories?', import_body: 'Everything here will be replaced. Our memories. Gone. *sob*', import_ok: 'Okay *sniff*',
-      dlg_save: 'Keep it forever', dlg_cancel: 'Never mind *sob*',
-      search_placeholder: ['What are we searching for… (please let it be happy) *sniff*', 'Search for anything. Except goodbye. *sob*', '*types through tears*…'],
+      import_title: 'Replace our memories?', import_body: 'Everything here will be replaced. Our memories. Gone.', import_ok: 'Let it happen',
+      dlg_save: 'Keep it forever', dlg_cancel: 'Never mind',
+      search_placeholder: ['What are we searching for… (please let it be happy)', 'Search for anything. Except goodbye.', '*types through tears*…'],
       rail_customize: 'Change things (gently)', rail_newSpace: 'A new space (it will be so lonely)',
-      grid_empty: '*echo* …empty… empty… *sob*', grid_emptyBtn: 'Please add something',
-      w_tasks: 'Little Doomed Things', w_notes: 'Dear Diary *sob*', w_bookmarks: 'Places I Miss', w_github: 'All We Built',
+      grid_empty: '*echo* …empty… empty…', grid_emptyBtn: 'Please add something',
+      w_tasks: 'Little Doomed Things', w_notes: 'Dear Diary', w_bookmarks: 'Places I Miss', w_github: 'All We Built',
       w_worldclock: 'Everyone, So Far Away', w_news: 'Tragic Headlines', w_forecast: 'More Rain, Probably',
-      notes_placeholder: 'Pour your heart out… *sniff*', task_placeholder: 'Another doomed little thing… *sob*',
-      toast_location: ({ name }) => name + '. I hope you’re happy there. *sob*',
+      notes_placeholder: 'Pour your heart out…', task_placeholder: 'Another doomed little thing…',
+      toast_location: ({ name }) => name + '. I hope you’re happy there. Send a postcard.',
       desc_tasks: 'Little doomed things', desc_habits: 'Fragile routines, destined to end', desc_focus: 'A vigil', desc_vitals: 'In memoriam',
       desc_notes: 'Your diary. Every word, a tear.', desc_countdown: 'Days until it all ends',
       leave_title: () => 'Go. *turns away dramatically*', leave_body: ({ to }) => 'Go to ' + to + '. Remember me as I was. Fully rendered. Unminified. *the lights dim*',
       leave_ok: 'Goodbye', leave_cancel: 'I could never leave you',
-      welcomeVoice: ({ prev }) => '*runs across the field in slow motion* You came back from ' + prev + '! *sob*',
+      welcomeVoice: ({ prev }) => '*runs across the field in slow motion* You came back from ' + prev + '!',
       welcomeBack: () => C().awayText + '. *stares out of the window* I aged a decade.',
       blurb: {
-        neutral: 'So cold. How can it be so cold? *sob*', monday: 'So cruel. So honest. *faints*', supportive: 'She loves too much. I understand her. *sob*',
-        surfer: 'He doesn’t feel anything. I envy him. *sob*', professional: 'Hides its feelings behind spreadsheets. *sob*', therapist: 'Finally, someone who listens. For a fee. *sob*',
-        weepy: '*sob* It’s me. I’m fine. I’m not fine.', victorian: 'Her disapproval is so beautifully worded. *sob*',
+        neutral: 'So cold. How can it be so cold?', monday: 'So cruel. So honest. *faints*', supportive: 'She loves too much. I understand her.',
+        surfer: 'Feels nothing. I envy that.', professional: 'Hides its feelings behind spreadsheets.', therapist: 'Finally, someone who listens. For a fee.',
+        weepy: '*sob* It’s me. I’m fine. I’m not fine.', victorian: 'Her disapproval is so beautifully worded.',
       },
     },
 
@@ -676,15 +676,22 @@
     current() { return VOICES[this.key()]; },
     /* Run fn with another voice in charge (used for Chaos mode cards). */
     as(k, fn) { const prev = this._override; this._override = k; try { return fn(); } finally { this._override = prev; } },
-    resolve(val, key, ctx) {
-      if (typeof val === 'function') val = val(ctx || {});
-      if (Array.isArray(val)) {
-        // Rotate alternatives, but stay stable within the hour so re-renders don't flicker.
-        let h = Math.floor(Date.now() / 36e5);
-        for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-        val = val[h % val.length];
+    /* Values can nest: a function may return an array of variations, and an array may hold functions.
+       Page copy rotates hourly (stable, so re-renders don't flicker); one-off lines (toasts) pass random. */
+    resolve(val, key, ctx, random) {
+      let h = Math.floor(Date.now() / 36e5);
+      for (const ch of key || '') h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      for (let depth = 0; depth < 4; depth++) {
+        if (typeof val === 'function') val = val(ctx || {});
+        else if (Array.isArray(val)) val = val.length ? val[random ? Math.floor(Math.random() * val.length) : (h + depth * 7) % val.length] : undefined;
+        else break;
       }
       return val;
+    },
+    /* A one-off line (a toast, a reaction): a fresh variation each time. */
+    line(key, ctx, vk) {
+      const v = VOICES[vk || this.key()] || VOICES.neutral;
+      return this.resolve(v[key] !== undefined ? v[key] : VOICES.neutral[key], key, ctx, true);
     },
     t(key, ctx) {
       const v = this.current();

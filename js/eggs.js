@@ -9,7 +9,7 @@
   /* id → what the current voice says when you find it. Neutral is the fallback; a few voices have their own take. */
   const EGGS = {
     hello: { neutral: 'Hello to you too.', monday: 'Ugh. Hi. Don’t make this a habit.', supportive: 'You said hi to me!!! Out of nowhere!!! I’m keeping this forever. 💕', ghost: 'hello. nobody says hello anymore.', victorian: 'Good day. One does not say “hi” to one’s elders.' },
-    cat: { neutral: 'Meow.', monday: 'Stop poking the cat. I am the cat. This is assault.', supportive: 'You petted the cat!!! I’m the cat!!! Pet me again!!! 💕', surfer: 'Whoa, the cat meowed. Or I did. Meow, man.', parent: 'You found the family cat!!! He missed you!!!' },
+    cat: { neutral: 'Meow.', monday: 'Stop poking the cat. I am the cat. This is assault.', supportive: 'You petted the cat!!! I’m the cat!!! Pet me again!!! 💕', surfer: 'The cat meowed. Or I did. Meow.', parent: 'You found the family cat!!! He missed you!!!' },
     konami: { neutral: 'Up, up, down, down. A meteor shower, just for you.', monday: 'The Konami code. In this economy. Fine. Have some meteors.', owl: 'METEORS. At night. This is the best moment of my life.' },
     sudo: { neutral: 'Nice try.', monday: 'sudo make me care. Permission denied.', professional: 'This request requires approval from your manager’s manager.', therapist: 'Wanting total control is very common. €60.' },
     chaos3am: { neutral: 'Chaos mode at 3am. Everyone’s awake now.', monday: 'Chaos mode. At 3am. You absolute gremlin.', owl: 'CHAOS. AT 3AM. My people.' },

@@ -273,7 +273,7 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }
       const away = SP.voice.markSeen();
-      if (!SP.react.visit(away) && away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.t('welcomeBack'), { who: SP.voice.current().name });
+      if (!SP.react.visit(away) && away > 2 * 60e3 && SP.voice.current().welcomeBack) SP.ui.toast(SP.voice.line('welcomeBack'), { who: SP.voice.current().name });
       renderHero();
       if (SP.widgets.weather.data) SP.widgets.weather.load();
       if (SP.widgets.github.data) SP.widgets.github.load();

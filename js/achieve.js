@@ -34,7 +34,7 @@
     surfer: { ach_toast: ({ name }) => 'Whoa, “' + name + '”. Is that, like, good? Sounds good.', ach_reward: ({ scene }) => 'New spot unlocked: ' + scene + '. Gnarly.' },
     professional: { ach_toast: ({ name }) => 'Milestone recorded: “' + name + '”. This will be noted in your file.', ach_reward: ({ scene }) => 'Office upgrade approved: ' + scene + '.', sec_achievements: 'Recognition (non-monetary)' },
     therapist: { ach_toast: ({ name }) => '“' + name + '”. Notice how you need external validation. Interesting. €25.', ach_reward: ({ scene }) => 'A new view: ' + scene + '. Change of scenery can help. Or it’s avoidance.' },
-    weepy: { ach_toast: ({ name }) => '“' + name + '”. *sobs* You’re growing up so fast.', ach_reward: ({ scene }) => scene + '. So beautiful it hurts. *weeps*' },
+    weepy: { ach_toast: ({ name }) => '“' + name + '”. You’re growing up so fast. I kept your first checkbox.', ach_reward: ({ scene }) => scene + '. So beautiful it hurts. *weeps*' },
     victorian: { ach_toast: ({ name }) => '“' + name + '”. A small distinction. Do not boast of it.', ach_reward: ({ scene }) => 'You may now take the air at ' + scene + '. Wear a hat.', sec_achievements: 'Honours (minor)' },
     owl: { ach_toast: ({ name }) => '“' + name + '”. Earned in the dark, I hope.', ach_reward: ({ scene }) => scene + '. Looks best at 3am.' },
     ghost: { ach_toast: ({ name }) => '“' + name + '”. i’ll carve it into the wall.', ach_reward: ({ scene }) => scene + '. another place to wait for you.' },
