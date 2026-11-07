@@ -23,6 +23,7 @@ Then pick a voice, and the entire page, settings included, is rewritten in that 
 • Therapist: bills by the minute.
 • Weepy: mourns every task you finish.
 • Victorian: disapproves of you, the internet, and tabs.
+• Brutal: no mercy, no filter. Grades your week. Mean about your work, never about you.
 • …and three secret voices you have to earn.
 
 The voices react as things happen: finishing a task, pausing the timer at 23:41, breaking a streak, opening a tab at 3am. Now and then they interrupt each other. Every Sunday you get a weekly recap narrated by your voice, which you can save as an image. Bring your own Claude API key and you can ask your voice anything.

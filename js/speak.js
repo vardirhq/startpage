@@ -17,6 +17,7 @@
     owl: { pitch: 1.15, rate: 1.3 },
     ghost: { pitch: 0.5, rate: 0.68 },
     parent: { pitch: 1.3, rate: 1.12, prefer: /Female|Samantha|Karen/i },
+    brutal: { pitch: 0.7, rate: 1.05, prefer: /Daniel|Fred|Male|David/i },
   };
   const ok = () => 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
   function clean(text) {
