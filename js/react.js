@@ -157,6 +157,7 @@
     const tt = s.totals || (s.totals = {}); tt[name] = Math.max(0, (tt[name] || 0) + (by === undefined ? 1 : by)); // lifetime, for achievements
     const keys = Object.keys(st);
     if (keys.length > 70) keys.sort().slice(0, keys.length - 70).forEach((x) => delete st[x]);
+    if (SP.dares && name !== 'dares' && name !== 'visits') setTimeout(() => SP.dares.check(), 0); // a dare may be done now
   }
 
   // Reactions should feel like a voice noticing, not a slot machine: one at a time, and the
@@ -234,6 +235,7 @@
     const br = brokenStreaks();
     if (!said && br.length) said = react('streakBreak', br.sort((a, b) => b.n - a.n)[0], { force: true });
     SP.store.save({ quiet: true });
+    if (SP.bonds) SP.bonds.day();
     const un = checkUnlocks(away);
     if (SP.achieve) SP.achieve.check();
     return un ? 'unlock' : said;
@@ -265,10 +267,12 @@
     const s = S(), cur = SP.voice.key();
     if (s.heckles === false || cur === 'neutral') return null;
     const h = hourHash('heckle' + (s.seed || 0));
-    if (h % 3 !== 0 && !s._heckleAlways) return null; // roughly one hour in three
+    // roughly one hour in three, or every hour while an event voice is visiting
     const others = SP.voice.available().filter((k) => k !== cur && k !== 'neutral');
     if (!others.length) return null;
-    const who = others[(h >>> 3) % others.length], v = V[who];
+    const ev = SP.season && SP.season.heckler(), forced = ev && ev !== cur && V[ev];
+    if (!forced && h % 3 !== 0 && !s._heckleAlways) return null;
+    const who = forced ? ev : others[(h >>> 3) % others.length], v = V[who];
     let val = (v.heckle_at && v.heckle_at[cur]) || v.heckle;
     if (!val) return null;
     if (Array.isArray(val)) val = val[(h >>> 7) % val.length];

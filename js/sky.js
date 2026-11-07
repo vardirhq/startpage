@@ -1,6 +1,6 @@
 /* Live sky: the pixel scene follows the real world. Rain, snow, fog and storms come from the current
    weather, the light follows your actual sunrise and sunset, and the calendar adds a few extras
-   (December flurries, New Year fireworks, Halloween bats). Turn it off in Customize → Theme. */
+   (New Year fireworks; seasons and holiday events come from js/season.js). Turn it off in Customize → Theme. */
 (function (SP) {
   'use strict';
   const S = () => SP.store.state;
@@ -37,8 +37,6 @@
   function calendar(now) {
     const mo = now.getMonth(), d = now.getDate(), h = now.getHours(), out = [];
     if ((mo === 11 && d === 31 && h >= 20) || (mo === 0 && d === 1 && h < 2)) out.push('fireworks');
-    if (mo === 9 && d === 31) out.push('bats');
-    if (mo === 11) out.push('flurries');
     return out;
   }
 
@@ -49,14 +47,16 @@
     const w = s.liveSky === false ? null : kind(d && d.current ? d.current.weather_code : null);
     const fx = [];
     if (w && ['rain', 'storm', 'snow', 'fog'].includes(w)) fx.push(w);
-    for (const c of calendar(now)) if (!(c === 'flurries' && (fx.includes('snow') || fx.includes('rain') || fx.includes('storm')))) fx.push(c);
-    return { phase: s.liveSky === false ? '' : phase(now), weather: w || '', fx: s.liveSky === false ? [] : fx };
+    for (const c of calendar(now)) fx.push(c);
+    const ph = phase(now);
+    if (SP.season) for (const c of SP.season.fx(now, ph, w)) if (!fx.includes(c)) fx.push(c); // seasons and events
+    return { phase: s.liveSky === false ? '' : ph, weather: w || '', fx: s.liveSky === false ? [] : fx, season: SP.season && s.seasons !== false ? SP.season.season(now) : '' };
   }
 
   let fetched = false;
   function update() {
     const r = compute(), html = document.documentElement;
-    html.dataset.sky = r.phase; html.dataset.wx = r.weather;
+    html.dataset.sky = r.phase; html.dataset.wx = r.weather; html.dataset.season = r.season || ''; const ev = SP.season && SP.season.event(); html.dataset.event = ev ? ev.id : '';
     SP.anim.setFx(r.fx);
     // Weather can drive the sky even when the Weather card isn't on this space.
     if (!fetched && S().liveSky !== false && S().location && !SP.widgets.weather.data && !SP.widgets.weather.state.loading) { fetched = true; SP.widgets.weather.load(); }

@@ -47,9 +47,23 @@ Whatever you skip stays empty, and the page starts with no personal data: no nam
 
 **Make your own voice:** Customize → Voice → *Create a voice*. Describe it ("a pirate who hates Mondays") and Claude writes the voice with your key: greetings, the summary line, reactions, weather comments and the main labels. The rest falls back to Neutral. Custom voices sync with your other settings and can be shared as a link (`#voice=…`, compressed) or a file. Anything imported is treated as untrusted: only known keys are kept, lengths are capped, placeholders are filled from a fixed list, and it is always shown as text, never as HTML (`js/maker.js`).
 
-**Achievements and reward scenes:** 13 achievements (finish 50 tasks, 10 focus sessions, a 30-day streak, try every voice, unlock the secret ones…) are listed under Settings with progress bars. Three of them unlock new scenes: **Dunes**, **Harbor** and **Polar Night**. Existing data counts, and is awarded quietly the first time (`js/achieve.js`).
+**Achievements and reward scenes:** 14 achievements (finish 50 tasks, 10 focus sessions, a 30-day streak, try every voice, unlock the secret ones…) are listed under Settings with progress bars. Three of them unlock new scenes: **Dunes**, **Harbor** and **Polar Night**. Existing data counts, and is awarded quietly the first time (`js/achieve.js`).
 
-**Live sky:** the pixel scene follows the real world. It rains, snows, fogs or storms when it does outside; the light follows your actual sunrise and sunset (dawn, day, dusk, night); and the calendar adds December flurries, New Year's Eve fireworks and Halloween bats. It only needs your location; turn it off in Customize → Theme (`js/sky.js`).
+**Live sky:** the pixel scene follows the real world. It rains, snows, fogs or storms when it does outside; the light follows your actual sunrise and sunset (dawn, day, dusk, night); and New Year's Eve gets fireworks. It only needs your location; turn it off in Customize → Theme (`js/sky.js`).
+
+**Seasons and events:** the season shows up in whatever scene you picked: blossoms in spring, fireflies on summer nights, falling leaves in autumn, flurries in winter, plus a gentle tint. The hemisphere flips if your location is south of the equator, so October in Sydney is spring. A few events come and go, with nothing to keep up:
+- **Haunted week** (Oct 25–31): bats all week, and Ghost visits even if you haven't unlocked it.
+- **Yuletide** (Dec 20–26): fairy lights, and Victorian narrates the weekly recap, saved image included.
+- **Valentine's Day:** hearts, and Super Supportive won't stop butting in.
+- **April Fools' Day:** Chaos mode for everyone.
+
+A dismissible banner says what's on. Turn it all off with *Seasons and holiday events* (`js/season.js`).
+
+**Daily dares:** once a day the current voice offers one small, optional dare under the summary line ("Finish one task before you open YouTube. I dare you."). Accept it and progress counts from then; finish it and the voice reacts. Saying no gets a line and nothing else: no penalties, no streaks. It only offers dares that make sense right now, e.g. no "clear your list" when the list is already empty. Five completed dares earn *Daredevil*. `>dare` shows today's (`js/dares.js`).
+
+**Discoveries:** twelve things are hidden on the page. Settings only says how many you've found, with no list and no hints. Each one gets a rare line from the current voice, and one of them sets off a meteor shower (`js/eggs.js`).
+
+**Voices that change:** the longer you stay with a voice, the more it lets its guard down. At 7, 30 and 90 days it says so ("30 days. …I'd miss you. Slightly. Don't tell anyone."), and from 30 days softer lines join its greetings and summary. Ghost becomes less transparent the longer you keep it.
 
 **Command palette:** in the search bar, type `>` for commands (`>task buy milk`, `>theme forest`, `>space dev`, `>timer`…), or just type math (`sqrt(2)*12^2`), unit conversions (`5 km to mi`, `100 c to f`), or date math (`days until 2027-07-01`, `week`).
 

@@ -372,7 +372,7 @@
       const ta = el.querySelector('textarea');
       if (ta) {
         ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
-        ta.oninput = () => { S().notes = ta.value; save(); };
+        ta.oninput = () => { S().notes = ta.value; save(); SP.dares.check(); };
         ta.onblur = () => { this.editing = false; rerender('notes'); };
         ta.onkeydown = (e) => { if (e.key === 'Escape') ta.blur(); };
       } else {
@@ -578,7 +578,9 @@
         const v = q.value.trim();
         if (!v) { ul.hidden = true; return; }
         items = [];
-        if (v.startsWith('?')) {
+        const hi = SP.eggs.greetingQuery(v); // "hi monday": the voice answers back
+        if (hi) { items = [{ icon: 'chat', label: hi.who + ': ' + hi.text, answer: true, run: () => {} }]; SP.eggs.found('hello'); }
+        else if (v.startsWith('?')) {
           const qq = v.slice(1).trim(), nm = SP.voice.current().name;
           items = [{ icon: 'chat', label: qq ? SP.voice.t('ask_label', { name: nm }) + ': ' + qq : SP.voice.t('ask_label', { name: nm }) + '…', sub: SP.ask.hasKey() ? 'Enter' : 'needs your Claude API key', run: () => SP.ask.open(qq) }];
         } else if (v.startsWith('>')) {
