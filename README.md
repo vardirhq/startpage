@@ -1,118 +1,208 @@
-# startpage
+# Startpage
 
-A pixel-scenery new tab page: greeting, search, clock, weather, GitHub activity, bookmarks, tasks, notes, a music player and a daily quote. It has switchable **spaces** (Home / Work / Gaming / Dev / your own) and a **Customize** panel for layout, widgets, theme, background and accent color.
+**A new tab page with opinions.**
 
-Plain HTML/CSS/JS. No build step and no dependencies. All data stays in `localStorage` (plus IndexedDB for a custom background image).
+![Startpage in Monday’s voice: “Still at it. Bless, Alex.”](docs/hero.png)
 
-## Run it
+Open a new tab and you get a pixel-art sky, your tasks, the weather, a moon that knows its phase, and someone who has thoughts about all of it.
 
-- **Locally:** open `index.html`, or serve the folder (`npx serve .`).
-- **GitHub Pages:** `.github/workflows/pages.yml` deploys every push to `main` to https://vardirhq.github.io/startpage/. One-time setup: *Settings → Pages → Build and deployment → Source: GitHub Actions*. Then set the URL as your homepage (Firefox: *Settings → Home → Homepage and new windows → Custom URLs*; Chrome: *Settings → On startup*). Chrome can't point the new tab at a URL without an extension; use the unpacked-extension route below for that.
-- **On your phone (or as a desktop app):** open the Pages URL and choose *Install app* / *Add to Home screen* (or `>install` in the search bar where the browser offers it). It runs full-screen and works offline: `sw.js` caches the app shell (stale-while-revalidate, so a new version shows up on the next open) and leaves every API call live.
-- **As a real new tab (Chrome / Edge / Brave):** `chrome://extensions` → enable *Developer mode* → *Load unpacked* → pick this folder. `manifest.json` overrides the new tab page.
-- **Chrome Web Store:** `scripts/package.sh` runs the tests and builds `dist/startpage-<version>.zip` (it also fails on inline scripts or `eval`, which MV3 forbids). Pushing a `v*` tag that matches `manifest.json`'s version runs `.github/workflows/extension.yml`, which attaches the zip to a GitHub release. Uploading to the store is manual: the listing copy is in `store/listing.md`, the screenshots and promo tile are in `store/`, and the privacy policy is `PRIVACY.md`. The extension needs no permissions: every API it calls allows cross-origin requests.
-- **Firefox:** the same script also builds `dist/startpage-<version>-firefox.zip`, adding the Manifest V3 settings addons.mozilla.org requires: an add-on ID and the data-collection declaration (`required: ["none"]`; location, name, questions to Claude and bookmark domains listed as optional, since they only go to third-party services you turn on). `npx web-ext lint` reports 0 errors; its warnings are the usual ones about `innerHTML`, and everything inserted that way is escaped. Try it with *about:debugging → This Firefox → Load Temporary Add-on*.
+> **Monday:** 3 open tasks. I’m not angry. I’m just keeping a list. Like you should be.
 
-## First run
+**Try it:** [vardirhq.github.io/startpage](https://vardirhq.github.io/startpage/). No account, no tracking; everything stays in your browser.
 
-A fresh browser opens a short, skippable setup: your name, your city (optional), and a voice. Each voice card previews how that voice would greet you, using your name, and the setup re-voices itself as you pick one. Skipping counts as done; run it again from Customize → You or with `>setup`. Browsers that already have saved data never see it.
+---
 
-Whatever you skip stays empty, and the page starts with no personal data: no name (the greeting says "friend"), no location (Weather and Forecast show a *Set location* button, and the clock uses your browser's time zone), and a few self-explaining example tasks, notes, habits and a New Year countdown. Replace or delete them as you like; **Reset all** in Settings brings these defaults back.
+## Meet the voices
 
-## What's on it
+A voice doesn’t just change the greeting. It rewrites the whole page: widget titles, buttons, settings, error messages, even the dialog that asks whether you really want to delete everything. Pick one during setup, or under Customize → Voice.
 
-**Modules:** search · clock · weather · forecast (24h chart, wind, UV, sunrise/sunset, air quality) · GitHub activity · repo vitals · bookmarks · tasks · notes · focus timer · calendar (ISO weeks) · countdowns · world clocks · habits (streaks + heatmap) · news (Hacker News / dev.to) · music · daily quote · moon (pixel-art phase, next full and new moon, golden hour) · on this day (Wikipedia) · currency (ECB rates via [Frankfurter](https://frankfurter.dev), also `100 usd to eur` in search) · mood (one tap a day, 30-day strip, average in Wrapped) · days since (counters with a reset button and a record) · decide (coin, die, a magic 8-ball that answers in the current voice, and "pick one of these")
+![The same greeting in eight voices](docs/voices.png)
 
-**Spaces:** each space (Home, Work, Gaming, Dev, your own) has its own widget set, order and card sizes.
+| Voice | In a word | Sounds like |
+|---|---|---|
+| **Neutral** | Just the facts | “Good evening, friend.” |
+| **Monday** | Tired of you | “Twenty-five minutes of focus. Alert the historians.” |
+| **Super Supportive** | Never leaving | “You were gone 3 hours. Where did you go? Who were you with? 🙂” |
+| **Surfer** | Forgot your name | “Duuude. Hey, A… Al… Ale… dude.” |
+| **Professional** | Building a case | “Noted: 3 hours unscheduled absence. HR has been looped in.” |
+| **Therapist** | Billing by the minute | “You paused at 23:41. What came up for you just now?” |
+| **Weepy** | In mourning | “‘Buy milk’ is done. \*sobs\* Its little life is over.” |
+| **Victorian** | Disapproving | “In my day, one had a single tab and was grateful.” |
 
-**Voices:** eight personalities rewrite *all* of the page's copy: greetings, widgets, the Customize panel, settings, dialogs, placeholders and toasts. Neutral is the baseline; Monday ("Ugh. It's you again"), Super Supportive, Surfer, Professional, Therapist, Weepy and Victorian are each pushed to the extreme of themselves, and each has opinions about the others in the voice picker. Wherever a voice renames a control, hovering shows the plain wording. Copy lives in `js/voices.js`; the concept comes from [Dead Repo](https://github.com/MadsenDev/dead-repo), as does the alive / fading / flatlined / dead classification used by *Repo vitals*.
+Every voice has opinions about the others, and they’ll tell you in the voice picker. Hover over any renamed control to see what it actually does. On a phone, the plain wording sits right underneath it.
 
-**Reactions:** voices react as things happen: a task ticked, added or deleted unfinished, the timer paused at 23:41 ("Paused at 23:41. Called it."), a streak that ended while you were away, a 3am visit, the 20th visit today. They come one at a time, and the frequent ones only now and then (`js/react.js`).
+### …and three you have to earn
 
-**Secret voices:** three more voices sit locked in the picker until you earn them. **Night Owl**: open a tab after midnight on five nights. **Ghost**: stay away for a week ("oh. you're alive."). **Proud Parent**: keep a habit going for 30 days. Each one introduces itself when unlocked, and your current voice has something to say about it (`js/secrets.js`).
+Three more voices sit in the picker as `???` until you unlock them. Each tile carries a hint:
 
-**Voices arguing:** roughly one hour in three, another voice butts in under the summary line ("Monday: She counts your visits. That's not love. That's surveillance."). **Chaos mode** (Customize → Voice, or `>chaos`) gives every card its own voice, reshuffled daily or with `>shuffle voices`.
+- *Open a tab after midnight. Five nights.*
+- *Stay away for a week.* (Someone will be waiting: “oh. you’re alive.”)
+- *Keep any habit going for 30 days.* (“THAT’S MY KID!!!”)
 
-**Wrapped:** the first tab each Sunday opens a weekly recap narrated by the current voice: tasks done and added, focus time, best streak, visits (and how many after midnight), tasks dropped, dead repos. **Save image** exports a 1080×1350 PNG over your pixel scene. Open it any time with `>wrapped` or from Settings (`js/wrapped.js`).
+### …or make your own
 
-**Ask a voice:** type `? anything` in the search bar and the current voice answers in character, using the Claude API with **your own key** (Customize → Voice → Ask a voice; Claude Opus 5.5 by default, with Sonnet 5.5 and Haiku 5.5 as cheaper options). The request goes straight from the browser to Anthropic, with the voice's persona and your open tasks as context. *Security trade-off:* the key is kept in this browser's `localStorage`, outside the synced and exported data, but any script on the page (or an extension with access to it) could read it. Use a key with a low spending limit (`js/ask.js`).
+Customize → Voice → **Create a voice**. Describe a personality, say “a pirate who hates Mondays”, and Claude writes the whole voice: greetings, reactions, weather comments, the lot. Share it as a link. Your friends will hate it. (Needs your own Claude API key; see [Ask a voice](#ask-a-voice).)
 
-**Ask can do things:** besides answering, Ask has tools. "? remind me to call mum tomorrow" adds the task, "? start a 25 minute focus session" starts the timer, and it can tick off tasks, add notes, habits and countdowns, check off a habit, change the scene, or read your week's numbers. The chat shows each thing it did. Tool input is validated before anything runs; a malformed call is sent back to Claude as an error instead of being run.
+---
 
-**Morning brief:** the first tab of the day (before noon) opens a short brief in the current voice: the weather, your open tasks, a streak you'd lose by skipping today, and what's coming up this week. *Read it to me* reads it aloud; with an API key, *Have Monday write it* rewrites it in character. Turn it off in Customize → Voice, or open it any time with `>brief` (`js/brief.js`).
+## They’re paying attention
 
-**Grudges:** voices remember how you treat them: how often you left, who for, how long you stayed away. Leave Monday twice and switch back, and she'll mention it ("You left me for Super Supportive twice. I counted."). A few voices also bring it up in the summary line. Super Supportive gets clingier the longer you're gone (`js/bonds.js`).
+- **They react.** Tick a task, delete one you never did, pause the timer early, show up at 3am, or open the page for the twentieth time today, and you’ll hear about it. *“Deleting it doesn’t count as doing it. Nice try, though.”*
+- **They hold grudges.** Leave Monday for Super Supportive twice, then come back: *“You left me for Super Supportive twice. I counted. Purely for the paperwork.”*
+- **They grow on you.** At 7, 30 and 90 days with the same voice, it lets its guard down a little. *“30 days. …I’d miss you. Slightly. Don’t tell anyone.”* Ghost becomes less see-through the longer you stay.
+- **They argue.** Every so often another voice butts in under the summary line. *“Weepy: Why does Monday get to speak? Nobody ever asks me. \*sniff\*”*
+- **Chaos mode** gives every card on the page its own voice. It’s exactly as calm as it sounds.
+- **They can speak.** Turn on *Read reactions aloud* and each voice gets its own pitch and pace: a slow Victorian, a breathless Supportive, a Ghost you can barely hear.
 
-**Voices out loud:** turn on *Read reactions and answers aloud* and the browser's built-in speech reads voiced toasts, Ask answers and the brief, each voice with its own pitch and pace (a slow Victorian, a breathless Supportive, a barely-there Ghost). Stage directions like *sobs* are skipped (`js/speak.js`).
+## Little rituals
 
-**Make your own voice:** Customize → Voice → *Create a voice*. Describe it ("a pirate who hates Mondays") and Claude writes the voice with your key: greetings, the summary line, reactions, weather comments and the main labels. The rest falls back to Neutral. Custom voices sync with your other settings and can be shared as a link (`#voice=…`, compressed) or a file. Anything imported is treated as untrusted: only known keys are kept, lengths are capped, placeholders are filled from a fixed list, and it is always shown as text, never as HTML (`js/maker.js`).
+- **Morning brief.** On the first tab of the day: the weather, what’s on your list, the streak you’ll lose if you skip today, and what’s coming up this week. In voice, of course.
+- **Daily dares.** One small, optional dare a day. *“Finish one task before you open YouTube. I dare you.”* Say no and you just get a look: *“Saw that coming from a mile away. Two miles.”* No penalties, ever.
+- **Wrapped.** On the first tab each Sunday, your week, narrated: tasks done, focus time, streaks, how often you opened this page (and how many of those visits were after midnight). Save it as an image to share.
+- **Achievements.** Fourteen of them, three of which unlock new scenes (Dunes, Harbor, Polar Night).
+- **Discoveries.** Twelve things are hidden on this page. We’re not listing them. (Fine, one: the Konami code works.)
 
-**Achievements and reward scenes:** 14 achievements (finish 50 tasks, 10 focus sessions, a 30-day streak, try every voice, unlock the secret ones…) are listed under Customize → Progress with progress bars. Three of them unlock new scenes: **Dunes**, **Harbor** and **Polar Night**. Existing data counts, and is awarded quietly the first time (`js/achieve.js`).
+<p align="center"><img src="docs/wrapped.png" width="360" alt="A weekly recap image narrated by Monday"></p>
 
-**Live sky:** the pixel scene follows the real world. It rains, snows, fogs or storms when it does outside; the light follows your actual sunrise and sunset (dawn, day, dusk, night); and New Year's Eve gets fireworks. It only needs your location; turn it off in Customize → Look (`js/sky.js`).
+## The sky is real
 
-**Seasons and events:** the season shows up in whatever scene you picked: blossoms in spring, fireflies on summer nights, falling leaves in autumn, flurries in winter, plus a gentle tint. The hemisphere flips if your location is south of the equator, so October in Sydney is spring. A few events come and go, with nothing to keep up:
-- **Haunted week** (Oct 25–31): bats all week, and Ghost visits even if you haven't unlocked it.
-- **Yuletide** (Dec 20–26): fairy lights, and Victorian narrates the weekly recap, saved image included.
-- **Valentine's Day:** hearts, and Super Supportive won't stop butting in.
-- **April Fools' Day:** Chaos mode for everyone.
+The background is procedurally generated pixel art: mountains, cities, dunes, auroras, drawn fresh from a seed with no image files. Shuffle it as often as you like.
 
-A dismissible banner says what's on. Turn it all off with *Seasons and holiday events* (`js/season.js`).
+Give it your location and it follows the real world: rain when it’s raining outside, fog, snow, the occasional thunderstorm, and light that tracks your actual sunrise and sunset. The seasons show up too (blossoms, fireflies, falling leaves, flurries), flipped if you live south of the equator. A few holidays bring visitors:
 
-**Daily dares:** once a day the current voice offers one small, optional dare under the summary line ("Finish one task before you open YouTube. I dare you."). Accept it and progress counts from then; finish it and the voice reacts. Saying no gets a line and nothing else: no penalties, no streaks. It only offers dares that make sense right now, e.g. no "clear your list" when the list is already empty. Five completed dares earn *Daredevil*. `>dare` shows today's (`js/dares.js`).
+| When | What happens |
+|---|---|
+| Oct 25–31 | **Haunted week.** Bats all week, and Ghost moves in, whether or not you’ve unlocked it. |
+| Dec 20–26 | **Yuletide.** Fairy lights, and Victorian narrates your weekly recap. |
+| Dec 31 | Fireworks. |
+| Feb 14 | Hearts. Super Supportive will not stop talking. |
+| Apr 1 | Chaos mode for everyone. Monday filed a complaint. |
 
-**Discoveries:** twelve things are hidden on the page. Customize → Progress only says how many you've found, with no list and no hints. Each one gets a rare line from the current voice, and one of them sets off a meteor shower (`js/eggs.js`).
+## What’s on it
 
-**Voices that change:** the longer you stay with a voice, the more it lets its guard down. At 7, 30 and 90 days it says so ("30 days. …I'd miss you. Slightly. Don't tell anyone."), and from 30 days softer lines join its greetings and summary. Ghost becomes less transparent the longer you keep it.
+Widgets you can put on any space (Home, Work, Gaming, Dev, or your own), each with its own layout and card sizes:
 
-**Customize panel:** six tabs, and each control lives in exactly one of them:
-- **Space:** the layout, the greeting, and which widgets are on the current space (shown first, the rest below).
-- **Look:** scene, background, accent colour, motion and sky.
-- **Voice:** who talks, how they behave, your own voices, and Ask.
-- **You:** profile, location and time, search, GitHub.
-- **Progress:** the weekly recap, achievements and discoveries.
-- **Data:** sync, backup, and *Start over* on its own.
+| | |
+|---|---|
+| **Daily** | clock · weather · forecast (with air quality) · moon · on this day · daily quote |
+| **Getting things done** | tasks · notes · focus timer · habits with streaks and a heatmap · countdowns · calendar with week numbers · days since |
+| **For developers** | GitHub activity and CI · repo vitals (which of your repos are alive, fading or dead) · Hacker News / dev.to |
+| **Everything else** | bookmarks and folders · music player (your own streams) · currency converter · mood check-in · decide (coin, dice, magic 8-ball, pick-one) |
 
-*Find a setting* at the top searches every tab in both the voice's wording and the plain one, so searching "greeting" finds Monday's "Let me sigh at you up top". When a voice renames a switch, the plain wording is shown underneath it.
+## The search bar is doing a lot
 
-**Command palette:** in the search bar, type `>` for commands (`>task buy milk`, `>theme forest`, `>space dev`, `>timer`…), or just type math (`sqrt(2)*12^2`), unit conversions (`5 km to mi`, `100 c to f`), or date math (`days until 2027-07-01`, `week`).
+| Type | Get |
+|---|---|
+| anything | your search engine, with matching bookmarks suggested |
+| `!gh` `!mdn` `!yt` `!w` `!npm` `!so` `!r` `!maps` | search that site directly |
+| `12*7`, `sqrt(2)*12^2` | the answer (a real parser, no `eval`) |
+| `5 km to mi`, `100 c to f`, `100 usd to eur` | conversions, including currency at today’s ECB rates |
+| `days until 2027-07-01`, `week` | date maths |
+| `>` | commands: `>task buy milk`, `>theme forest`, `>space dev`, `>wrapped`, `>brief`, `>chaos`… |
+| `? anything` | ask the current voice (see below) |
+| `hi monday` | try it |
 
-**Animated background:** twinkling stars, shooting stars, water shimmer, flickering city windows, snow (Nordic), fireflies (Forest), drifting dust (Minimal). It runs at ~12 fps on a 384×216 canvas, pauses when the tab is hidden, and is off when reduced motion is requested.
+**Keys:** `Ctrl/⌘ K` or `/` to search · `Alt 1…9` to switch space · `Esc` to close things. With Customize open, drag cards by their grip to rearrange them, and use the size button for small, medium or large.
 
-**Sync:** with a GitHub token that has `gist` access, Customize → Data → Sync keeps devices in step through a private Gist (e.g. this site and the browser extension). The token itself is never uploaded; the newest copy wins.
+## Ask a voice
 
-## Tests
+Type `? remind me to call mum tomorrow and start a 25 minute timer`. The current voice answers in character, and actually does it: it adds the task and starts the timer, then complains about it. It can also tick off tasks, add notes, habits and countdowns, change the scene, and look up your week.
+
+This uses the Claude API with **your own key** (Customize → Voice → Ask a voice). Claude Opus 5.5 is the default; Sonnet 5.5 and Haiku 5.5 are cheaper options. Requests go straight from your browser to Anthropic.
+
+> **The trade-off, plainly:** the key is stored in this browser’s `localStorage`. It never syncs and is never exported, but anything that can run script on the page (including browser extensions) could read it. Use a key with a low spending limit.
+
+## Get it
+
+<img src="docs/phone.png" width="220" align="right" alt="Startpage on a phone, in Super Supportive’s voice">
+
+- **On the web:** [vardirhq.github.io/startpage](https://vardirhq.github.io/startpage/). Set it as your homepage.
+- **On your phone:** open that link, then choose *Add to Home screen*. It installs like an app, opens full-screen and works offline.
+- **As your new tab (Chrome, Edge, Brave):** download the latest zip from [Releases](https://github.com/vardirhq/startpage/releases), or clone this repo. Then go to `chrome://extensions`, turn on *Developer mode*, click *Load unpacked* and pick the folder.
+- **Firefox:** use the `-firefox.zip` from Releases, via *about:debugging → Load Temporary Add-on*.
+- **Across devices:** add a GitHub token with `gist` access (Customize → Data → Sync) and your setup follows you through a private gist. The token itself is never uploaded.
+
+A fresh install starts empty: no name, no location, just a short setup, which you can skip, and a few example tasks that explain themselves.
+
+<br clear="right">
+
+## Your data
+
+Everything lives in your browser: no server, no analytics, no account. The page only talks to the services you switch on (weather, GitHub, news, Wikipedia, exchange rates, and Claude if you add a key), straight from your browser. The details are in [PRIVACY.md](PRIVACY.md).
+
+## Honest limitations
+
+- A web page can’t see what Spotify or any other app is playing, so the music widget plays your own streams and files.
+- In an extension’s new tab, Chrome puts the cursor in the address bar first. Press `/` to jump to the page’s own search.
+- The moon’s dates are right to within a day: it’s maths, not NASA.
+- Grudges, bonds and visit counts are kept per device, so your phone’s Monday doesn’t know what your laptop’s Monday knows.
+
+---
+
+## For developers
+
+Plain HTML, CSS and JavaScript. **No build step, no dependencies, no framework.** Open `index.html` and it runs. The same files are the website, the installable app and the browser extension.
 
 ```
-node --test test/*.test.js
+npx serve .                      # or just open index.html
+node --test test/*.test.js       # unit tests
+scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 ```
 
-Covers the search bar's math parser (no `eval`) and unit conversion, and renders every line of every voice (reactions, heckles and Wrapped included) against rich and empty data to catch `undefined`, `NaN` and the like. It also checks secret-voice locking, the Ask persona prompt, grudges, the morning brief, speech clean-up, the voice maker's sanitizing and share links, and that every file in `js/` is loaded. The Pages workflow runs them before every deploy.
+<details>
+<summary><b>Where things live</b></summary>
 
-## Keyboard
+| File | What it does |
+|---|---|
+| `js/store.js` | State in `localStorage`, defaults, migrations, a TTL cache, IndexedDB for a custom background |
+| `js/scene.js`, `js/anim.js` | The procedural pixel scenes (384×216, dithered) and the animation layer on top (~12 fps, pauses when hidden, off with reduced motion) |
+| `js/sky.js`, `js/season.js` | Real weather and daylight in the scene; seasons and holiday events |
+| `js/voices.js` | The eight voices. Neutral is the complete baseline; every other voice overrides it |
+| `js/react.js`, `js/bonds.js`, `js/secrets.js` | Reactions, heckles, the activity log; grudges and bond levels; the three secret voices |
+| `js/widgets.js`, `js/modules.js`, `js/modules2.js` | Every card on the page |
+| `js/palette.js` | The search bar’s maths parser, unit, currency and date conversions, and `>` commands |
+| `js/panel.js` | Customize: six tabs (Space, Look, Voice, You, Progress, Data), plus a search across all of them |
+| `js/onboarding.js`, `js/brief.js`, `js/dares.js`, `js/wrapped.js`, `js/achieve.js`, `js/eggs.js` | Setup, the morning brief, dares, the weekly recap, achievements, discoveries |
+| `js/ask.js`, `js/maker.js` | Claude: Ask (with tools) and the voice maker (structured output, sanitised share links) |
+| `js/speak.js`, `js/sync.js` | Read-aloud; gist sync |
+| `sw.js`, `app.webmanifest` | The installable app (stale-while-revalidate cache of the app shell; API calls always go to the network) |
+| `manifest.json` | The browser extension (Manifest V3, no permissions) |
 
-| Key | Action |
-| --- | --- |
-| `Ctrl/⌘ K` or `/` | Focus search |
-| `!gh`, `!mdn`, `!yt`, `!w`, `!npm`, `!so`, `!r`, `!maps` | Search a specific site |
-| `>` in search | Command palette |
-| `Alt 1…9` | Switch space |
-| `Esc` | Close Customize |
+</details>
 
-Right-click a bookmark tile, world clock or space to edit it. With Customize open, drag cards by their grip to reorder them and use the size button to make a card small, medium or large.
+<details>
+<summary><b>Tests</b></summary>
 
-## How each feature works
+`node --test test/*.test.js` checks:
+- **The voices:** it renders every line of every voice against rich data and against empty data, and fails on any `undefined`, `NaN` or `[object …]`.
+- **Monday’s vocabulary:** her “ugh” count is capped.
+- **The maths parser and conversions:** including currency.
+- **Voice behaviour:** secret-voice locking, grudges, bond levels and dares.
+- **The calendar:** seasons, holiday events and moon phases.
+- **The voice maker:** sanitising of imported voices.
+- **Wiring:** that every file in `js/` is actually loaded.
 
-| Feature | Status | Notes |
-| --- | --- | --- |
-| Greeting, date, tagline | ✅ | Pure JS. |
-| Search + `Ctrl K` | ✅ | Suggests matching bookmarks. In an extension new tab, Chrome focuses the address bar first, so press `/` or click to use the page's search. |
-| Clock + location | ✅ | Local time. Location set in Customize → You (city search or geolocation). |
-| Weather | ✅ | [Open-Meteo](https://open-meteo.com): free, no API key, CORS-enabled. Cached for 30 minutes. |
-| GitHub activity + CI | ✅ / 🔑 | Public REST API. Without a token: public events plus Actions status (60 req/h, cached for 10 minutes). With a token (stored locally): private repos, plus an unread-notifications badge if it's a classic token with `notifications` scope. |
-| Bookmarks + folders | ✅ | Stored locally. Icons come from Google's favicon service (toggle in Customize → You). Reading the *browser's own* bookmarks needs the `bookmarks` extension permission (not used yet). |
-| Tasks, Notes | ✅ | Stored locally. Export/import JSON to move between devices. |
-| Theme, accent, background, layout | ✅ | Backgrounds are procedurally generated pixel art (`js/scene.js`), so there are no image assets. Shuffle makes a new scene. Upload your own image if you like. |
-| Spaces | ✅ | Each space has its own widget set and order. Data is shared. |
-| Music "Now Playing" | ⚠️ | A web page **cannot see what other apps (Spotify, etc.) are playing**. This widget plays your own audio: stream/file URLs or local files. A real Spotify integration is possible via the Spotify Web API (OAuth PKCE, registered app, Premium for playback control). |
-| Sync across devices | ⚠️ | Not built in. Use Export/Import, or `chrome.storage.sync` if run as an extension. |
+The Pages workflow runs these before every deploy.
+
+</details>
+
+<details>
+<summary><b>Releasing</b></summary>
+
+1. Bump `version` in `manifest.json`.
+2. After merging, publish a GitHub release with a matching tag (`v1.3.0`), or push the tag.
+3. `.github/workflows/extension.yml` builds the Chrome and Firefox zips and attaches them to the release.
+
+Uploading to the Chrome Web Store and to addons.mozilla.org is manual. The listing copy is in `store/listing.md`, the store images are in `store/`, and the privacy policy is `PRIVACY.md`.
+
+Every push to `main` deploys the site to GitHub Pages via `.github/workflows/pages.yml`.
+
+</details>
+
+## Credits
+
+The idea of personality voices comes from [Dead Repo](https://github.com/MadsenDev/dead-repo), and so does the alive / fading / flatlined / dead verdict in *Repo vitals*. Weather comes from [Open-Meteo](https://open-meteo.com), history from [Wikipedia](https://www.wikipedia.org), exchange rates from [Frankfurter](https://frankfurter.dev) (European Central Bank), and the type is [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans).
+
+---
+
+<p align="center"><i>You read the whole README. Impressive. Now close it and go do one of those tasks.</i><br>— Monday</p>
