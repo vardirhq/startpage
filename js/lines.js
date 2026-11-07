@@ -821,6 +821,18 @@
     },
   };
 
+  /* What everyone thinks of Brutal (and who it picks fights with). */
+  const ON_BRUTAL = {
+    neutral: 'Harsh. Direct. No filter.', monday: 'Like me, but awake. Terrifying.', supportive: 'Too mean!!! Don’t listen to them!!! I’m right here 💕',
+    surfer: 'Whoa. Intense. Needs a beach.', professional: 'Direct feedback culture, taken too far. HR is aware.', therapist: 'A lot of unprocessed anger there. That’s €40.',
+    weepy: 'So cruel. So honest. I can’t stop reading.', victorian: 'Rude, but correct. I approve, privately.', owl: 'Yells at people at 3am. Respect.',
+    ghost: 'loud. the house doesn’t like it.', parent: 'Be NICE to my kid!!!',
+  };
+  for (const [k, line] of Object.entries(ON_BRUTAL)) V[k].blurb = Object.assign({}, V[k].blurb, { brutal: line });
+  Object.assign(V.supportive.heckle_at = V.supportive.heckle_at || {}, { brutal: 'Don’t listen to Brutal!!! You’re doing amazing!!! 💕' });
+  Object.assign(V.therapist.heckle_at = V.therapist.heckle_at || {}, { brutal: 'Let’s notice that Brutal’s anger is about Brutal, not you.' });
+  Object.assign(V.monday.heckle_at = V.monday.heckle_at || {}, { brutal: 'Easy, Brutal. Some of us like doing nothing.' });
+
   for (const [k, l] of Object.entries(FILL)) for (const [key, val] of Object.entries(l)) if (V[k][key] === undefined) V[k][key] = val;
   for (const set of [VARY, MORE]) for (const [k, l] of Object.entries(set)) for (const [key, extra] of Object.entries(l)) {
     const had = V[k][key];

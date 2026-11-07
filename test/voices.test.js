@@ -15,6 +15,7 @@ global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, 
 global.addEventListener = () => {};
 global.document = { body: { classList: { contains: () => false } }, addEventListener() {}, querySelector: () => null, getElementById: () => null, querySelectorAll: () => [], documentElement: { dataset: {} } };
 require('../js/voices.js');
+require('../js/brutal.js');
 require('../js/react.js');
 require('../js/secrets.js');
 require('../js/bonds.js');

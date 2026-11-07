@@ -7,7 +7,7 @@
   const S = () => SP.store.state;
   const V = SP.voice.list;
   const tot = () => S().totals || (S().totals = {});
-  const REGULAR = ['neutral', 'monday', 'supportive', 'surfer', 'professional', 'therapist', 'weepy', 'victorian'];
+  const REGULAR = ['neutral', 'monday', 'supportive', 'surfer', 'professional', 'therapist', 'weepy', 'victorian', 'brutal'];
 
   const LIST = [
     { id: 'first', icon: 'check', name: 'First one down', desc: 'Finish a task', test: (t) => (t.done || 0) >= 1 },
@@ -15,7 +15,7 @@
     { id: 'focus10', icon: 'timer', name: 'Deep worker', desc: 'Complete 10 focus sessions', test: (t) => (t.focus || 0) >= 10, reward: 'harbor', progress: (t) => [t.focus || 0, 10] },
     { id: 'streak7', icon: 'flame', name: 'A week of it', desc: 'Keep a habit going for 7 days', test: (t, h) => h >= 7, progress: (t, h) => [h, 7] },
     { id: 'streak30', icon: 'flame', name: 'Habit forming', desc: 'Keep a habit going for 30 days', test: (t, h) => h >= 30, progress: (t, h) => [h, 30] },
-    { id: 'voices', icon: 'sparkles', name: 'Tried everyone', desc: 'Use each of the eight regular voices', test: (t) => REGULAR.every((k) => (t.voices || []).includes(k)), reward: 'polar', progress: (t) => [REGULAR.filter((k) => (t.voices || []).includes(k)).length, 8] },
+    { id: 'voices', icon: 'sparkles', name: 'Tried everyone', desc: 'Use each of the nine regular voices', test: (t) => REGULAR.every((k) => (t.voices || []).includes(k)), reward: 'polar', progress: (t) => [REGULAR.filter((k) => (t.voices || []).includes(k)).length, 8] },
     { id: 'secret', icon: 'lock', name: 'Someone new', desc: 'Unlock a secret voice', test: () => (S().unlocked || []).length >= 1 },
     { id: 'secrets', icon: 'ghost', name: 'The whole family', desc: 'Unlock all three secret voices', test: () => (S().unlocked || []).length >= 3, progress: () => [(S().unlocked || []).length, 3] },
     { id: 'chaos', icon: 'shuffle', name: 'Pandemonium', desc: 'Turn on Chaos mode', test: () => !!S().chaos },
