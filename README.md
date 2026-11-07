@@ -8,7 +8,7 @@ Open a new tab and you get a pixel-art sky, your tasks, the weather, a moon that
 
 > **Monday:** 3 open tasks. I’m not angry. I’m just keeping a list. Like you should be.
 
-**Try it:** [vardirhq.github.io/startpage](https://vardirhq.github.io/startpage/). No account, no tracking; everything stays in your browser.
+**Try it:** [start.vardir.no](https://start.vardir.no/). No account, no tracking; everything stays in your browser.
 
 ---
 
@@ -160,7 +160,7 @@ This uses the Claude API with **your own key** (Customize → Voice → Ask a vo
 
 <img src="docs/phone.png" width="220" align="right" alt="Startpage on a phone, in Super Supportive’s voice">
 
-- **On the web:** [vardirhq.github.io/startpage](https://vardirhq.github.io/startpage/). Set it as your homepage.
+- **On the web:** [start.vardir.no](https://start.vardir.no/). Set it as your homepage.
 - **On your phone:** open that link, then choose *Add to Home screen*. It installs like an app, opens full-screen and works offline.
 - **As your new tab (Chrome, Edge, Brave):** download the latest zip from [Releases](https://github.com/vardirhq/startpage/releases), or clone this repo. Then go to `chrome://extensions`, turn on *Developer mode*, click *Load unpacked* and pick the folder.
 - **Firefox:** use the `-firefox.zip` from Releases, via *about:debugging → Load Temporary Add-on*.
@@ -239,7 +239,7 @@ The Pages workflow runs these before every deploy.
 
 Uploading to the Chrome Web Store and to addons.mozilla.org is manual. The listing copy is in `store/listing.md`, the store images are in `store/`, and the privacy policy is `PRIVACY.md`.
 
-Every push to `main` deploys the site to GitHub Pages via `.github/workflows/pages.yml`.
+Every push to `main` deploys the site to GitHub Pages via `.github/workflows/pages.yml`, served at [start.vardir.no](https://start.vardir.no/) (custom domain set in the repo’s Pages settings).
 
 </details>
 

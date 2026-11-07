@@ -19,7 +19,7 @@ rm -rf dist/firefox && cp -r dist/ext dist/firefox
 node -e '
   const fs = require("fs"), f = "dist/firefox/manifest.json", m = JSON.parse(fs.readFileSync(f, "utf8"));
   delete m.minimum_chrome_version; delete m.offline_enabled;
-  m.browser_specific_settings = { gecko: { id: "startpage@vardirhq.github.io", strict_min_version: "140.0",
+  m.browser_specific_settings = { gecko: { id: "startpage@vardir.no", strict_min_version: "140.0",
     data_collection_permissions: { required: ["none"], optional: ["locationInfo", "personallyIdentifyingInfo", "personalCommunications", "bookmarksInfo"] } } };
   fs.writeFileSync(f, JSON.stringify(m, null, 2) + "\n");'
 (cd dist/firefox && zip -qr "../startpage-$version-firefox.zip" .)
