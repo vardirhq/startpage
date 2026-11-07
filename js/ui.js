@@ -10,8 +10,10 @@
     u = (u || '').trim();
     if (!u) return '';
     if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
-    return u;
+    return safeUrl(u);
   }
+  // Links only go to web pages (and mail, phone, etc.); never run script. Imported backups pass through here too.
+  function safeUrl(u) { return /^\s*(javascript|data|vbscript|blob):/i.test(String(u || '').replace(/[\u0000-\u001f]/g, '')) ? '' : u; }
   function host(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } }
   function favicon(u) { const h = host(u); return h ? 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(h) : ''; }
 
@@ -123,5 +125,5 @@
     return t;
   }
 
-  SP.ui = { $, $$, esc, uid, normalizeUrl, host, favicon, ago, dialog, form, confirm, menu, closeMenu, toast };
+  SP.ui = { $, $$, esc, uid, normalizeUrl, safeUrl, host, favicon, ago, dialog, form, confirm, menu, closeMenu, toast };
 })(window.SP = window.SP || {});

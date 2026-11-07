@@ -12,7 +12,7 @@ Pixel-art new tab with widgets, spaces and voices that roast, cling to or mourn 
 
 Your new tab, with a personality problem.
 
-Startpage is a pixel-art new tab page with the widgets you'd expect: search with commands and math, clock, weather and forecast, tasks, notes, bookmarks, a focus timer, habits with streaks, calendar, countdowns, world clocks, GitHub activity and news. You can group them into spaces such as Home, Work, Gaming and Dev.
+Startpage is a pixel-art new tab page with the widgets you'd expect: search with commands and math, clock, weather and forecast, tasks, notes, bookmarks, a focus timer, habits with streaks, calendar, countdowns, world clocks, GitHub activity, news, moon phase, on this day, currency, a mood log, "days since" counters and a decision maker. You can group them into spaces such as Home, Work, Gaming and Dev.
 
 Then pick a voice, and the entire page, settings included, is rewritten in that voice's words:
 
@@ -27,7 +27,7 @@ Then pick a voice, and the entire page, settings included, is rewritten in that 
 
 The voices react as things happen: finishing a task, pausing the timer at 23:41, breaking a streak, opening a tab at 3am. Now and then they interrupt each other. Every Sunday you get a weekly recap narrated by your voice, which you can save as an image. Bring your own Claude API key and you can ask your voice anything.
 
-The sky outside your window follows the real weather and your real sunrise. Earn new scenes with achievements. Have your voice read things aloud, get a morning brief, or write your own voice ("a pirate who hates Mondays") and share it as a link.
+The sky outside your window follows the real weather and your real sunrise. Earn new scenes with achievements, take (or chicken out of) a daily dare, and hunt for hidden discoveries. The seasons change the scene, and holidays bring guests: Ghost haunts the last week of October. Have your voice read things aloud, get a morning brief, or write your own voice ("a pirate who hates Mondays") and share it as a link.
 
 Private by design: no account, no analytics, no server. Your data stays in your browser. Optional sync goes through a private GitHub Gist in your own account.
 
