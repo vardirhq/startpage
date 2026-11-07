@@ -90,6 +90,7 @@
     if (want && !sw.querySelector('form')) { sw.innerHTML = SP.search.render(); SP.search.mount(sw); }
     if (want) sw.querySelector('input').placeholder = SP.voice.t('search_placeholder');
     $('#hero').classList.toggle('compact', !s.showGreeting);
+    if (SP.brief.isOpen()) SP.brief.render();
   }
 
   const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
@@ -217,7 +218,7 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  function renderAll() { applyTheme(); renderRail(); renderMain(); if (SP.panel.isOpen()) SP.panel.render(); }
+  function renderAll() { SP.maker.register(); applyTheme(); renderRail(); renderMain(); if (SP.panel.isOpen()) SP.panel.render(); }
 
   /* ---------- shortcuts & ticking ---------- */
   function shortcuts() {
@@ -237,21 +238,33 @@
     Object.keys(SP.widgets).forEach((k) => { const w = SP.widgets[k]; if (w.tick && (on.includes(k) || k === 'focus')) w.tick(); }); // the timer keeps running on other spaces
     const m = new Date().getMinutes();
     if (m !== lastMinute) {
-      if (lastMinute !== -1) renderHero();
+      if (lastMinute !== -1) { renderHero(); SP.sky.update(); }
       lastMinute = m;
     }
   }
 
-  SP.app = { renderWidget, renderMain, renderRail, renderHero, renderAll, applyTheme, space, switchSpace, LAYOUTS, download, focusSearch };
+  /* "Install app" prompt (Chrome/Edge/Android). Offered as a > command once the browser allows it. */
+  let installEvt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; });
+  window.addEventListener('appinstalled', () => { installEvt = null; });
+  const install = () => { if (!installEvt) return false; installEvt.prompt(); installEvt = null; return true; };
+  const canInstall = () => !!installEvt;
+
+  SP.app = { install, canInstall, renderWidget, renderMain, renderRail, renderHero, renderAll, applyTheme, space, switchSpace, LAYOUTS, download, focusSearch };
 
   document.addEventListener('DOMContentLoaded', () => {
     const away0 = SP.voice.markSeen();
     setInterval(() => { if (document.visibilityState === 'visible') SP.voice.touch(); }, 60e3);
-    applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts();
+    applyTheme(); renderRail(); renderMain(); setupDrag(); shortcuts(); SP.sky.update();
     setInterval(tick, 1000); tick();
     SP.sync.init();
     SP.onboarding.maybeStart();
-    if (!SP.wrapped.maybeShow()) setTimeout(() => SP.react.visit(away0, true), 900);
+    if (location.hash === '#wrapped') { history.replaceState(null, '', location.pathname + location.search); SP.wrapped.open(); }
+    // Installable app on the web (the extension has its own new-tab page and no service worker).
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+    SP.achieve.check({ quiet: !!S()._achQuiet }); delete S()._achQuiet;
+    if (!SP.wrapped.maybeShow()) { SP.brief.maybeShow(); setTimeout(() => SP.react.visit(away0, true), 900); }
+    SP.maker.fromHash();
     // Refresh data when the tab becomes visible again (cached results are reused while fresh).
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') { SP.voice.touch(); return; }

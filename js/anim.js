@@ -5,6 +5,8 @@
   'use strict';
   let cv, ctx, M = null, raf = 0, last = 0, t0 = 0;
   let shooting = null, flakes = [], flies = [], glints = [];
+  // Live extras on top of the theme: real weather and the calendar ('rain', 'storm', 'snow', 'flurries', 'fog', 'fireworks', 'bats').
+  let fx = [], drops = [], wflakes = [], fogs = [], sparks = [], bats = [], flash = 0, nextRocket = 0;
   const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a.toFixed(3) + ')';
   const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -15,6 +17,47 @@
     if (M.fx === 'dust') flies = Array.from({ length: 30 }, () => ({ x: Math.random() * W, y: H * 0.5 + Math.random() * H * 0.5, vx: 3 + Math.random() * 4, vy: 0, ph: Math.random() * 6.28 }));
     glints = [];
     shooting = null;
+    seedFx();
+  }
+  function seedFx() {
+    if (!M) return;
+    const { W, H } = M, has = (k) => fx.includes(k);
+    const wet = has('rain') || has('storm');
+    drops = wet ? Array.from({ length: has('storm') ? 170 : 110 }, () => ({ x: Math.random() * W, y: Math.random() * H, v: 150 + Math.random() * 90 })) : [];
+    const n = has('snow') ? 120 : has('flurries') ? 35 : 0;
+    wflakes = M.fx === 'snow' ? [] : Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, v: 5 + Math.random() * 9, d: Math.random() * 6.28, s: Math.random() < 0.2 ? 2 : 1 }));
+    fogs = has('fog') ? Array.from({ length: 7 }, (_, i) => ({ x: Math.random() * W, y: M.horizon - 34 + i * 12 + Math.random() * 6, w: 120 + Math.random() * 160, h: 6 + Math.random() * 8, v: 2 + Math.random() * 4, a: 0.08 + Math.random() * 0.08 })) : [];
+    bats = has('bats') ? Array.from({ length: 5 }, () => ({ x: Math.random() * W, y: 20 + Math.random() * M.horizon * 0.5, v: 18 + Math.random() * 14, ph: Math.random() * 6.28 })) : [];
+    sparks = []; flash = 0; nextRocket = 0;
+  }
+  const FW = [[255, 120, 170], [255, 214, 110], [140, 220, 255], [190, 150, 255], [140, 255, 170]];
+  function drawFx(t, dt) {
+    const { W, H, horizon } = M;
+    for (const f of fogs) { f.x += f.v * dt; if (f.x > W) f.x = -f.w; ctx.fillStyle = 'rgba(225,225,240,' + f.a.toFixed(3) + ')'; ctx.fillRect(Math.round(f.x), Math.round(f.y), Math.round(f.w), Math.round(f.h)); ctx.fillRect(Math.round(f.x + 14), Math.round(f.y - 3), Math.round(f.w - 28), 3); }
+    if (drops.length) {
+      ctx.fillStyle = 'rgba(190,210,255,0.45)';
+      for (const d of drops) { d.y += d.v * dt; d.x -= d.v * 0.18 * dt; if (d.y > H) { d.y = -4; d.x = Math.random() * (W + 40); } ctx.fillRect(Math.round(d.x), Math.round(d.y), 1, 3); }
+    }
+    for (const f of wflakes) {
+      f.y += f.v * dt; f.x += Math.sin(t * 0.8 + f.d) * 4 * dt;
+      if (f.y > H) { f.y = -2; f.x = Math.random() * W; }
+      ctx.fillStyle = 'rgba(255,255,255,' + (f.s > 1 ? 0.9 : 0.65) + ')'; ctx.fillRect(Math.round(f.x), Math.round(f.y), f.s, f.s);
+    }
+    if (fx.includes('storm')) {
+      if (flash <= 0 && Math.random() < dt * 0.12) flash = 0.35;
+      if (flash > 0) { ctx.fillStyle = 'rgba(235,235,255,' + (Math.min(0.35, flash) * (Math.random() < 0.5 ? 1 : 0.4)).toFixed(3) + ')'; ctx.fillRect(0, 0, W, horizon); flash -= dt; }
+    }
+    if (fx.includes('fireworks')) {
+      if (t > nextRocket) { nextRocket = t + 0.6 + Math.random() * 1.6; const c = FW[Math.floor(Math.random() * FW.length)], cx = W * (0.15 + Math.random() * 0.7), cy = horizon * (0.15 + Math.random() * 0.4);
+        for (let i = 0; i < 26; i++) { const a = (i / 26) * 6.283, sp = 22 + Math.random() * 16; sparks.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1.1 + Math.random() * 0.5, c }); } }
+      sparks = sparks.filter((p) => (p.life -= dt) > 0);
+      for (const p of sparks) { p.vy += 18 * dt; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = rgba(p.c, Math.min(1, p.life)); ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1); }
+    }
+    for (const b of bats) {
+      b.x += b.v * dt; b.y += Math.sin(t * 3 + b.ph) * 6 * dt; if (b.x > W + 4) { b.x = -4; b.y = 20 + Math.random() * horizon * 0.5; }
+      const up = Math.sin(t * 14 + b.ph) > 0, x = Math.round(b.x), y = Math.round(b.y);
+      ctx.fillStyle = 'rgba(12,6,20,0.95)'; ctx.fillRect(x, y, 1, 1); ctx.fillRect(x - 2, y + (up ? -1 : 1), 2, 1); ctx.fillRect(x + 1, y + (up ? -1 : 1), 2, 1);
+    }
   }
 
   function frame(now) {
@@ -63,6 +106,8 @@
       ctx.fillStyle = 'rgba(255,255,255,' + (f.s > 1 ? 0.95 : 0.7) + ')'; ctx.fillRect(Math.round(f.x), Math.round(f.y), f.s, f.s);
     }
 
+    drawFx(t, dt);
+
     // Fireflies / dust motes.
     for (const p of flies) {
       if (M.fx === 'fireflies') {
@@ -91,5 +136,6 @@
     raf = requestAnimationFrame(frame);
   }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { cancelAnimationFrame(raf); raf = 0; } else if (M && !raf && !reduced()) { last = performance.now(); raf = requestAnimationFrame(frame); } });
-  SP.anim = { start, stop };
+  function setFx(list) { const next = (list || []).slice().sort(); if (next.join() === fx.join()) return; fx = next; seedFx(); }
+  SP.anim = { start, stop, setFx, get fx() { return fx.slice(); } };
 })(window.SP = window.SP || {});

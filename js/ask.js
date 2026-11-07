@@ -53,9 +53,14 @@
       (h && h.n ? '\nBest habit streak: ' + h.name + ', ' + h.n + ' days.' : '') + '\nVisits to the page today: ' + c.visits + '.';
   }
 
-  /* -------- streaming request -------- */
-  async function stream(messages, onText) {
-    const m = model(), body = { model: m, max_tokens: 1024, stream: true, system: system(), messages, output_config: { effort: 'low' } };
+  /* -------- streaming request --------
+     opts: { system, tools, maxTokens, effort, format }. Returns { blocks, stop }; tool_use blocks come back
+     with their input parsed (or marked invalid), ready to be passed back unchanged on the next turn. */
+  async function stream(messages, onText, opts) {
+    opts = opts || {};
+    const m = model(), body = { model: m, max_tokens: opts.maxTokens || 1024, stream: true, system: opts.system || system(), messages, output_config: { effort: opts.effort || 'low' } };
+    if (opts.tools) body.tools = opts.tools;
+    if (opts.format) body.output_config.format = opts.format;
     const headers = { 'content-type': 'application/json', 'x-api-key': getKey(), 'anthropic-version': '2026-10-21', 'anthropic-dangerous-direct-browser-access': 'true' };
     if (FALLBACK_OK[m]) { body.fallbacks = 'default'; headers['anthropic-beta'] = 'server-side-fallback-2026-07-01'; }
     const r = await fetch(API, { method: 'POST', headers, body: JSON.stringify(body) });
@@ -65,7 +70,7 @@
       const err = new Error(msg); err.status = r.status; throw err;
     }
     // Keep every content block as sent (thinking blocks included) so the next turn can pass them back unchanged.
-    const blocks = []; let stop = null, buf = '';
+    const blocks = [], raw = {}; let stop = null, buf = '';
     const reader = r.body.getReader(), dec = new TextDecoder();
     for (;;) {
       const { value, done } = await reader.read();
@@ -77,18 +82,99 @@
         const data = chunk.split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('');
         if (!data) continue;
         let ev; try { ev = JSON.parse(data); } catch (e) { continue; }
-        if (ev.type === 'content_block_start') blocks[ev.index] = Object.assign({}, ev.content_block);
+        if (ev.type === 'content_block_start') { blocks[ev.index] = Object.assign({}, ev.content_block); if (ev.content_block.type === 'tool_use') raw[ev.index] = ''; }
         else if (ev.type === 'content_block_delta') {
           const b = blocks[ev.index], d = ev.delta;
           if (!b) continue;
-          if (d.type === 'text_delta') { b.text = (b.text || '') + d.text; onText(text(blocks)); }
+          if (d.type === 'text_delta') { b.text = (b.text || '') + d.text; if (onText) onText(text(blocks)); }
           else if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
           else if (d.type === 'signature_delta') b.signature = d.signature;
+          else if (d.type === 'input_json_delta') raw[ev.index] += d.partial_json;
+        } else if (ev.type === 'content_block_stop' && raw[ev.index] !== undefined) {
+          // Tools stream eagerly, so the API doesn't validate the JSON: parse strictly here, validate before running.
+          const b = blocks[ev.index];
+          try { b.input = raw[ev.index] ? JSON.parse(raw[ev.index]) : {}; } catch (e) { b.input = {}; b._invalid = raw[ev.index]; }
         } else if (ev.type === 'message_delta' && ev.delta) stop = ev.delta.stop_reason || stop;
         else if (ev.type === 'error') throw new Error((ev.error && ev.error.message) || 'Stream error');
       }
     }
     return { blocks: blocks.filter(Boolean), stop };
+  }
+  const clean = (blocks) => blocks.map((b) => { if (b._invalid === undefined) return b; const c = Object.assign({}, b); delete c._invalid; return c; });
+
+  /* -------- tools: Ask can act on the page, not just talk -------- */
+  const str = (o, k, max) => typeof o[k] === 'string' && o[k].trim() && o[k].length <= (max || 300) ? o[k].trim() : null;
+  const findBy = (arr, name, key) => { const n = String(name).toLowerCase(); return arr.find((x) => x[key].toLowerCase() === n) || arr.find((x) => x[key].toLowerCase().includes(n)) || arr.find((x) => n.includes(x[key].toLowerCase())); };
+  const tool = (name, description, props, required) => ({ name, description, eager_input_streaming: true, input_schema: { type: 'object', properties: props, required: required || [], additionalProperties: false } });
+  const TOOLS = [
+    tool('add_task', 'Add a task to the user\'s task list.', { text: { type: 'string', description: 'The task, as the user would write it' } }, ['text']),
+    tool('complete_task', 'Mark one of the user\'s open tasks as done. Match by (part of) its text.', { text: { type: 'string' } }, ['text']),
+    tool('add_note', 'Append a line to the user\'s notes.', { text: { type: 'string' } }, ['text']),
+    tool('start_focus', 'Start the focus (Pomodoro) timer.', { minutes: { type: 'integer', description: 'Optional session length in minutes, 1-120' } }),
+    tool('add_habit', 'Start tracking a new daily habit.', { name: { type: 'string' } }, ['name']),
+    tool('check_habit', 'Mark an existing habit as done today. Match by name.', { name: { type: 'string' } }, ['name']),
+    tool('add_countdown', 'Add a countdown to a date.', { title: { type: 'string' }, date: { type: 'string', description: 'YYYY-MM-DD' } }, ['title', 'date']),
+    tool('set_theme', 'Change the background scene.', { theme: { type: 'string', description: 'One of the theme ids listed in the system prompt' } }, ['theme']),
+    tool('get_week_stats', 'Get the user\'s numbers for the last 7 days: tasks done and added, focus time, visits, best streak.', {}),
+  ];
+  const pad2 = (n) => String(n).padStart(2, '0'), today = () => { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
+  /* Run one tool call. Returns { ok, result, note } where note is what the chat shows. */
+  function runTool(name, input) {
+    const s = S(), app = SP.app, W = SP.widgets;
+    switch (name) {
+      case 'add_task': { const x = str(input, 'text', 200); if (!x) break; s.tasks.unshift({ id: SP.ui.uid(), text: x, done: false }); SP.store.save(); app.renderWidget('tasks'); SP.react.stat('added'); return { ok: true, result: 'Added.', note: 'Added task “' + x + '”' }; }
+      case 'complete_task': {
+        const x = str(input, 'text', 200); if (!x) break;
+        const tk = findBy(s.tasks.filter((y) => !y.done), x, 'text');
+        if (!tk) return { ok: false, result: 'No open task matches “' + x + '”. Open tasks: ' + s.tasks.filter((y) => !y.done).map((y) => y.text).join('; ') };
+        tk.done = true; SP.store.save(); app.renderWidget('tasks'); SP.react.stat('done'); SP.achieve.check({ quiet: true });
+        return { ok: true, result: 'Marked “' + tk.text + '” as done.', note: 'Ticked off “' + tk.text + '”' };
+      }
+      case 'add_note': { const x = str(input, 'text', 500); if (!x) break; s.notes = (s.notes ? s.notes + '\n' : '') + x; SP.store.save(); app.renderWidget('notes'); return { ok: true, result: 'Added.', note: 'Added a note' }; }
+      case 'start_focus': {
+        const m = input.minutes; if (m !== undefined && !(Number.isInteger(m) && m >= 1 && m <= 120)) break;
+        if (m) s.focus.work = m;
+        W.focus.setMode('work'); if (!s.focusRun.endsAt) W.focus.toggle();
+        return { ok: true, result: 'Focus timer started for ' + s.focus.work + ' minutes.', note: 'Started a ' + s.focus.work + '-minute focus session' };
+      }
+      case 'add_habit': { const x = str(input, 'name', 60); if (!x) break; s.habits.push({ id: SP.ui.uid(), name: x, days: {} }); SP.store.save(); app.renderWidget('habits'); return { ok: true, result: 'Added.', note: 'Started tracking “' + x + '”' }; }
+      case 'check_habit': {
+        const x = str(input, 'name', 60); if (!x) break;
+        const h = findBy(s.habits, x, 'name');
+        if (!h) return { ok: false, result: 'No habit matches “' + x + '”. Habits: ' + s.habits.map((y) => y.name).join('; ') };
+        h.days[today()] = 1; SP.store.save(); app.renderWidget('habits'); SP.react.on.habit(true);
+        return { ok: true, result: 'Marked ' + h.name + ' as done today.', note: 'Checked off ' + h.name + ' for today' };
+      }
+      case 'add_countdown': {
+        const x = str(input, 'title', 80), d = str(input, 'date', 10); if (!x || !d || !/^\d{4}-\d{2}-\d{2}$/.test(d) || isNaN(new Date(d + 'T12:00'))) break;
+        s.countdowns.push({ id: SP.ui.uid(), title: x, date: d, created: today() }); SP.store.save(); app.renderWidget('countdown'); app.renderWidget('calendar');
+        return { ok: true, result: 'Added.', note: 'Counting down to ' + x + ' (' + d + ')' };
+      }
+      case 'set_theme': {
+        const k = str(input, 'theme', 30);
+        if (!k || !SP.scene.themes[k] || !SP.achieve.sceneUnlocked(k)) return { ok: false, result: 'Unknown or locked theme. Available: ' + Object.keys(SP.scene.themes).filter(SP.achieve.sceneUnlocked).join(', ') };
+        s.theme = k; s.customBg = false; SP.store.save(); app.renderAll(); return { ok: true, result: 'Theme set.', note: 'Switched the scene to ' + SP.scene.themes[k].name };
+      }
+      case 'get_week_stats': { const d = SP.wrapped.data(); return { ok: true, result: JSON.stringify({ range: d.range, tasksDone: d.done, tasksAdded: d.added, tasksDropped: d.dropped, focusSessions: d.sessions, focusMinutes: d.focusMin, visits: d.visits, visitsAfterMidnight: d.late, bestStreak: d.habit }) }; }
+      default: return { ok: false, result: 'Unknown tool ' + name };
+    }
+    return { ok: false, result: 'Invalid input for ' + name + ': ' + JSON.stringify(input) };
+  }
+  const toolSystem = () => '\n\nYou can change the page with tools (tasks, notes, habits, countdowns, the focus timer, the scene). Use them only when the user asks for something to be done, then say what you did, in character. ' +
+    'Today is ' + today() + '. Habits: ' + (S().habits.map((h) => h.name).join(', ') || '(none)') + '. Theme ids: ' + Object.keys(SP.scene.themes).filter(SP.achieve.sceneUnlocked).join(', ') + '.';
+
+  /* One-shot generation in the current voice (used by the morning brief). */
+  async function write(prompt, onText) {
+    const r = await stream([{ role: 'user', content: prompt }], onText, {});
+    if (r.stop === 'refusal') throw new Error('refused');
+    return text(r.blocks);
+  }
+  /* Structured JSON generation (used by the voice maker). */
+  async function json(prompt, schema, opts) {
+    const r = await stream([{ role: 'user', content: prompt }], opts && opts.onText, { system: opts && opts.system, maxTokens: 16000, effort: 'medium', format: { type: 'json_schema', schema } });
+    if (r.stop === 'refusal') throw new Error('The request was declined.');
+    if (r.stop === 'max_tokens') throw new Error('The answer was cut off. Try a shorter description.');
+    return JSON.parse(text(r.blocks));
   }
   const text = (blocks) => blocks.filter((b) => b && b.type === 'text').map((b) => b.text || '').join('');
 
@@ -134,12 +220,31 @@
     bubble('me', esc(q));
     const out = bubble('them', '<b>' + esc(V[vk].name) + '</b><span class="muted">' + esc(t('ask_thinking')) + '</span>'), span = out.querySelector('span');
     convo.push({ role: 'user', content: q });
+    const before = convo.length;
+    let said = '';
     try {
-      const r = await stream(convo, (txt) => { span.className = ''; span.textContent = txt; root().querySelector('.ask-log').scrollTop = 1e9; });
-      if (r.stop === 'refusal') { span.className = 'muted'; span.textContent = t('ask_refused'); convo.pop(); }
-      else { convo.push({ role: 'assistant', content: r.blocks }); if (!text(r.blocks)) span.textContent = '…'; }
+      for (let turn = 0; turn < 6; turn++) {
+        const r = await stream(convo, (txt) => { span.className = ''; span.textContent = (said ? said + '\n\n' : '') + txt; root().querySelector('.ask-log').scrollTop = 1e9; },
+          { system: system() + toolSystem(), tools: TOOLS });
+        if (r.stop === 'refusal') { span.className = 'muted'; span.textContent = t('ask_refused'); convo.length = before - 1; break; }
+        convo.push({ role: 'assistant', content: clean(r.blocks) });
+        const said1 = text(r.blocks).trim(); if (said1) said = (said ? said + '\n\n' : '') + said1;
+        const calls = r.blocks.filter((b) => b.type === 'tool_use');
+        if (r.stop !== 'tool_use' || !calls.length) break;
+        if (r.stop === 'max_tokens') break; // never run a cut-off tool call
+        const results = calls.map((c) => {
+          if (c._invalid !== undefined) return { type: 'tool_result', tool_use_id: c.id, is_error: true, content: JSON.stringify({ INVALID_JSON: c._invalid }) };
+          const res = runTool(c.name, c.input || {});
+          if (res.note) out.insertAdjacentHTML('beforebegin', '<div class="ask-act">' + I('check', 13) + esc(res.note) + '</div>');
+          return { type: 'tool_result', tool_use_id: c.id, content: res.result, is_error: !res.ok || undefined };
+        });
+        convo.push({ role: 'user', content: results }); // all results in one message
+      }
+      if (convo.length > before) { SP.react.stat('asks'); SP.achieve.check(); }
+      if (!span.textContent || span.textContent === t('ask_thinking')) { span.className = ''; span.textContent = said || '…'; }
+      if (said) SP.speak.say(said, vk);
     } catch (e) {
-      convo.pop(); span.className = 'err';
+      convo.length = before - 1; span.className = 'err';
       span.textContent = e.status === 401 ? 'That API key was rejected. Check it and try again.' : e.status === 429 ? 'Rate limited or out of credit. Try again in a bit.' :
         e.status ? e.message : 'Couldn’t reach the Claude API. Check your connection (or an ad blocker).';
       if (e.status === 401) setTimeout(() => setup(q), 1200);
@@ -162,5 +267,5 @@
     const b = p.querySelector('[data-ask-setup]'); if (b) b.onclick = () => { SP.panel.close(); open(); setup(); };
   }
 
-  SP.ask = { open, close, settingsHtml, bindSettings, hasKey: () => !!getKey(), _system: system };
+  SP.ask = { open, close, settingsHtml, bindSettings, write, json, hasKey: () => !!getKey(), _system: system, _runTool: runTool, TOOLS };
 })(window.SP = window.SP || {});

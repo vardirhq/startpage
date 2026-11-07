@@ -2,10 +2,16 @@
 <html lang="en" data-theme="midnight">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>New Tab</title>
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="app.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#15112e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Startpage">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap">
@@ -24,6 +30,7 @@
   <main id="main">
     <header id="hero">
       <div id="greeting"></div>
+      <div id="brief" hidden></div>
       <div id="search-wrap"></div>
     </header>
     <div id="grid" class="grid"></div>
@@ -42,14 +49,20 @@
   <script src="js/voices.js"></script>
   <script src="js/react.js"></script>
   <script src="js/secrets.js"></script>
+  <script src="js/bonds.js"></script>
+  <script src="js/speak.js"></script>
   <script src="js/widgets.js"></script>
   <script src="js/palette.js"></script>
   <script src="js/modules.js"></script>
   <script src="js/panel.js"></script>
   <script src="js/onboarding.js"></script>
+  <script src="js/achieve.js"></script>
   <script src="js/wrapped.js"></script>
   <script src="js/ask.js"></script>
+  <script src="js/brief.js"></script>
+  <script src="js/maker.js"></script>
   <script src="js/anim.js"></script>
+  <script src="js/sky.js"></script>
   <script src="js/sync.js"></script>
   <script src="js/app.js"></script>
 </body>

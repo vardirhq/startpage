@@ -154,6 +154,7 @@
   function stat(name, by) {
     const s = S(), st = s.stats || (s.stats = {}), k = dkey(new Date()), d = st[k] || (st[k] = {});
     d[name] = Math.max(0, (d[name] || 0) + (by === undefined ? 1 : by));
+    const tt = s.totals || (s.totals = {}); tt[name] = Math.max(0, (tt[name] || 0) + (by === undefined ? 1 : by)); // lifetime, for achievements
     const keys = Object.keys(st);
     if (keys.length > 70) keys.sort().slice(0, keys.length - 70).forEach((x) => delete st[x]);
   }
@@ -192,7 +193,7 @@
     // The current voice reacts to the newcomer; the newcomer introduces itself.
     const said = line('unlock', { name: V[k].name }, before);
     SP.ui.toast(V[k].unlockLine + (said ? '\n' + V[before].name + ': ' + said : ''), {
-      who: V[k].name + ' · new voice unlocked', ms: 11000,
+      who: V[k].name + ' · new voice unlocked', ms: 11000, voice: k,
       action: { label: 'Try ' + V[k].name, run: () => SP.panel.setVoice(k) },
     });
     last = now() + 8e3; // let it be read
@@ -223,6 +224,7 @@
   function visit(away, firstLoad) {
     const s = S(), p = s.presence || (s.presence = {}), d = new Date(), today = dkey(d);
     stat('visits');
+    if (d.getHours() >= 5 && d.getHours() < 7) stat('early');
     let said = '';
     if (d.getHours() < 5 && p.lateDay !== today) {
       p.lateDay = today; p.lateDays = (p.lateDays || 0) + 1; stat('late');
@@ -232,15 +234,18 @@
     const br = brokenStreaks();
     if (!said && br.length) said = react('streakBreak', br.sort((a, b) => b.n - a.n)[0], { force: true });
     SP.store.save({ quiet: true });
-    return checkUnlocks(away) ? 'unlock' : said;
+    const un = checkUnlocks(away);
+    if (SP.achieve) SP.achieve.check();
+    return un ? 'unlock' : said;
   }
 
   /* ---------- the events the widgets report ---------- */
   const open = () => S().tasks.filter((x) => !x.done).length;
+  const ach = () => { if (SP.achieve) SP.achieve.check(); };
   const on = {
     taskAdd(text) { stat('added'); return react('taskAdd', { text, open: open() }); },
     taskDone(text) {
-      stat('done');
+      stat('done'); ach();
       const n = open(), doneToday = (S().stats[dkey(new Date())] || {}).done || 1;
       if (n === 0) react('taskAllDone', { n: S().tasks.length }, { force: true });
       else react('taskDone', { text, open: n, doneToday });
@@ -250,8 +255,8 @@
     taskClear(n) { if (n) react('taskClear', { n }); },
     focusPause(time) { stat('paused'); react('focusPause', { time }, { force: true }); },
     focusQuit(time) { react('focusQuit', { time }, { force: true }); },
-    focusDone(min) { stat('focusMin', min); },
-    habit(checked) { stat('habits', checked ? 1 : -1); checkUnlocks(0); },
+    focusDone(min) { stat('focusMin', min); stat('focus'); ach(); },
+    habit(checked) { stat('habits', checked ? 1 : -1); checkUnlocks(0); ach(); },
   };
 
   /* ---------- voices arguing: another voice butts in on the summary line ---------- */

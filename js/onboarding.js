@@ -92,6 +92,7 @@
     on('[data-ob-voice]', 'click', (e) => {
       const k = e.currentTarget.dataset.obVoice;
       S().voice = k; S().showSummary = k !== 'neutral'; SP.store.save();
+      const tt = SP.achieve.tot(), vs = tt.voices || (tt.voices = []); if (!vs.includes(k)) vs.push(k);
       SP.app.renderAll(); render();
     });
   }

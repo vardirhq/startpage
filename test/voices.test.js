@@ -11,18 +11,23 @@ const rich = {
 };
 const empty = { voice: 'neutral', tasks: [], habits: [], presence: {} };
 
-global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {} }, icon: () => '' } };
+global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} } } };
 global.document = { body: { classList: { contains: () => false } }, addEventListener() {} };
 require('../js/voices.js');
 require('../js/react.js');
 require('../js/secrets.js');
+require('../js/bonds.js');
+require('../js/speak.js');
+require('../js/achieve.js');
 require('../js/wrapped.js');
 require('../js/ask.js');
+require('../js/brief.js');
+require('../js/maker.js');
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
-  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday' };
+  code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday' };
 
 function render(state) {
   window.SP.store.state = state;
@@ -30,7 +35,7 @@ function render(state) {
   for (const [vk, voice] of Object.entries(V.list)) {
     state.voice = vk;
     for (const key of new Set([...Object.keys(V.list.neutral), ...Object.keys(voice)])) {
-      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at'].includes(key)) continue;
+      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech'].includes(key)) continue;
       const ctx = key === 'greet' ? 'evening' : key === 'addr' ? { name: 'Christoffer' } : CTX;
       // Arrays rotate hourly; check every alternative, not just this hour's.
       let val = voice[key] !== undefined ? voice[key] : V.list.neutral[key];
@@ -130,4 +135,53 @@ test('Ask: system prompt carries the persona and context', () => {
   assert.match(p, /Order roof box/);
   assert.match(p, /Christoffer/);
   assert.ok(!/undefined/.test(p));
+});
+
+test('grudges: a voice you left twice brings it up, and names who you left it for', () => {
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  const B = window.SP.bonds;
+  B.switched('monday', 'supportive'); assert.equal(B.switched('supportive', 'monday'), '', 'once is forgiven');
+  B.switched('monday', 'supportive');
+  const line = B.switched('supportive', 'monday');
+  assert.match(line, /twice|crawling/);
+  assert.deepEqual(B.grudge('monday'), { n: 2, rival: 'Super Supportive' });
+  assert.match([].concat(V.list.monday.heroSub({ open: 1, focus: 0 })).join(' '), /left me twice\. Mostly for Super Supportive/);
+});
+
+test('speech strips stage directions and emoji', () => {
+  assert.equal(window.SP.speak.clean('You ticked it. *sobs quietly* Gone. 💔'), 'You ticked it. Gone.');
+});
+
+test('morning brief facts: tasks, streak at risk, countdown', () => {
+  const d = (n) => { const x = new Date(Date.now() - n * 864e5); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  window.SP.widgets = {};
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'victorian', tasks: [{ id: 'a', text: 'Write report', done: false }], habits: [{ id: 'h', name: 'Read', days: { [d(1)]: 1, [d(2)]: 1 } }], countdowns: [{ title: 'Launch', date: d(-2) }] });
+  const f = window.SP.brief.facts().map((x) => x.text).join(' | ');
+  assert.match(f, /1 matter await your attention, beginning with “Write report”/);
+  assert.match(f, /kept up Read for 2 days/);
+  assert.match(f, /Launch in 2 days/);
+});
+
+test('voice maker: imported voices are sanitized and templates fill safely', async () => {
+  const M = window.SP.maker;
+  const spec = M.sanitize({ name: '<b>Pirate</b>', descriptor: 'Arr', greet: { morning: ['Ahoy'], afternoon: ['Ahoy'], evening: ['Ahoy'], night: ['Ahoy'] }, address: '{name}, matey', summary: ['{open} plunder left {bogus}'],
+    weather: {}, lines: { re_taskDone: 'Plundered {text}', evil_key: 'x', welcomeBack: 'Gone {away}' }, labels: { w_tasks: 'Plunder', not_a_label: 'x' }, heckles: [], speech: { pitch: 99, rate: 'fast' }, __proto__: { polluted: 1 } });
+  assert.equal(spec.name, '<b>Pirate</b>', 'kept as text; the page escapes it');
+  assert.ok(!('evil_key' in spec.lines) && !('not_a_label' in spec.labels));
+  assert.deepEqual(spec.speech, { pitch: 1.6, rate: 1 });
+  const v = M.build(spec);
+  assert.equal(v.addr({ name: '' }), 'friend, matey');
+  assert.equal(v.re_taskDone({ text: 'gold' }), 'Plundered gold');
+  assert.equal(v.heroSub({ open: 3 })[0], '3 plunder left', 'unknown placeholders vanish');
+  assert.equal(v.w_tasks, 'Plunder');
+  assert.throws(() => M.sanitize({ descriptor: 'no name' }));
+  const link = await M.encode(spec);
+  assert.deepEqual(await M.decode(link), spec, 'share links round-trip');
+  await assert.rejects(M.decode('z!!bad'));
+});
+
+test('every script in js/ is loaded by index.html, which the service worker caches', () => {
+  const fs = require('fs'), html = fs.readFileSync(__dirname + '/../index.html', 'utf8');
+  for (const f of fs.readdirSync(__dirname + '/../js')) assert.ok(html.includes('src="js/' + f + '"'), f + ' missing from index.html');
+  assert.ok(fs.readFileSync(__dirname + '/../sw.js', 'utf8').includes('(?:js|css|icons)'));
 });

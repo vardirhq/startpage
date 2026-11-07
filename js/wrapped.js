@@ -173,7 +173,7 @@
       if (navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: t('wr_title') }).catch(() => {});
     };
     el.onclick = (e) => { if (e.target === el) close(); };
-    const p = S().presence || (S().presence = {}); p.wrapped = dkey(new Date()); SP.store.save({ quiet: true });
+    const p = S().presence || (S().presence = {}); p.wrapped = dkey(new Date()); SP.react.stat('wrapped'); SP.store.save({ quiet: true }); SP.achieve.check();
     el.querySelector('[data-wr-save]').focus();
   }
   function close() {
