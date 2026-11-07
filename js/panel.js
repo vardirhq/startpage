@@ -110,7 +110,7 @@
     const cur = SP.voice.current(), base = SP.voice.list.neutral;
     return '<p class="small muted">' + T('voiceIntro') + '</p>' +
       '<div class="voice-pick" role="radiogroup" aria-label="Voice">' + Object.entries(SP.voice.list).map(([k, v]) => SP.voice.unlocked(k)
-        ? '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-voice="' + k + '"' + (v.secret ? ' class="secret"' : '') + '><b>' + esc(v.name) + '</b><span>' + esc((cur.blurb && cur.blurb[k]) || base.blurb[k] || v.descriptor) + '</span></button>'
+        ? '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-voice="' + k + '"' + (v.secret ? ' class="secret"' : '') + '><b>' + esc(v.name) + (v.swears ? ' <em class="v-tag" title="This voice swears. Switch it off under How voices behave.">Swears</em>' : '') + '</b><span>' + esc((cur.blurb && cur.blurb[k]) || base.blurb[k] || v.descriptor) + '</span></button>'
         : '<button role="radio" aria-checked="false" aria-disabled="true" class="locked" title="Locked"><b>' + I('lock', 14) + ' ???</b><span>' + esc(v.hint) + '</span></button>').join('') + '</div>';
   }
   const VIEWS = {
@@ -138,7 +138,7 @@
         section('sec_talk', toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) +
           toggle('dares', 'tgl_dares', S().dares !== false) + toggle('brief', 'tgl_brief', S().brief !== false) +
           (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + (SP.sound.supported() ? toggle('sounds', 'tgl_sounds', !!S().sounds) : '') +
-          toggle('faceoffs', 'tgl_faceoffs', S().faceoffs !== false) + toggle('roasts', 'tgl_roasts', S().roasts !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
+          toggle('faceoffs', 'tgl_faceoffs', S().faceoffs !== false) + toggle('roasts', 'tgl_roasts', S().roasts !== false) + toggle('swear', 'tgl_swear', S().swear !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
         section('sec_myvoices', '<p class="small muted">Describe a personality and Claude writes it, using your API key. Share your voices as a link or a file.</p>' + SP.maker.sectionHtml()) +
         section('sec_ask', SP.ask.settingsHtml());
     },
@@ -252,6 +252,7 @@
       if (k === 'syncAuto') { S().sync.auto = v; save(); return; }
       if (k === 'animate') { S().animate = v; save(); SP.app.applyTheme(); render(); return; }
       if (k === 'showSummary' || k === 'heckles' || k === 'dares' || k === 'faceoffs') { S()[k] = v; save(); SP.app.renderHero(); return; }
+      if (k === 'swear') { S().swear = v; save(); SP.app.renderAll(); return; }
       if (k === 'sounds') { S().sounds = v; save(); if (v) SP.sound.play('tick'); return; }
       if (k === 'speak') { S().speak = v; save(); if (v) SP.speak.say(SP.voice.t('speakHello'), null, true); else SP.speak.stop(); return; }
       if (k === 'chaos') { S().chaos = v; save(); SP.app.renderMain(); SP.achieve.check(); if (v) toast(SP.voice.t('chaosOn'), { who: SP.voice.key() === 'neutral' ? '' : SP.voice.current().name }); return; }

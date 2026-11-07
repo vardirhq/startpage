@@ -58,7 +58,7 @@ function render(state) {
   for (const [vk, voice] of Object.entries(V.list)) {
     state.voice = vk;
     for (const key of new Set([...Object.keys(V.list.neutral), ...Object.keys(voice)])) {
-      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech', 'bond_greet', 'bond_sub'].includes(key)) continue;
+      if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech', 'swears', 'bond_greet', 'bond_sub'].includes(key)) continue;
       const ctx = key === 'greet' ? 'evening' : key === 'addr' ? { name: 'Christoffer' } : CTX;
       // Variations rotate; check every alternative, not just this hour's.
       for (const v of expand(voice[key] !== undefined ? voice[key] : V.list.neutral[key], ctx)) out.push([vk, key, v]);
@@ -346,4 +346,24 @@ test('birthdays: matched on month and day; 29 February is celebrated on the 28th
   S.birthday = '11-07'; assert.ok(B.today(new Date(2026, 10, 7))); assert.ok(!B.today(new Date(2026, 10, 8)));
   S.birthday = '02-29'; assert.ok(B.today(new Date(2027, 1, 28))); assert.ok(!B.today(new Date(2028, 1, 28))); assert.ok(B.today(new Date(2028, 1, 29)));
   S.birthday = prev;
+});
+
+/* ---- Brutal swears; with swearing off, every swear word is masked, and nothing else is ---- */
+test('swearing off masks Brutal’s swear words, and only those', () => {
+  const S = window.SP.store.state, V = window.SP.voice, prev = S.swear;
+  const SWEARS = /\b(fuck\w*|bullshit|shit\w*|goddamn\w*|damn(ed|s|it)?|ass(es)?|arse|piss(ed|ing)?|bastards?|crap(py)?|hell)\b/i;
+  S.swear = true;
+  const raw = lines('brutal');
+  assert.ok(raw.filter((s) => SWEARS.test(s)).length >= 25, 'Brutal should actually swear');
+  S.swear = false;
+  const all = lines('brutal'); window.SP.store.state.swear = false; // render() swaps in a fresh state, so set it after
+  const clean = all.map((s) => V.clean(s)).filter((s) => SWEARS.test(s)); // what the page shows: every line goes through SP.voice.resolve → clean
+  assert.deepEqual(clean, [], 'unmasked: ' + clean.slice(0, 3).join(' | '));
+  window.SP.store.state.swear = false;
+  assert.equal(V.clean('Hello, I assume this class passes. What the hell. Bullshit, fucking shit.'), 'Hello, I assume this class passes. What the h***. Bulls***, f****** s***.');
+  S.swear = prev;
+});
+test('only Brutal swears (the other voices stay clean)', () => {
+  const SWEARS = /\b(fuck\w*|bullshit|shit\w*|goddamn\w*|bastards?)\b/i;
+  for (const vk of Object.keys(V.list)) { if (vk === 'brutal') continue; const bad = lines(vk).filter((s) => SWEARS.test(s)); assert.deepEqual(bad, [], vk + ': ' + bad[0]); }
 });

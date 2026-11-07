@@ -34,7 +34,7 @@
       '<button class="link" data-ob-geo>' + I('pin', 14) + ' ' + esc(t('btn_geo')) + '</button>';
     return '<h2 id="ob-title">' + esc(t('ob_title_voice')) + '</h2><p class="muted">' + esc(t('ob_voice_hint')) + '</p>' +
       '<div class="ob-voices" role="radiogroup" aria-labelledby="ob-title">' + SP.voice.available().map((k) => [k, SP.voice.list[k]]).map(([k, v]) =>
-        '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-ob-voice="' + k + '"><b>' + esc(v.name) + '</b><span>' + esc(preview(k)) + '</span></button>').join('') + '</div>';
+        '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-ob-voice="' + k + '"><b>' + esc(v.name) + (v.swears ? ' <em class="v-tag" title="This voice swears. You can switch that off later in Customize → Voice.">Swears</em>' : '') + '</b><span>' + esc(preview(k)) + '</span></button>').join('') + '</div>';
   }
 
   function render() {
