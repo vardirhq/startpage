@@ -41,7 +41,9 @@
       const done = (v) => { d.close(); resolve(v); };
       d.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => done(null)));
       form.addEventListener('submit', (e) => { e.preventDefault(); done(Object.fromEntries(new FormData(form).entries())); });
-      d.onclose = () => resolve(null);
+      // The close event fires a tick after close(): if this dialog's answer opened another dialog, that stale
+      // event must not cancel the new one, so ignore it while the dialog is open again.
+      d.onclose = () => { if (!d.open) resolve(null); };
       d.oncancel = (e) => { e.preventDefault(); done(null); };
       if (opts.mount) opts.mount(d, done);
       d.showModal();
@@ -113,6 +115,7 @@
       b.onclick = () => { t.remove(); o.action.run(); }; t.appendChild(b);
     }
     document.body.appendChild(t);
+    if (o.who && SP.speak && o.speak !== false) SP.speak.say(msg, o.voice); // voiced toasts can be read aloud
     const ms = o.ms || Math.min(8000, Math.max(2400, String(msg).length * 55 + (o.action ? 2000 : 0)));
     t.onmouseenter = () => toastTimers.forEach(clearTimeout); // hover to keep reading
     t.onmouseleave = () => { toastTimers = [setTimeout(() => t.remove(), 1200)]; };

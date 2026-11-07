@@ -120,7 +120,7 @@
     list.push({ k: 'clock timezone world', label: 'Add world clock', icon: 'globe', run: () => W.worldclock.add() });
     list.push({ k: 'focus pomodoro timer start pause', label: S().focusRun.endsAt ? 'Pause focus timer' : 'Start focus timer', icon: 'timer', run: () => W.focus.toggle() });
     list.push({ k: 'focus pomodoro timer reset', label: 'Reset focus timer', icon: 'reset', run: () => W.focus.reset() });
-    Object.entries(SP.scene.themes).forEach(([id, t]) => list.push({ k: 'theme ' + t.name, label: 'Theme: ' + t.name, icon: 'image', run: () => { S().theme = id; S().customBg = false; save(); app.renderAll(); } }));
+    Object.entries(SP.scene.themes).filter(([id]) => SP.achieve.sceneUnlocked(id)).forEach(([id, t]) => list.push({ k: 'theme ' + t.name, label: 'Theme: ' + t.name, icon: 'image', run: () => { S().theme = id; S().customBg = false; save(); app.renderAll(); } }));
     S().spaces.forEach((sp) => list.push({ k: 'space go switch ' + sp.name, label: 'Space: ' + sp.name, icon: sp.icon, run: () => app.switchSpace(sp.id) }));
     Object.entries(app.LAYOUTS).forEach(([id, l]) => list.push({ k: 'layout ' + l.label, label: 'Layout: ' + l.label, icon: 'layout', run: () => { S().layout = id; save(); app.renderMain(); } }));
     list.push({ k: 'background shuffle random scene', label: 'Shuffle background', icon: 'shuffle', run: () => { S().seed = 1 + Math.floor(Math.random() * 1e5); S().customBg = false; save(); app.renderAll(); } });
@@ -130,6 +130,9 @@
     if (S().chaos) list.push({ k: 'shuffle voices chaos', label: 'Shuffle voices', icon: 'shuffle', run: () => { S().chaosSeed = 1 + Math.floor(Math.random() * 1e6); save(); app.renderMain(); } });
     list.push({ k: 'wrapped recap week summary review stats', label: 'Weekly recap (Wrapped)', icon: 'gift', run: () => SP.wrapped.open() });
     list.push({ k: 'ask chat voice claude question', label: 'Ask ' + SP.voice.current().name + ' something', icon: 'chat', run: () => SP.ask.open() });
+    if (app.canInstall()) list.push({ k: 'install app pwa home screen', label: 'Install as an app', icon: 'download', run: () => app.install() });
+    list.push({ k: 'brief morning today summary', label: 'Morning brief', icon: 'coffee', run: () => SP.brief.show() });
+    list.push({ k: 'create make custom new voice personality', label: 'Create a voice', icon: 'sparkles', run: () => { SP.panel.open('theme'); } });
     list.push({ k: 'setup onboarding welcome intro', label: 'Run setup again', icon: 'sparkles', run: () => SP.onboarding.start() });
     list.push({ k: 'settings github token location', label: 'Open Settings', icon: 'customize', run: () => SP.panel.open('settings') });
     if (S().github.token) list.push({ k: 'sync gist cloud backup', label: 'Sync now', icon: 'cloudSync', run: () => SP.sync.now() });

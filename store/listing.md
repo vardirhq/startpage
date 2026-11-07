@@ -27,6 +27,8 @@ Then pick a voice, and the entire page, settings included, is rewritten in that 
 
 The voices react as things happen: finishing a task, pausing the timer at 23:41, breaking a streak, opening a tab at 3am. Now and then they interrupt each other. Every Sunday you get a weekly recap narrated by your voice, which you can save as an image. Bring your own Claude API key and you can ask your voice anything.
 
+The sky outside your window follows the real weather and your real sunrise. Earn new scenes with achievements. Have your voice read things aloud, get a morning brief, or write your own voice ("a pirate who hates Mondays") and share it as a link.
+
 Private by design: no account, no analytics, no server. Your data stays in your browser. Optional sync goes through a private GitHub Gist in your own account.
 
 ## Privacy practices (dashboard answers)

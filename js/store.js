@@ -68,7 +68,13 @@
     presence: {},
     stats: {},
     unlocked: [],
+    achievements: {},
+    totals: {},
     heckles: true,
+    liveSky: true,
+    speak: false,
+    brief: true,
+    customVoices: {},
     chaos: false,
     onboarded: false,
     updatedAt: 0,
@@ -98,6 +104,14 @@
 
   // Anyone with saved data from before onboarding existed has already set the page up.
   if (raw && raw.onboarded === undefined) state.onboarded = true;
+  if (raw && !raw.totals) { // lifetime counters for achievements, seeded from what's already there
+    const t = state.totals = {}, st = state.stats || {};
+    for (const d of Object.values(st)) for (const [k, v] of Object.entries(d)) t[k] = (t[k] || 0) + v;
+    t.focus = Math.max(t.focus || 0, Object.values(state.focusLog || {}).reduce((a, b) => a + b, 0));
+    t.done = Math.max(t.done || 0, (state.tasks || []).filter((x) => x.done).length);
+    t.voices = [state.voice || 'neutral'];
+  }
+  if (raw && !raw.achievements) state._achQuiet = true; // existing data: award silently once
 
   const listeners = [];
   let timer = null, frozen = false; // frozen: a reset/import is reloading the page; don't write the old state back

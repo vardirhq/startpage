@@ -122,6 +122,7 @@
       wxState = { loading: true, error: null };
       try { this.data = await loadWeather(force); } catch (e) { wxState.error = 'Couldn’t load weather'; console.warn(e); }
       wxState.loading = false;
+      if (SP.sky) SP.sky.update();
       rerender('weather');
       rerender('forecast');
     },

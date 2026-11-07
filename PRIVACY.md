@@ -1,6 +1,6 @@
 # Privacy policy: Startpage
 
-_Last updated: 2026-11-06_
+_Last updated: 2026-11-07_
 
 Startpage is a new tab page. It has no server, no account and no analytics. The developer receives none of your data.
 
@@ -19,10 +19,12 @@ Only requests you turn on, sent directly from your browser to these services:
 | GitHub Gist | Only if you turn on Sync | Your startpage data, saved to a **private** gist in your own account. Your token and API key are never included. |
 | Hacker News (Algolia) / dev.to | When the News widget is shown | A request for top stories |
 | Google favicon service | When bookmark icons are on (you can turn them off) | The domains of your bookmarks |
-| Anthropic API (`api.anthropic.com`) | Only when you use "Ask a voice" with your own API key | Your question, the conversation so far, your name, open task titles, best streak and today's visit count, so the voice can answer in context. Handled under [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy). |
+| Anthropic API (`api.anthropic.com`) | Only with your own API key: when you ask a voice something, have it write the morning brief, or create a voice | Your question or voice description, the conversation so far, your name, open task and habit names, best streak and today's visit count, so the voice can answer in context and act on your tasks when asked. Handled under [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy). |
 | Audio stream URLs | Only the ones you add to the music player | A normal request to that URL |
 
 Your Anthropic API key and GitHub token stay in your browser's storage and go only to the service they belong to.
+
+Speech ("read aloud") uses your browser's built-in speech synthesis. Shared voice links contain only the voice's wording, never your data.
 
 ## Contact
 

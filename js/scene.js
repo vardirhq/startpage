@@ -309,6 +309,45 @@
       ],
       fx: 'dust',
     },
+    /* ---- reward scenes: unlocked by achievements (js/achieve.js) ---- */
+    dunes: {
+      name: 'Dunes', tint: '#2a1410', horizon: 1, locked: true,
+      sky: ['#2a0f2e', '#6a1f45', '#b8434a', '#ec7a3f', '#ffb35c', '#ffd98a'],
+      stars: 22, starColor: '#fff0d8',
+      sun: { x: 0.3, y: 0.5, r: 0.13, top: '#fff3b0', bot: '#ff8a4a' },
+      glow: { x: 0.3, y: 0.5, r: 0.6, c: '#ffb070', s: 0.6 },
+      dunes: [
+        { base: 0.62, a1: 0.06, f1: 0.011, a2: 0.02, f2: 0.037, color: '#b5523e', lit: '#e88a55' },
+        { base: 0.74, a1: 0.05, f1: 0.015, a2: 0.018, f2: 0.05, color: '#83333a', lit: '#c0604a' },
+        { base: 0.87, a1: 0.04, f1: 0.019, a2: 0.012, f2: 0.06, color: '#4f1d33', lit: '#7d3540' },
+      ],
+      fx: 'dust',
+    },
+    polar: {
+      name: 'Polar Night', tint: '#071220', horizon: 0.62, locked: true,
+      sky: ['#01030b', '#03091c', '#061630', '#0b2744', '#123a55'],
+      stars: 190, starColor: '#eaf6ff',
+      aurora: ['#7dffcf', '#3fc9ff', '#b07dff'],
+      mountains: [
+        { height: 0.38, rough: 0.52, color: '#132a44', lit: '#1d3d5c', snow: '#5d86ad', snowLit: '#b6dcf2', snowline: 0.55 },
+        { height: 0.2, rough: 0.6, color: '#0b1d33', lit: '#122a44', snow: '#3d6385', snowLit: '#86b6d6', snowline: 0.4 },
+      ],
+      shore: '#040b16', water: '#06142a', waterMix: 0.48, treeMin: 4, treeMax: 11, sparkle: '#9be8ff',
+      fg: '#02060d', fgMid: '#071425', treeSnow: '#cfe6f5', fx: 'snow',
+    },
+    harbor: {
+      name: 'Harbor', tint: '#0d1424', horizon: 0.68, locked: true,
+      sky: ['#05081a', '#0d1634', '#1b2a52', '#36447a', '#6a5f96'],
+      stars: 80, starColor: '#fff8e8',
+      sun: { x: 0.78, y: 0.2, r: 0.045, top: '#fff6dc' },
+      glow: { x: 0.78, y: 0.2, r: 0.35, c: '#c9c2ff', s: 0.45 },
+      clouds: { n: 5, y: [0.25, 0.45], lit: '#8f88c4', dark: '#2a2f5c', a: 0.7 },
+      city: [
+        { maxH: 0.24, color: '#1a2142', wins: ['#ffd98a'], density: 0.1 },
+        { maxH: 0.15, color: '#0c1128', wins: ['#ffe2a0', '#ffb86b', '#9fd8ff'], density: 0.28 },
+      ],
+      water: '#0a1230', waterMix: 0.5, sparkle: '#fff2c8', shore: '#060a1c',
+    },
   };
 
   function render(canvas, key, seed, opts) {

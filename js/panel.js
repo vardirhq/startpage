@@ -43,8 +43,9 @@
     return '<div class="w-pick">' + ids.map((id) => '<button aria-pressed="' + on.includes(id) + '" data-widget="' + id + '" title="' + T('desc_' + id) + '"><span>' + I(SP.widgetMeta[id].icon, 22) + '</span>' + esc(SP.widgetMeta[id].title) + '</button>').join('') + '</div>';
   }
   function themePicker() {
-    return '<div class="theme-pick">' + Object.entries(SP.scene.themes).map(([k, t]) =>
-      '<button data-theme="' + k + '" aria-pressed="' + (S().theme === k && !S().customBg) + '"><img src="' + thumb(k, S().seed) + '" alt=""><span>' + esc(t.name) + '</span>' +
+    return '<div class="theme-pick">' + Object.entries(SP.scene.themes).map(([k, t]) => !SP.achieve.sceneUnlocked(k)
+      ? '<button class="locked" aria-disabled="true" title="' + esc('Locked: ' + SP.achieve.unlockHint(k)) + '"><img src="' + thumb(k, S().seed) + '" alt=""><span>' + I('lock', 12) + ' ' + esc(SP.achieve.unlockHint(k)) + '</span></button>'
+      : '<button data-theme="' + k + '" aria-pressed="' + (S().theme === k && !S().customBg) + '"><img src="' + thumb(k, S().seed) + '" alt=""><span>' + esc(t.name) + '</span>' +
       (S().theme === k && !S().customBg ? '<b class="tick">' + I('check', 12) + '</b>' : '') + '</button>').join('') + '</div>';
   }
   function bgRow() {
@@ -73,7 +74,11 @@
     S().presence = S().presence || {};
     S().presence.prevVoice = cur;
     S().voice = v; save(); SP.app.renderAll();
-    if (V[v].welcomeVoice && cur !== 'neutral') toast(SP.voice.t('welcomeVoice', { prev: V[cur].name }), { who: V[v].name });
+    const tt = SP.achieve.tot(), vs = tt.voices || (tt.voices = []); if (!vs.includes(v)) vs.push(v);
+    SP.achieve.check();
+    const grudge = SP.bonds.switched(cur, v); // a voice you've left before remembers
+    if (grudge) toast(grudge, { who: V[v].name });
+    else if (V[v].welcomeVoice && cur !== 'neutral') toast(SP.voice.t('welcomeVoice', { prev: V[cur].name }), { who: V[v].name });
   }
 
   /* The picker is described by the *current* voice: every voice has opinions about the others.
@@ -85,7 +90,7 @@
         ? '<button role="radio" aria-checked="' + (SP.voice.key() === k) + '" data-voice="' + k + '"' + (v.secret ? ' class="secret"' : '') + '><b>' + esc(v.name) + '</b><span>' + esc((cur.blurb && cur.blurb[k]) || base.blurb[k] || v.descriptor) + '</span></button>'
         : '<button role="radio" aria-checked="false" aria-disabled="true" class="locked" title="Locked"><b>' + I('lock', 14) + ' ???</b><span>' + esc(v.hint) + '</span></button>').join('') + '</div>';
   }
-  const voiceToggles = () => toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos);
+  const voiceToggles = () => toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos) + (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + toggle('brief', 'tgl_brief', S().brief !== false) + SP.maker.sectionHtml();
 
   const VIEWS = {
     layout() {
@@ -97,7 +102,7 @@
         section('sec_accent', accentRow(false)) +
         section('sec_voice', voicePicker()) +
         '<section class="p-sec">' + toggle('showGreeting', 'tgl_greeting', S().showGreeting) + toggle('showQuote', 'tgl_quote', SP.app.space().widgets.includes('quote')) +
-          toggle('animate', 'tgl_animate', S().animate) + '</section>';
+          toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + '</section>';
     },
     widgets() {
       const on = SP.app.space().widgets;
@@ -106,7 +111,7 @@
           '<label class="switch-row bare"><input type="checkbox" role="switch" aria-label="Show ' + esc(SP.widgetMeta[id].title) + '" data-wtoggle="' + id + '"' + (on.includes(id) ? ' checked' : '') + '><span class="switch" aria-hidden="true"></span></label></li>').join('') + '</ul>';
     },
     theme() {
-      return section('sec_theme', themePicker()) + section('sec_background', bgRow() + toggle('animate', 'tgl_animate', S().animate)) +
+      return section('sec_theme', themePicker()) + section('sec_background', bgRow() + toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false)) +
         section('sec_accent', accentRow(true)) + section('sec_voice', voicePicker() + voiceToggles());
     },
     settings() {
@@ -130,6 +135,7 @@
         section('sec_github', '<div id="gh-settings"><label class="field"><span>Username</span><input data-gh="user" value="' + esc(s.github.user) + '" placeholder="octocat" autocomplete="off"></label>' +
           '<label class="field"><span>Token (optional)</span><input data-gh="token" type="password" value="' + esc(s.github.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
           '<p class="small muted">Without a token you get public activity (60 API calls/hour, cached for 10 minutes). A read-only fine-grained token adds private repos and CI; a classic token with <code>notifications</code> scope adds the unread badge, and <code>gist</code> enables sync. The token is stored only in this browser.</p></div>') +
+        section('sec_achievements', SP.achieve.sectionHtml()) +
         section('sec_ask', SP.ask.settingsHtml()) +
         section('sec_sync', s.github.token
           ? '<p class="small muted">' + T('syncIntro') + '</p>' +
@@ -161,13 +167,14 @@
 
   function bind(p) {
     SP.ask.bindSettings(p);
+    SP.maker.bind(p);
     const on = (sel, ev, fn) => $$(sel, p).forEach((n) => n.addEventListener(ev, fn));
     on('[data-close]', 'click', close);
     on('[data-tab]', 'click', (e) => { tab = e.currentTarget.dataset.tab; render(); });
     on('[data-layout]', 'click', (e) => { S().layout = e.currentTarget.dataset.layout; save(); SP.app.renderMain(); render(); });
     on('[data-widget]', 'click', (e) => { const id = e.currentTarget.dataset.widget; setWidget(id, !SP.app.space().widgets.includes(id)); render(); });
     on('[data-wtoggle]', 'change', (e) => setWidget(e.target.dataset.wtoggle, e.target.checked));
-    on('[data-theme]', 'click', (e) => { S().theme = e.currentTarget.dataset.theme; S().customBg = false; save(); SP.app.applyTheme(); SP.app.renderMain(); render(); });
+    on('[data-theme]', 'click', (e) => { if (!SP.achieve.sceneUnlocked(e.currentTarget.dataset.theme)) return; S().theme = e.currentTarget.dataset.theme; S().customBg = false; save(); SP.app.applyTheme(); SP.app.renderMain(); render(); });
     on('[data-accent]', 'click', (e) => { S().accent = e.currentTarget.dataset.accent; save(); SP.app.applyTheme(); render(); });
     on('[data-accent-custom]', 'input', (e) => { S().accent = e.target.value; save(); SP.app.applyTheme(); });
     on('[data-accent-custom]', 'change', render);
@@ -189,9 +196,11 @@
       if (k === 'syncAuto') { S().sync.auto = v; save(); return; }
       if (k === 'animate') { S().animate = v; save(); SP.app.applyTheme(); render(); return; }
       if (k === 'showSummary' || k === 'heckles') { S()[k] = v; save(); SP.app.renderHero(); return; }
-      if (k === 'chaos') { S().chaos = v; save(); SP.app.renderMain(); if (v) toast(SP.voice.t('chaosOn'), { who: SP.voice.key() === 'neutral' ? '' : SP.voice.current().name }); return; }
+      if (k === 'speak') { S().speak = v; save(); if (v) SP.speak.say(SP.voice.t('speakHello'), null, true); else SP.speak.stop(); return; }
+      if (k === 'chaos') { S().chaos = v; save(); SP.app.renderMain(); SP.achieve.check(); if (v) toast(SP.voice.t('chaosOn'), { who: SP.voice.key() === 'neutral' ? '' : SP.voice.current().name }); return; }
       S()[k] = v; save();
       if (k === 'showGreeting') SP.app.renderHero();
+      if (k === 'liveSky') SP.sky.update();
       if (k === 'clock24') SP.app.renderWidget('clock');
       if (k === 'favicons') SP.app.renderWidget('bookmarks');
     });
