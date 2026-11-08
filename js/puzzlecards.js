@@ -9,7 +9,6 @@
   const Z = SP.puzzles;
   const V = SP.voice.list;
   const t = (k, c) => SP.voice.t(k, c);
-  const line = (k, c) => SP.voice.line(k, c);
   const { plural } = SP.voice._h;
   const save = () => SP.store.save({ quiet: true });
   const still = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -97,20 +96,34 @@
   function cur(kind, make) {
     const p = P(); let st = p[kind];
     if (!st || (st.seed !== today() && !doneToday(kind))) { st = p[kind] = make(today(), true); save(); }
+    if (typeof st.aside === 'string') { // saved as words by the first version; rebuild it so it follows the voice
+      st.aside = null;
+      if (st.done) aside(st, (kind === 'nonogram' ? [['puz_reveal', { name: Z.nonogram(st.seed).name }]] : []).concat([['puz_solved', { time: Z.fmtTime(st.ms || 0), hints: st.hints || 0 }]], st.daily ? [['puz_tomorrow']] : []));
+      save();
+    }
     return st;
   }
-  // Something happened worth a voice: shown under the board, and kept until the next thing.
-  const aside = (st, text) => { st.aside = text; };
+  /* Something happened worth a voice: shown under the board, kept until the next thing.
+     Stored as which lines to say (key, context, a pick), not the words, so switching voices re-voices it. */
+  const aside = (st, parts) => { st.aside = parts.map(([k, c]) => [k, c || {}, Math.floor(Math.random() * 1e6)]); };
+  function say([key, ctx, pick]) {
+    let val = V[SP.voice.key()] && V[SP.voice.key()][key] !== undefined ? V[SP.voice.key()][key] : V.neutral[key];
+    for (let d = 0; d < 4; d++) { if (typeof val === 'function') val = val(ctx); else if (Array.isArray(val)) val = val[(pick + d * 7) % val.length]; else break; }
+    return SP.voice.resolve(val, key, ctx); // the swearing mask and Friday nights still apply
+  }
+  const asideHtml = (st, fallback) => Array.isArray(st.aside) && st.aside.length
+    ? '<p class="puz-aside" aria-live="polite">' + (who() ? '<b>' + esc(who()) + ':</b> ' : '') + esc(st.aside.map(say).join(' ')) + '</p>'
+    : fallback || '';
   // Solving is the same for both: the time, the voice, the streak, the points, the badges.
   function finish(kind, st, extra) {
     st.done = true; st.ms = Date.now() - (st.start || Date.now());
     const ctx = { time: Z.fmtTime(st.ms), hints: st.hints || 0 };
-    let msg = (extra ? extra + ' ' : '') + line('puz_solved', ctx);
+    const msg = (extra ? [extra] : []).concat([['puz_solved', ctx]]);
     if (st.daily) {
       const d = P().done || (P().done = {}); d[kind] = st.seed;
       const n = Z.solvedToday(kind);
-      if (n >= 2) msg += ' ' + line('puz_streak', { n });
-      msg += ' ' + line('puz_tomorrow');
+      if (n >= 2) msg.push(['puz_streak', { n }]);
+      msg.push(['puz_tomorrow']);
       if (SP.achieve) setTimeout(() => SP.achieve.check(), 800);
     }
     aside(st, msg);
@@ -172,7 +185,7 @@
       (st.done ? '' : '<div class="seg small" role="radiogroup" aria-label="What a tap does"><button role="radio" aria-checked="' + (st.mode !== 'cross') + '" data-nono-mode="fill">Fill</button><button role="radio" aria-checked="' + (st.mode === 'cross') + '" data-nono-mode="cross">' + I('x', 12) + ' Cross</button></div>') +
       '<span class="puz-tools">' + tools('nonogram', st, isBig) + '</span></div>';
     const gal = galleryHtml(isBig);
-    return g + bar + (st.aside ? '<p class="puz-aside" aria-live="polite">' + (who() ? '<b>' + esc(who()) + ':</b> ' : '') + esc(st.aside) + '</p>' : '<p class="puz-aside muted small">' + (st.done ? '' : 'Numbers say how many filled squares are in a row, in order, with gaps between. Right-click (or Cross) marks a square as empty.') + '</p>') + gal;
+    return g + bar + asideHtml(st, '<p class="puz-aside muted small">' + (st.done ? '' : 'Numbers say how many filled squares are in a row, in order, with gaps between. Right-click (or Cross) marks a square as empty.') + '</p>') + gal;
   }
   // The pictures you've uncovered so far.
   function galleryHtml() {
@@ -248,7 +261,7 @@
     const i = pool[Math.floor(Math.random() * pool.length)];
     cells[i] = pz.sol[i] ? 1 : 2; st.cells = cells.join(''); (st.locked = st.locked || []).push(i); st.hints = (st.hints || 0) + 1; st.focus = i;
     if (!st.start) st.start = Date.now();
-    aside(st, line('puz_hint', { hints: st.hints }));
+    aside(st, [['puz_hint', { hints: st.hints }]]);
     SP.sound.play('reveal');
     if (nonoSolved(pz, cells)) nonoFinish(); else { save(); paint('nonogram'); }
   }
@@ -257,7 +270,7 @@
     // Fill in the crosses you didn't bother with, and keep the picture.
     st.cells = pz.sol.map((v) => (v ? 1 : 2)).join('');
     if (pz.id !== 'gen') { const g = P().gallery || (P().gallery = []); if (!g.includes(pz.id)) g.push(pz.id); }
-    finish('nonogram', st, line('puz_reveal', { name: pz.name }));
+    finish('nonogram', st, ['puz_reveal', { name: pz.name }]);
     paint('nonogram');
   }
 
@@ -290,7 +303,7 @@
     const pad = st.done ? '' : '<div class="sud-pad" role="group" aria-label="Numbers">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => '<button data-d="' + d + '"' + (count[d] >= 9 ? ' class="full"' : '') + ' aria-label="' + d + '">' + d + '</button>').join('') +
       '<button data-d="0" aria-label="Erase" title="Erase">' + I('x', 15) + '</button><button data-notes aria-pressed="' + !!st.noteMode + '" title="Notes: pencil in the numbers it might be (N)" aria-label="Notes">' + I('edit', 15) + '</button></div>';
     const bar = '<div class="puz-bar">' + status('sudoku', st, st.level) + '<span class="puz-tools">' + tools('sudoku', st, isBig) + '</span></div>';
-    return g + pad + bar + (st.aside ? '<p class="puz-aside" aria-live="polite">' + (who() ? '<b>' + esc(who()) + ':</b> ' : '') + esc(st.aside) + '</p>' : '');
+    return g + pad + bar + asideHtml(st);
   }
   function sudPut(d) {
     const st = sud(), i = st.sel; if (st.done || i < 0 || fixed(st, i)) return;
@@ -315,7 +328,7 @@
     const cells = st.cells.split(''); cells[i] = st.solution[i]; st.cells = cells.join(''); st.notes[i] = 0;
     (st.hinted = st.hinted || []).push(i); st.hints = (st.hints || 0) + 1; st.sel = i;
     if (!st.start) st.start = Date.now();
-    aside(st, line('puz_hint', { hints: st.hints }));
+    aside(st, [['puz_hint', { hints: st.hints }]]);
     SP.sound.play('reveal');
     if ([...Array(81).keys()].every((k) => String(val(st, k)) === st.solution[k])) finish('sudoku', st); else save();
     paint('sudoku');
