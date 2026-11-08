@@ -109,6 +109,7 @@
     owl: { ob_title_who: 'What keeps you up at night?', ob_who_hint: 'Pick the closest. I’ll set things up for it. Change it whenever, I’ll be awake.', fld_setup: 'What keeps you up' },
     ghost: { ob_title_who: 'who were you, before', ob_who_hint: 'pick the closest. the house will rearrange itself around you. it can change again. things do.', fld_setup: 'how the house is arranged' },
     parent: { ob_title_who: 'What are you up to these days, sweetie?', ob_who_hint: 'Pick the one that’s most you and I’ll set everything up nicely! You can always move things around. It’s your room.', fld_setup: 'How we set up your room' },
+    conspiracy: { ob_title_who: 'What’s your cover story?', ob_who_hint: 'Pick one. I’ll arrange the page to match. Nobody will suspect a thing. Change it later if they get close.', fld_setup: 'Cover story' },
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
 

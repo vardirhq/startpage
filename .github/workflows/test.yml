@@ -25,6 +25,8 @@ jobs:
         with:
           node-version: 22
       - name: Syntax check
-        run: for f in js/*.js sw.js; do node --check "$f"; done
+        run: for f in js/*.js sw.js scripts/*.js test/*.js; do node --check "$f"; done
+      - name: Every voice has every key
+        run: node scripts/voices.js
       - name: Unit tests, then package the extension
         run: scripts/package.sh

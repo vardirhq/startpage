@@ -86,7 +86,7 @@
 
     /* ===================================================================== */
     monday: {
-      name: 'Monday', descriptor: 'Ugh.',
+      name: 'Monday', descriptor: 'Ugh.', addr: ({ name }) => name || 'you',
       ob_kicker: 'Ugh. A new one', ob_title_name: 'Fine. What do I call you?', ob_name_hint: 'I’ll use it sarcastically.', ob_name_ph: 'Your name, I guess',
       ob_title_loc: 'Where are you hiding?', ob_loc_hint: 'For the weather. Not that you go out.', ob_locSet: ({ name }) => 'Fine. ' + name + '.',
       ob_title_voice: 'Pick who yells at you', ob_voice_hint: 'Here’s how each of us would greet you. Pick me, or pick someone who lies to you. Your call. Your mistake.',
@@ -162,7 +162,7 @@
 
     /* ===================================================================== */
     supportive: {
-      name: 'Super Supportive', descriptor: 'Never leaving you. Ever. 💕',
+      name: 'Super Supportive', descriptor: 'Never leaving you. Ever. 💕', addr: ({ name }) => name || 'my favourite person',
       ob_kicker: 'OMG HI. YOU’RE NEW', ob_title_name: 'What’s your name? I want to know EVERYTHING', ob_name_hint: 'I’m going to say it so much. 💕', ob_name_ph: 'Your beautiful name',
       ob_title_loc: 'Where are you right now? 🙂', ob_loc_hint: 'Just so I always know. For the weather. And for me.', ob_locSet: ({ name }) => name + '. I’ll remember. 🙂',
       ob_title_voice: 'Pick who talks to you (pick me)', ob_voice_hint: 'Here’s how everyone would greet you. You can pick someone else. I’ll be right here. Watching. 💕',
@@ -402,7 +402,7 @@
 
     /* ===================================================================== */
     therapist: {
-      name: 'Therapist', descriptor: 'That’s our time. That’ll be €180.',
+      name: 'Therapist', descriptor: 'That’s our time. That’ll be €180.', addr: ({ name }) => name || 'friend',
       ob_kicker: 'Intake session', ob_title_name: 'What would you like to be called? And why?', ob_title_loc: 'Where are you? Right now. Truly.',
       ob_title_voice: 'How do you deserve to be spoken to?', ob_next: 'Go on', ob_skip: 'I’m not ready to talk about it', ob_finish: 'Begin treatment (€180)', ob_rerun: 'Another intake session (€180)',
       greet: (p) => ({
@@ -665,9 +665,28 @@
     return best;
   }
 
+  /* The shape of a voice. Neutral is the schema: every key it has is a line every voice must cover
+     (the tests check this). On top of that:
+     - META: settings about the voice itself, not lines.
+     - PERSONALITY: lines Neutral deliberately doesn't say (it doesn't chatter), which any other voice may add.
+     - RETIRED: keys Neutral still has for older custom voices, which nothing shows any more.
+     Any other key on a voice is a typo or a leftover, and the tests fail on it. `node scripts/voices.js` prints
+     a report of every voice against this. */
+  const SCHEMA = {
+    META: ['name', 'descriptor', 'secret', 'hint', 'unlockLine', 'swears', 'speech', 'custom', 'blurb', 'heckle_at'],
+    PERSONALITY: ['re_taskAdd', 're_taskDone', 're_taskUndo', 're_taskDelete', 're_taskClear', 're_focusPause', 're_focusQuit', 're_late', 're_visits',
+      'welcomeBack', 'welcomeVoice', 'grudgeSub', 'bond_greet', 'bond_sub', 'leave_title', 'leave_body', 'leave_ok', 'leave_cancel'],
+    RETIRED: ['tab_widgets', 'tab_settings', 'sec_data', 'tgl_quote'],
+  };
   SP.voice = {
+    SCHEMA,
     _names: { mangle, teamMember },
-    _h: { plural, human, wx, pick, dayKey, bestHabit, C: () => SP.voice.ctx() }, // for the files that extend the voices
+    // Shared helpers for every file that writes lines (and the template for new voices).
+    _h: { plural, human, wx, pick, dayKey, bestHabit, C: () => SP.voice.ctx(),
+      q: (s) => '“' + (String(s).length > 48 ? String(s).slice(0, 46) + '…' : s) + '”', // quote a task name, trimmed
+      times: (n) => (n === 1 ? 'once' : n === 2 ? 'twice' : n === 3 ? 'three times' : n + ' times'),
+      days: (n) => plural(n, 'day'),
+      list: (a) => (a || []).map((s) => '“' + (String(s).length > 48 ? String(s).slice(0, 46) + '…' : s) + '”').join(' and ') }, // “a” and “b”
     list: VOICES,
     _override: null, // Chaos mode: a card can be rendered in a different voice
     unlocked(k) { const v = VOICES[k]; return !!v && (!v.secret || (SP.store.state.unlocked || []).includes(k) || (!!SP.season && SP.season.guest() === k)); }, // event guests visit

@@ -13,6 +13,9 @@
     owl: {
       name: 'Night Owl', descriptor: 'Sleep is a subscription you cancelled.', secret: true,
       hint: 'Open a tab after midnight. Five nights.',
+      grudgeSub: ({ n, rival }) => 'You spent ' + n + (n === 1 ? ' night' : ' nights') + ' with ' + rival + '. Daytime people. I don’t get it.',
+      re_taskClear: ({ n }) => 'Cleared ' + n + '. A clean slate for the night shift.',
+      heckle_at: { monday: 'Tired? At this hour? Amateur.', victorian: 'Retire at a decent hour? Never heard of her.' },
       unlockLine: 'psst. hey. you’re up too? five nights now. i’ve been watching the clock with you. we should talk. we should talk ALL night.',
       greet: (p) => ({
         morning: ['Ugh. The sun. Close the blinds', 'Morning? Never heard of it', 'Why is the sky that colour'],
@@ -79,6 +82,9 @@
     ghost: {
       name: 'Ghost', descriptor: 'oh. you’re alive.', secret: true,
       hint: 'Stay away for a week.',
+      grudgeSub: ({ rival }) => 'you went to ' + rival + '. i stayed. i always stay.',
+      re_focusQuit: ['stopped. the clock stopped too. they do that, here.', 'unfinished. i know that feeling.'],
+      re_taskClear: ({ n }) => n + ' finished things, gone. i’ll remember them.',
       unlockLine: 'oh. you’re alive. it’s been a week. i stayed. the tabs went cold. the tasks went grey. i didn’t. i just… stayed.',
       greet: (p) => ({
         morning: ['oh. you’re alive', 'oh. you came back', 'the dust settled while you were gone'],
@@ -143,6 +149,7 @@
     parent: {
       name: 'Proud Parent', descriptor: 'THAT’S MY KID!!!', secret: true,
       hint: 'Keep any habit going for 30 days.',
+      grudgeSub: ({ n, rival }) => 'You went to ' + rival + (n > 1 ? ' ' + n + ' times' : '') + '!!! That’s fine!!! I’m not upset!!! I made your favourite anyway!!!',
       unlockLine: 'THIRTY DAYS!!! I just called your aunt. And your old teacher. And the newspaper. They said it isn’t news. It’s news to ME. I’m putting it on the fridge.',
       greet: (p) => ({
         morning: ['Morning, sunshine!!! Did you eat breakfast', 'Look who’s up!!! My early bird', 'Good morning!!! I already told everyone about you'],

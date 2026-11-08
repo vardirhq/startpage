@@ -59,6 +59,10 @@
       tipsy_in: ['It’s Friday!!! Mum’s had a glass of wine!!! Come and dance in the kitchen!!!', 'Friday night!!! I’m going to tell you how proud I am. Again. Louder.'],
       tipsy_aside: ['I love you SO much. Have you eaten?', 'You were such a cute baby!!!', 'Call your grandmother. No, now. I’ll hold the phone.', 'Mum’s fine. Mum’s great.'],
       morning_after: ['Morning, sweetie. Mum may have posted some baby photos last night. Don’t look.', 'About last night’s kitchen disco: we don’t talk about it.'] },
+    conspiracy: { tgl_tipsy: 'Friday night mode (when I say too much)',
+      tipsy_in: ['It’s Friday and I’ve had a few, so I’m just going to say it. The pigeons. Watch the pigeons.', 'Friday night. Okay. Okay okay okay. I’ve figured it ALL out. Give me a napkin.'],
+      tipsy_aside: ['It’s all connected. ALL of it.', 'Write this down. No. Don’t write it down.', 'You’re my best agent. I mean it.', 'Is this music in the walls, or is it me?'],
+      morning_after: ['Whatever I told you last night: classified. Forget it.', 'Morning. I may have revealed some things. None of them were real. That’s what they’d want me to say.'] },
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
 

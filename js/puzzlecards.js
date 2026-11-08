@@ -84,6 +84,12 @@
       puz_tomorrow: ['That’s it. Piss off till tomorrow.', 'Done for today. Close the tab and do something real.'],
       puz_reveal: [({ name }) => 'It’s ' + name + '. All that for ' + name + '.', ({ name }) => 'It’s ' + name + '. Took you long enough to see it, didn’t it.'],
       puz_streak: ({ n }) => plural(n, 'day') + ' straight. Shame your to-do list never gets that kind of commitment.' },
+    conspiracy: { w_nonogram: 'Hidden Image (Classified)', desc_nonogram: 'A pixel puzzle a day. There’s a picture in there. There always is', w_sudoku: 'The Numbers', desc_sudoku: 'One a day. The numbers fit together. Why do they fit together?',
+      puz_solved: [({ time }) => time + '. Faster than they expected. Don’t let them see you smile.', ({ hints }) => hints ? 'Solved, with ' + plural(hints, 'tip-off') + ' from a source. I can’t say who.' : 'Solved. No help. Nobody can say you had inside information.', 'Solved. Every number exactly where it belongs. Like it was planned.'],
+      puz_hint: ['A tip-off. You didn’t get it from me.', 'Check that square. Trust me.', 'An anonymous source says: that one.'],
+      puz_tomorrow: ['A new one tomorrow. They’re already writing it.', 'That’s today’s. Tomorrow’s is already out there, somewhere.'],
+      puz_reveal: [({ name }) => 'It’s ' + name + '. Hidden in plain sight the whole time.', ({ name }) => 'It was ' + name + ' all along. I had a feeling.'],
+      puz_streak: ({ n }) => plural(n, 'day') + ' in a row. A pattern. I’m writing it down.' },
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
 

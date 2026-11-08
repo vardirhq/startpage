@@ -129,6 +129,15 @@
       w_shop: 'The Shopping List', desc_shop: 'Don’t forget anything! And get yourself a treat!', shop_ph: 'Bread, milk, something healthy…', shop_empty: 'Nothing on the list! Are you eating properly?', shop_done: ['All done!!! Did you get vegetables? Good!!!', 'Everything ticked!!! Drive safe, sweetie!!!'],
       w_prompt: 'Arts And Crafts!', desc_prompt: 'Make something every day! I’ll put it on the fridge!', prompt_intro: 'Today’s arts and crafts:', prompt_did: [({ n }) => plural(n, 'day') + ' in a row!!! The fridge is getting full!!!', ({ n }) => 'Done!!! ' + plural(n, 'day') + '!!! You’re so talented!!!'],
     },
+    conspiracy: {
+      w_shelf: 'Distractions (Planted)', desc_shelf: 'Games, books and shows. Someone wants you busy. Pick one for tonight anyway', shelf_ph: 'Add something they recommended…', shelf_empty: 'Nothing on the shelf. They haven’t got to you yet.',
+      shelf_pick: [({ title }) => 'Tonight: ' + title + '. Watch for hidden messages.', ({ title }) => title + '. Picked at random. Allegedly.', ({ title }) => 'It’s ' + title + '. Pay attention to the background details.'],
+      shelf_finish: [({ title }) => 'Finished ' + title + '. Did you notice it? The thing in the background? Never mind.', ({ title }) => title + ', done. The ending explained a lot. More than they meant it to.'],
+      w_flash: 'Things They Want You To Forget', desc_flash: 'Cards that come back before you forget. Memorise everything. Records get rewritten', flash_empty: 'No cards. Write down what you know before it disappears.', flash_none: 'Nothing due. Your memory is intact. For now.',
+      flash_done: [({ n }) => plural(n, 'card') + ' committed to memory. They can’t take that.', ({ n }) => plural(n, 'card') + '. All in your head now, where nobody can read them.'],
+      w_shop: 'Supplies', desc_shop: 'The shopping list. Stock up. Just in case', shop_ph: 'Batteries. Tinned beans. Milk…', shop_empty: 'No supplies needed. Are you sure? Check again.', shop_done: ['All supplies acquired. Nobody followed you home? Good.', 'Everything ticked off. The cupboards are stocked. Just in case.'],
+      w_prompt: 'Today’s Assignment (Encrypted)', desc_prompt: 'A daily creative prompt. Hide a message in it', prompt_intro: 'Your assignment. Hide something in it:', prompt_did: [({ n }) => plural(n, 'day') + ' in a row. Nobody will spot the message. Perfect.', ({ n }) => 'Done. ' + plural(n, 'day') + '. Leave it somewhere they’ll never look.'],
+    },
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
 

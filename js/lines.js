@@ -842,6 +842,18 @@
   Object.assign(V.therapist.heckle_at = V.therapist.heckle_at || {}, { brutal: 'Let’s notice that Brutal’s anger is about Brutal, not you.' });
   Object.assign(V.monday.heckle_at = V.monday.heckle_at || {}, { brutal: 'Easy, Brutal. Some of us like doing nothing.' });
 
+  /* What everyone thinks of the Conspiracist (and who it unsettles). */
+  const ON_CONSPIRACY = {
+    neutral: 'Suspicious of everything. Finds patterns.', monday: 'Thinks the coffee machine is watching it. The coffee machine is fine.', supportive: 'They think I’m watching you!!! I’m just paying attention!!! 💕',
+    surfer: 'Dude thinks the waves are planned. …Are they?', professional: 'Raises a lot of concerns. None of them in the right channel.', therapist: 'Hypervigilance is exhausting. €40, cash, no receipt. Wait. Now I’m doing it.',
+    weepy: 'Sees connections everywhere. At least someone feels connected.', victorian: 'A fevered imagination. Keep it away from the servants.', brutal: 'Paranoid. Occasionally right. Mostly about me.',
+    owl: 'Up at 3am connecting dots. My kind of people.', ghost: 'it keeps asking if i’m real. rude.', parent: 'Oh, they’re just an imaginative one!!! Wear a hat outside, sweetie.',
+  };
+  for (const [k, line] of Object.entries(ON_CONSPIRACY)) V[k].blurb = Object.assign({}, V[k].blurb, { conspiracy: line });
+  Object.assign(V.monday.heckle_at = V.monday.heckle_at || {}, { conspiracy: 'Nobody is following you. Nobody would bother.' });
+  Object.assign(V.professional.heckle_at = V.professional.heckle_at || {}, { conspiracy: 'Please route conspiracy theories through the appropriate channel.' });
+  Object.assign(V.ghost.heckle_at = V.ghost.heckle_at || {}, { conspiracy: 'i am real. mostly.' });
+
   for (const [k, l] of Object.entries(FILL)) for (const [key, val] of Object.entries(l)) if (V[k][key] === undefined) V[k][key] = val;
   for (const set of [VARY, MORE]) for (const [k, l] of Object.entries(set)) for (const [key, extra] of Object.entries(l)) {
     const had = V[k][key];

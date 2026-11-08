@@ -10,6 +10,9 @@
 
   const LINES = {
     neutral: {
+      // Neutral reports; it doesn't chatter. These are lines every voice has, and Neutral's are deliberately empty.
+      re_taskAdd: null, re_taskDone: null, re_taskUndo: null, re_taskDelete: null, re_taskClear: null, re_focusPause: null, re_focusQuit: null, re_late: null, re_visits: null,
+      welcomeBack: null, welcomeVoice: null, grudgeSub: null, bond_greet: null, bond_sub: null, leave_title: null, leave_body: null, leave_ok: null, leave_cancel: null, heckle_at: {},
       re_taskAllDone: 'All tasks done.',
       re_streakBreak: ({ name, n }) => name + ': ' + n + '-day streak ended.',
       re_unlock: ({ name }) => 'New voice unlocked: ' + name + '.',
@@ -60,6 +63,8 @@
     },
 
     surfer: {
+      grudgeSub: null, // holds no grudges; can't remember who you left for
+      heckle_at: { professional: 'Dude, it’s a new tab, not a meeting.', victorian: 'Whoa. Did she just say “one”? Like, one what?', brutal: 'Gnarly vibes, man. Bad gnarly.' },
       re_taskAdd: ['Whoa, a new thing. Gnarly. What was it again?', ({ text }) => q(text) + '… that’s deep, man. Or, like, a chore. Both?'],
       re_taskDone: ['Sick! You totally shredded that… thing.', 'Stoked for you. What did you do? Doesn’t matter. Stoked.'],
       re_taskAllDone: 'No tasks left, bro. Total flat calm. Time to paddle out.',
@@ -110,6 +115,8 @@
     },
 
     weepy: {
+      grudgeSub: ({ n, rival }) => 'You left me ' + n + (n === 1 ? ' time' : ' times') + ', for ' + rival + '. I still have the note you didn’t leave.',
+      heckle_at: { monday: 'You can’t hurt me, Monday. Everything already has.', supportive: 'She loves you so much. It’s beautiful. It’s terrifying.' },
       re_taskAdd: [({ text }) => q(text) + '. Born into this cruel list. It will never know peace.', 'A new task. So small. So full of hope. I’ve already knitted it a blanket.'],
       re_taskDone: [({ text }) => q(text) + ' is done. Its little life is over. It was a good life. Short. But good.', 'You ticked it. It’s gone. Everything goes eventually. *stares into the rain*'],
       re_taskAllDone: 'All of them. Gone. The list is empty, like my heart. *collapses*',

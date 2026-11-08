@@ -11,38 +11,8 @@ const rich = {
 };
 const empty = { voice: 'neutral', tasks: [], habits: [], presence: {} };
 
-global.window = { SP: { store: { state: rich, save() {} }, ui: { esc: (x) => x, toast() {}, uid: () => Math.random().toString(36).slice(2) }, icon: () => '', scene: { themes: {} }, widgets: {}, widgetMeta: {}, widgetOrder: [], widgetHead: () => '', on() {}, emit() {} } };
-global.addEventListener = () => {};
-global.document = { body: { classList: { contains: () => false } }, addEventListener() {}, querySelector: () => null, getElementById: () => null, querySelectorAll: () => [], documentElement: { dataset: {} } };
-require('../js/voices.js');
-require('../js/brutal.js');
-require('../js/react.js');
-require('../js/secrets.js');
-require('../js/bonds.js');
-require('../js/speak.js');
-require('../js/achieve.js');
-require('../js/season.js');
-require('../js/wrapped.js');
-require('../js/ask.js');
-require('../js/brief.js');
-require('../js/maker.js');
-require('../js/dares.js');
-require('../js/eggs.js');
-require('../js/profiles.js');
-require('../js/panel.js');
-require('../js/modules2.js');
-require('../js/sound.js');
-require('../js/pet.js');
-require('../js/capsule.js');
-require('../js/birthday.js');
-require('../js/faceoff.js');
-require('../js/levels.js');
-require('../js/roasts.js');
-require('../js/modules3.js');
-require('../js/puzzles.js');
-require('../js/puzzlecards.js');
-require('../js/tipsy.js');
-require('../js/lines.js');
+const { load, FILES } = require('./load.js');
+load(rich);
 const V = window.SP.voice;
 
 /* Every argument any key might receive, so functions never see undefined fields. */
@@ -64,11 +34,12 @@ function render(state) {
     state.voice = vk;
     for (const key of new Set([...Object.keys(V.list.neutral), ...Object.keys(voice)])) {
       if (['blurb', 'name', 'descriptor', 'secret', 'heckle_at', 'custom', 'speech', 'swears', 'bond_greet', 'bond_sub'].includes(key)) continue;
+      if (voice[key] === null) continue; // deliberately silent (a personality line)
       const ctx = key === 'greet' ? 'evening' : key === 'addr' ? { name: 'Christoffer' } : CTX;
       // Variations rotate; check every alternative, not just this hour's.
       for (const v of expand(voice[key] !== undefined ? voice[key] : V.list.neutral[key], ctx)) out.push([vk, key, v]);
     }
-    for (const k of Object.keys(V.list)) out.push([vk, 'blurb.' + k, (voice.blurb || {})[k] || V.list.neutral.blurb[k]]);
+    for (const k of Object.keys(V.list)) out.push([vk, 'blurb.' + k, (voice.blurb || {})[k] || V.list.neutral.blurb[k] || V.list[k].descriptor]); // as the voice picker does
   }
   return out;
 }
@@ -302,7 +273,7 @@ test('Surfer and Weepy don’t lean on a single tic', () => {
   assert.ok(sob <= 10, 'Weepy sobs/sniffs in ' + sob + ' lines');
 });
 test('every voice has its own line for every key (no falling back to Neutral)', () => {
-  const unused = ['tab_widgets', 'tab_settings', 'sec_data', 'tgl_quote']; // kept for older custom voices
+  const unused = V.SCHEMA.RETIRED; // kept for older custom voices
   const plain = ['addr']; // some voices just use your name
   for (const [vk, voice] of Object.entries(V.list)) {
     if (vk === 'neutral' || voice.custom) continue;
@@ -491,4 +462,72 @@ test('prompts: plenty of each kind, the same all day, different kinds differ', (
 test('shelf: guesses shows and books from the title', () => {
   const g = window.SP.cards3.guessKind;
   assert.deepEqual(['Severance season 2', 'Dune by Frank Herbert', 'Hades', 'The Expanse S03'].map(g), ['show', 'book', null, 'show']);
+});
+
+/* ---- The voice schema: every voice has exactly the same keys (see SP.voice.SCHEMA and scripts/voices.js) ---- */
+const S = V.SCHEMA;
+const LINE_KEYS = [...new Set([...Object.keys(V.list.neutral).filter((k) => !S.META.includes(k)), ...S.PERSONALITY])];
+test('every voice has exactly the same keys: nothing missing, nothing extra', () => {
+  const known = new Set([...LINE_KEYS, ...S.META]), problems = [];
+  for (const [vk, voice] of Object.entries(V.list)) {
+    if (voice.custom) continue;
+    for (const k of LINE_KEYS) if (voice[k] === undefined && !S.RETIRED.includes(k)) problems.push(vk + ' is missing ' + k);
+    for (const k of Object.keys(voice)) if (!known.has(k)) problems.push(vk + ' has an unknown key ' + k + ' (a typo, or add it to the schema)');
+  }
+  assert.deepEqual(problems, []);
+});
+test('only personality lines may be null (silent); everything on screen needs words, and every voice has a name and a descriptor', () => {
+  const problems = [];
+  for (const [vk, voice] of Object.entries(V.list)) {
+    if (voice.custom) continue;
+    for (const k of LINE_KEYS) if (voice[k] === null && !S.PERSONALITY.includes(k)) problems.push(vk + '.' + k + ' is null');
+    if (!voice.name || !voice.descriptor) problems.push(vk + ' needs a name and a descriptor');
+    if (!voice.blurb || typeof voice.blurb !== 'object') problems.push(vk + ' needs a blurb object');
+  }
+  for (const k of S.PERSONALITY) if (V.list.neutral[k] !== null) problems.push('neutral.' + k + ' should be null: Neutral doesn’t chatter');
+  assert.deepEqual(problems, []);
+});
+test('every file that adds voice lines is on the page (and so loaded by the tests)', () => {
+  const fs = require('fs'), path = require('path'), dir = path.join(__dirname, '../js'), { LINES_RE } = require('./load.js');
+  const adds = fs.readdirSync(dir).filter((f) => !f.startsWith('zz') && LINES_RE.test(fs.readFileSync(path.join(dir, f), 'utf8')));
+  assert.deepEqual(adds.filter((f) => !FILES.includes(f)), [], 'add a <script> tag to index.html');
+});
+test('the template for a new voice is complete, and works as it stands', () => {
+  const { execFileSync } = require('child_process'), fs = require('fs'), path = require('path');
+  const root = path.join(__dirname, '..'), file = path.join(root, 'js/zztemplatetest.js');
+  try {
+    execFileSync('node', ['scripts/voices.js', '--new', 'zztemplatetest', 'Tester'], { cwd: root });
+    require(file);
+    const v = V.list.zztemplatetest, problems = [];
+    for (const k of LINE_KEYS) if (v[k] === undefined && !S.RETIRED.includes(k)) problems.push('missing ' + k);
+    window.SP.store.state = JSON.parse(JSON.stringify(rich)); window.SP.store.state.voice = 'zztemplatetest';
+    for (const k of LINE_KEYS) {
+      if (v[k] === null || S.RETIRED.includes(k)) continue;
+      const ctx = k === 'greet' ? 'evening' : k === 'addr' ? { name: 'Sam' } : CTX;
+      for (const x of expand(v[k], ctx)) if (typeof x !== 'string' || !x) problems.push(k + ' gives ' + typeof x);
+    }
+    assert.deepEqual(problems, []);
+  } finally { delete V.list.zztemplatetest; if (fs.existsSync(file)) fs.unlinkSync(file); }
+});
+
+/* ---- The Conspiracist ---- */
+test('Conspiracist: connects two unrelated things that share a number', () => {
+  const st = window.SP.store.state = JSON.parse(JSON.stringify(rich));
+  st.tasks = [{ id: 1, text: 'a' }, { id: 2, text: 'b' }, { id: 3, text: 'c' }];
+  st.countdowns = [{ id: 'x', title: 'the launch', date: day(-3) }];
+  const now = new Date(); now.setHours(14, 0, 0, 0); // 2 o'clock: no clash with three
+  const f = window.SP.theory.facts(now);
+  assert.ok(f.some((x) => x.from === 'tasks' && x.n === 3) && f.some((x) => x.from.startsWith('countdown') && x.n === 3));
+  const seen = new Set(); for (let h = 0; h < 24; h++) { const d = new Date(now); d.setHours(h); seen.add(window.SP.theory(d)); }
+  assert.ok([...seen].some((t) => /3 unfinished tasks/i.test(t) && /3 days until the launch/.test(t)), [...seen].join(' | '));
+});
+test('Conspiracist: no theory when nothing lines up, and steady within the hour', () => {
+  const st = window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  st.tasks = Array.from({ length: 8 }, (_, i) => ({ id: i, text: 't' + i }));
+  const d = new Date(2026, 10, 9, 14, 5); // the 9th, 2 o'clock, 8 tasks, level 1: nothing matches or adds up
+  assert.equal(window.SP.theory(d), '');
+  st.tasks.pop(); st.tasks.pop(); st.tasks.pop(); st.tasks.pop(); st.tasks.pop(); st.tasks.pop(); st.tasks.pop(); st.tasks.push({ id: 9, text: 'x' }, { id: 10, text: 'y' });
+  st.presence.visits = 2; // two tasks, two visits
+  const a = window.SP.theory(d), b = window.SP.theory(new Date(2026, 10, 9, 14, 50));
+  assert.ok(a && a === b, a + ' / ' + b);
 });

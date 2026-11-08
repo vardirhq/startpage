@@ -74,6 +74,14 @@ Finish everything, though, and you get a rare, grudging nod: *“All of it. Fine
 
 > **Heads-up: Brutal swears.** It’s tagged *Swears* in the voice picker and during setup. To keep the meanness but lose the language, switch off *Let Brutal swear* (Customize → Voice). The words are then masked (f\*\*\*, s\*\*\*), and read-aloud says “bleep”. No other voice swears.
 
+### Conspiracist · *connecting the dots*
+![Conspiracist: “Evening. The streetlights came on early again, Alex.”](docs/voices/conspiracy.png)
+
+A lovable, paranoid detective who believes everything is connected. Its trick: it notices things on your page that have nothing to do with each other, and builds a theory out of them, from your own numbers, right there in the browser:
+> “Think about it. 2 unfinished tasks. 2 days until the eclipse. Two. Again.”
+
+Three open tasks and three degrees outside? Documented. A build that failed while it was raining? Explain that. Very rarely it drops the act (*“For the record, I’m genuinely glad you’re here.”*) and then picks it straight back up: *“Forget I said that. They’re listening.”* The conspiracies are all harmless and made up: the pigeons, the printer, Big Calendar. Never real ones.
+
 ### …and three you have to earn
 
 They wait in the voice picker as `???`, each with a hint.
@@ -233,6 +241,19 @@ scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 
 Every push and pull request runs the same checks on GitHub Actions: a syntax check of every script, the unit tests, and a trial build of both extension packages.
 
+### Adding a voice
+
+Every voice has exactly the same keys: one for every line on the page (onboarding, cards, settings, toasts, the weekly recap…), plus a handful of personality lines (reactions, welcome-backs, the “leaving already?” prompt) that a voice may leave as `null` to stay quiet. Neutral is the plain version of all of it. So a new voice is one file, generated for you:
+
+```
+node scripts/voices.js --new pirate "Captain"   # writes js/pirate.js: every key, grouped by feature, as a copy of Neutral
+                                                 # add <script src="js/pirate.js"></script> after js/conspiracy.js in index.html
+node scripts/voices.js pirate                     # what's missing, unknown or silent
+node scripts/voices.js                            # every voice at a glance
+```
+
+It works the moment it's on the page, sounding exactly like Neutral; then rewrite it line by line. The tests (and CI) fail on a missing key, a misspelt one, an empty line on screen, a file that isn't on the page, or a line you'll see often that doesn't have at least three variations. Achievements, the voice picker, chaos mode and the rest pick a new voice up by themselves.
+
 <details>
 <summary><b>Where things live</b></summary>
 
@@ -241,7 +262,7 @@ Every push and pull request runs the same checks on GitHub Actions: a syntax che
 | `js/store.js` | State in `localStorage`, defaults, migrations, a TTL cache, IndexedDB for a custom background |
 | `js/scene.js`, `js/anim.js` | The procedural pixel scenes (384×216, dithered) and the animation layer on top (~12 fps, pauses when hidden, off with reduced motion) |
 | `js/sky.js`, `js/season.js` | Real weather and daylight in the scene; seasons and holiday events |
-| `js/voices.js`, `js/brutal.js` | The nine regular voices. Neutral is the complete baseline; every other voice overrides it |
+| `js/voices.js`, `js/brutal.js`, `js/conspiracy.js` | The regular voices, the voice schema (`SP.voice.SCHEMA`) and the shared helpers for writing lines |
 | `js/react.js`, `js/bonds.js`, `js/secrets.js` | Reactions, heckles, the activity log; grudges and bond levels; the three secret voices |
 | `js/pet.js`, `js/sound.js` | The cat (a 20×17 sprite on a timer, not every frame); synthesised sound effects (Web Audio) |
 | `js/capsule.js`, `js/birthday.js`, `js/faceoff.js`, `js/levels.js`, `js/roasts.js` | Time capsules, birthday mode, weekly face-offs, levels and titles, bookmark roasts |
