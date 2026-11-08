@@ -12,7 +12,7 @@ Pixel-art new tab with widgets, spaces and voices that roast, cling to or mourn 
 
 Your new tab, with a personality problem.
 
-Startpage is a pixel-art new tab page with the widgets you'd expect: search with commands and math, clock, weather and forecast, tasks, notes, bookmarks, a focus timer, habits with streaks, calendar, countdowns, world clocks, GitHub activity, news, moon phase, on this day, currency, a mood log, "days since" counters and a decision maker. You can group them into spaces such as Home, Work, Gaming and Dev.
+Startpage is a pixel-art new tab page with the widgets you'd expect: search with commands and math, clock, weather and forecast, tasks, notes, bookmarks, a focus timer, habits with streaks, calendar, countdowns, world clocks, GitHub activity, news, moon phase, on this day, currency, a mood log, "days since" counters, a decision maker, and a daily nonogram and sudoku. You can group them into spaces such as Home, Work, Gaming and Dev.
 
 Then pick a voice, and the entire page, settings included, is rewritten in that voice's words:
 

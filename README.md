@@ -116,13 +116,22 @@ Customize → Voice → **Create a voice**. Describe a personality, say “a pir
 - **Morning brief.** On the first tab of the day: the weather, what’s on your list, the streak you’ll lose if you skip today, and what’s coming up this week. In voice, of course.
 - **Daily dares.** One small, optional dare a day. *“Finish one task before you open YouTube. I dare you.”* Say no and you just get a look: *“Saw that coming from a mile away. Two miles.”* No penalties, ever.
 - **Wrapped.** On the first tab each Sunday, your week, narrated: tasks done, focus time, streaks, how often you opened this page (and how many of those visits were after midnight). Save it as an image to share.
-- **Levels.** Tasks, focus sessions, dares and habits earn points, and every voice has its own titles. Professional promotes you from Intern to Chief Everything Officer; Victorian lets you up from the scullery; Monday goes from *Mild disappointment* to *Fine, you win*.
+- **Levels.** Tasks, focus sessions, daily puzzles, dares and habits earn points, and every voice has its own titles. Professional promotes you from Intern to Chief Everything Officer; Victorian lets you up from the scullery; Monday goes from *Mild disappointment* to *Fine, you win*.
 - **Time capsule.** Write a note to future you and seal it for a week, a month, three months or a year. No peeking. When it’s due, you break a wax seal and the voice of the day introduces it: *“8 days ago, you wrote this. Let’s see how that aged.”*
 - **Your birthday.** Tell it the date (Customize → You) and on the day the greeting changes, balloons rise through the scene, the cat wears a party hat, and every voice leaves you a card. The one you’ve spent the most days with gets the big one. Secret voices you haven’t earned leave sealed cards.
-- **Achievements.** Fourteen of them, three of which unlock new scenes (Dunes, Harbor, Polar Night).
+- **Achievements.** Sixteen of them, three of which unlock new scenes (Dunes, Harbor, Polar Night).
 - **Discoveries.** Twelve things are hidden on this page. We’re not listing them. (Fine, one: the Konami code works.)
 
 <p align="center"><img src="docs/wrapped.png" width="360" alt="A weekly recap image narrated by Monday"></p>
+
+## Daily puzzles
+
+Two cards for the first coffee of the day, the same puzzle for everyone on the same day:
+
+- **Nonogram.** A 10×10 pixel picture hidden behind numbers. Fill squares (drag to paint a whole run), right-click to cross them out, and when it's solved the picture appears in colour and goes into your gallery. Every other day it's one of the hand-drawn pictures; the days in between are shapes generated for that date.
+- **Sudoku.** Gentle on Monday, harder through the week, properly tough on Sunday. Notes, clash warnings, and the keyboard works the way you'd expect.
+
+Nothing is downloaded and there's no server. Both puzzles are generated in your browser from the date. A small solver checks every nonogram can be solved by logic alone (no guessing), and every sudoku has exactly one answer. Hints exist, and your voice will remember you used them: *“Hint used. It’s going on your permanent record.”* Solve the daily one to keep a streak going and earn points; after that, play practice puzzles for as long as you like. Open the bigger board with the arrows button.
 
 ## The cat
 
@@ -151,7 +160,7 @@ Widgets you can put on any space (Home, Work, Gaming, Dev, or your own), each wi
 | **Daily** | clock · weather · forecast (with air quality) · moon · on this day · daily quote |
 | **Getting things done** | tasks · notes · focus timer · habits with streaks and a heatmap · countdowns · calendar with week numbers · days since |
 | **For developers** | GitHub activity and CI · repo vitals (which of your repos are alive, fading or dead) · Hacker News / dev.to |
-| **Everything else** | bookmarks and folders · music player (your own streams) · currency converter · mood check-in · time capsule · decide (see below) |
+| **Everything else** | bookmarks and folders · music player (your own streams) · currency converter · mood check-in · time capsule · daily nonogram · daily sudoku · decide (see below) |
 
 **Decide** is for when you can’t: a coin that actually flips (and very occasionally lands on its edge), a die that tumbles, a magic 8-ball that shakes, a slot reel that picks one of your options, rock-paper-scissors against your voice (beat it three times in a row and it starts peeking), and **would you rather**, where two voices each pitch you an option and react to whichever you choose.
 
@@ -229,6 +238,7 @@ scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 | `js/react.js`, `js/bonds.js`, `js/secrets.js` | Reactions, heckles, the activity log; grudges and bond levels; the three secret voices |
 | `js/pet.js`, `js/sound.js` | The cat (a 20×17 sprite on a timer, not every frame); synthesised sound effects (Web Audio) |
 | `js/capsule.js`, `js/birthday.js`, `js/faceoff.js`, `js/levels.js`, `js/roasts.js` | Time capsules, birthday mode, weekly face-offs, levels and titles, bookmark roasts |
+| `js/puzzles.js`, `js/puzzlecards.js` | Daily puzzles: seeded generators, a nonogram line solver and a sudoku solver (the engine); the two cards and their bigger boards |
 | `js/tipsy.js` | Friday night mode: a deterministic slur applied to the chattier lines of any voice (so new content gets drunk for free) |
 | `js/lines.js` | Fills every voice’s gaps, and adds variations to the lines you see most (page copy rotates hourly; toasts pick fresh each time) |
 | `js/widgets.js`, `js/modules.js`, `js/modules2.js` | Every card on the page |

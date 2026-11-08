@@ -37,6 +37,8 @@ require('../js/birthday.js');
 require('../js/faceoff.js');
 require('../js/levels.js');
 require('../js/roasts.js');
+require('../js/puzzles.js');
+require('../js/puzzlecards.js');
 require('../js/tipsy.js');
 require('../js/lines.js');
 const V = window.SP.voice;
@@ -44,7 +46,7 @@ const V = window.SP.voice;
 /* Every argument any key might receive, so functions never see undefined fields. */
 const CTX = { open: 2, focus: 1, n: 3, name: 'Workout', total: 12, dead: 4, flatlined: 2, alive: 4, space: 'Home', to: 'Monday', prev: 'Monday',
   code: 61, temp: 8, units: 'celsius', text: 'Order roof box', time: '23:41', doneToday: 2, added: 5, late: 1, who: 'Monday', top: ['Ship it', 'Call mum'], title: 'Launch', days: 3, scene: 'Dunes', rival: 'Monday', level: 2, days: 31, q: 'sync', phase: 'Waxing crescent', pct: 23, avg: '3.4',
-  you: 'Rock', them: 'Scissors', w: 3, l: 2, host: 'youtube.com', kind: 'video' };
+  you: 'Rock', them: 'Scissors', w: 3, l: 2, host: 'youtube.com', kind: 'video', hints: 1 };
 
 /* Every variation a value can produce: functions may return arrays, arrays may hold functions. */
 function expand(val, ctx) {
@@ -399,4 +401,48 @@ test('Friday night mode: only on Friday nights, only for chatter, and it can be 
     S.tipsy = true; Date.now = () => +new Date(2026, 10, 13, 14, 0);   // Friday afternoon: sober
     assert.equal(T.apply(chat, 're_taskDone'), chat);
   } finally { Date.now = real; delete S.tipsy; }
+});
+
+/* ---- Daily puzzles ---- */
+test('nonograms: every picture is 10×10 and can be solved by logic alone (with its starting cells)', () => {
+  const Z = window.SP.puzzles;
+  for (const a of Z.ART) {
+    assert.equal(a.rows.length, 10, a.id); for (const r of a.rows) assert.equal(r.length, 10, a.id);
+    for (const ch of a.rows.join('').replace(/\./g, '')) assert.ok(Z.COLORS[ch], a.id + ' uses an unknown colour ' + ch);
+    const p = Z.nonoFrom(a, Z.rng(a.id)), known = p.sol.map((v, i) => (i in p.givens ? v : -1));
+    assert.deepEqual(Z.lineSolve(p.rows, p.cols, known), p.sol, a.id);
+    assert.ok(Object.keys(p.givens).length <= 4, a.id + ' needs ' + Object.keys(p.givens).length + ' starting cells');
+  }
+});
+test('nonograms: the same puzzle for everyone on the same day, a picture every other day, always solvable', () => {
+  const Z = window.SP.puzzles, seen = new Set();
+  for (let d = 0; d < 60; d++) {
+    const k = Z.dayKey(new Date(2026, 0, 1 + d)), a = Z.nonogram(k), b = Z.nonogram(k);
+    assert.deepEqual(a.sol, b.sol); assert.deepEqual(a.givens, b.givens);
+    const known = a.sol.map((v, i) => (i in a.givens ? v : -1));
+    assert.deepEqual(Z.lineSolve(a.rows, a.cols, known), a.sol, k);
+    if (a.id !== 'gen') seen.add(a.id);
+  }
+  assert.ok(seen.size >= 20, 'pictures used in 60 days: ' + seen.size);
+});
+test('sudoku: unique, valid, harder through the week, the same for everyone', () => {
+  const Z = window.SP.puzzles; let prev = 99;
+  for (let d = 2; d <= 7; d++) { // Monday 2 November 2026 to Saturday
+    const k = Z.dayKey(new Date(2026, 10, d)), s = Z.sudoku(k), g = s.puzzle.split('').map(Number), n = g.filter(Boolean).length;
+    assert.equal(Z.sudokuSolve(g.slice(), 2), 1, k + ' has one answer');
+    assert.ok(n <= prev, k + ': ' + n + ' givens'); prev = n;
+    assert.equal(s.puzzle, Z.sudoku(k).puzzle);
+    const sol = s.solution.split('').map(Number);
+    for (let i = 0; i < 81; i++) { if (g[i]) assert.equal(g[i], sol[i]); for (const p of Z.PEERS[i]) assert.notEqual(sol[i], sol[p]); }
+  }
+});
+test('puzzle streaks: count consecutive days, reset after a gap', () => {
+  const Z = window.SP.puzzles, st = window.SP.store.state = JSON.parse(JSON.stringify(rich));
+  const today = Z.dayKey(), y = Z.prevDay(today);
+  st.puz = { streak: { sudoku: { n: 4, last: y } } };
+  assert.equal(Z.streak('sudoku'), 4);
+  assert.equal(Z.solvedToday('sudoku'), 5); assert.equal(Z.solvedToday('sudoku'), 5, 'once a day');
+  st.puz.streak.nonogram = { n: 9, last: Z.prevDay(y) };
+  assert.equal(Z.streak('nonogram'), 0); assert.equal(Z.solvedToday('nonogram'), 1);
+  assert.equal(st.totals.puzzles, 2);
 });
