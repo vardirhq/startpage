@@ -28,6 +28,7 @@ require('../js/brief.js');
 require('../js/maker.js');
 require('../js/dares.js');
 require('../js/eggs.js');
+require('../js/profiles.js');
 require('../js/panel.js');
 require('../js/modules2.js');
 require('../js/sound.js');
@@ -445,4 +446,28 @@ test('puzzle streaks: count consecutive days, reset after a gap', () => {
   st.puz.streak.nonogram = { n: 9, last: Z.prevDay(y) };
   assert.equal(Z.streak('nonogram'), 0); assert.equal(Z.solvedToday('nonogram'), 1);
   assert.equal(st.totals.puzzles, 2);
+});
+
+/* ---- Starting setups ---- */
+test('setups: developer jokes only for developers (or anyone with GitHub), and only when there are other options', () => {
+  const st = window.SP.store.state = JSON.parse(JSON.stringify(rich));
+  const all = (k, vk) => new Set(Array.from({ length: 300 }, () => V.line(k, CTX, vk)));
+  const has = (set, re) => [...set].some((x) => re.test(x));
+  assert.ok(has(all('re_taskAllDone', 'owl'), /refactor/), 'no setup chosen (an older install): everything');
+  st.profile = 'student';
+  assert.ok(!has(all('re_taskAllDone', 'owl'), /refactor/), 'student: no refactoring jokes');
+  assert.ok(!has(all('re_taskAdd', 'professional'), /sprint/), 'student: no sprints');
+  assert.equal(V.list.owl.vitalsHero.length > 0, true);
+  st.github = { user: 'octocat' };
+  assert.ok(has(all('re_taskAllDone', 'owl'), /refactor/), 'GitHub connected: back');
+  st.github = { user: '' }; st.profile = 'dev';
+  assert.ok(has(all('re_taskAllDone', 'owl'), /refactor/), 'developer: back');
+});
+test('setups: every card they use exists, and every setup starts with search', () => {
+  const known = new Set(require('fs').readFileSync(require('path').join(__dirname, '../js/app.js'), 'utf8').match(/grid: \{ label: 'Classic', spans: \{([^}]*)\}/)[1].match(/\w+(?=:)/g).concat(['search', 'clock', 'weather', 'github', 'bookmarks', 'tasks', 'notes', 'music', 'quote']));
+  for (const [k, p] of Object.entries(window.SP.profiles.PROFILES)) for (const s of p.spaces) {
+    assert.equal(s.widgets[0], 'search', k + '/' + s.id);
+    for (const w of s.widgets) assert.ok(known.has(w), k + '/' + s.id + ' uses unknown card ' + w);
+  }
+  assert.deepEqual(window.SP.profiles.ORDER.slice().sort(), Object.keys(window.SP.profiles.PROFILES).sort());
 });

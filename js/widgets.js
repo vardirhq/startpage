@@ -597,7 +597,7 @@
         sel = 0;
         ul.innerHTML = items.map((it, i) => '<li role="option" data-i="' + i + '"' + (i === sel ? ' aria-selected="true"' : '') + '>' +
           (it.icon ? I(it.icon, 16) : it.bm ? I('bookmark', 16) : it.fill ? I('code', 16) : it.go ? I('link', 16) : I('search', 16)) + '<span' + (it.answer ? ' class="answer"' : '') + '>' + esc(it.label) + '</span>' + (it.sub ? '<small>' + esc(it.sub) + '</small>' : '') + '</li>').join('') +
-          (v.startsWith('!') || v.startsWith('>') || v.startsWith('?') ? '' : '<li class="hint" aria-hidden="true">Tip: <b>&gt;</b> for commands, <b>?</b> to ask the voice, <b>!gh</b> <b>!mdn</b> <b>!yt</b> for sites, or type math like <b>12*7</b> or <b>5 km to mi</b></li>');
+          (v.startsWith('!') || v.startsWith('>') || v.startsWith('?') ? '' : '<li class="hint" aria-hidden="true">Tip: <b>&gt;</b> for commands, <b>?</b> to ask the voice, ' + (!SP.profiles || SP.profiles.isDev() ? '<b>!gh</b> <b>!mdn</b> <b>!yt</b>' : '<b>!yt</b> <b>!w</b> <b>!maps</b>') + ' for sites, or type math like <b>12*7</b> or <b>5 km to mi</b></li>');
         if (v.startsWith('>') && !items.length) { ul.innerHTML = '<li class="hint">No matching command</li>'; ul.hidden = false; return; }
         ul.hidden = !items.length;
       };

@@ -149,6 +149,9 @@
           field('fld_name', '<input data-set="name" value="' + esc(s.name) + '" autocomplete="given-name">') +
           field('fld_tagline', '<input data-set="tagline" value="' + esc(s.tagline) + '">') +
           field('fld_birthday', SP.birthday.fieldHtml()) +
+          '<div class="field" data-find="setup student creative gamer household family developer basics profile"><span>' + L('fld_setup') + '</span><div class="setup-row"><select data-setup aria-label="Starting setup">' +
+            SP.profiles.ORDER.map((k) => '<option value="' + k + '"' + ((s.profile || 'dev') === k ? ' selected' : '') + '>' + esc(SP.profiles.PROFILES[k].name) + '</option>').join('') + '</select><button class="btn small" data-setup-apply>Use this setup</button></div>' +
+            '<small class="muted">Rearranges your spaces, cards and bookmark tiles for it, and picks a scene. Your tasks, notes, habits and everything else stay.</small></div>' +
           '<button class="link" data-onboard>' + I('sparkles', 14) + ' ' + L('ob_rerun') + '</button>') +
         section('sec_location',
           '<p class="small muted">' + (s.location ? T('locIntro', { name: s.location.name }) : T('locNone')) + '</p>' +
@@ -221,6 +224,12 @@
     SP.ask.bindSettings(p);
     SP.maker.bind(p);
     SP.birthday.bindField(p);
+    const su = p.querySelector('[data-setup-apply]');
+    if (su) su.onclick = async () => {
+      const k = p.querySelector('[data-setup]').value, pr = SP.profiles.PROFILES[k];
+      if (!(await confirm('Set things up for “' + pr.name + '”?', 'Your spaces, the cards on them and your bookmark tiles and folders are replaced with the ' + pr.name.toLowerCase() + ' setup. Tasks, notes, habits, your voice and your history are kept.', 'Set it up'))) return;
+      SP.profiles.apply(k); render();
+    };
     const on = (sel, ev, fn) => $$(sel, p).forEach((n) => n.addEventListener(ev, fn));
     on('[data-close]', 'click', close);
     on('[data-tab]', 'click', (e) => { tab = e.currentTarget.dataset.tab; render(); });

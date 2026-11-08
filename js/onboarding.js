@@ -1,4 +1,5 @@
-/* First-run setup: name → location → voice. Skippable at every step, shown once per browser,
+/* First-run setup: name → what it's for → location → voice. (The "what it's for" step is first-run only:
+   on a re-run it would rearrange spaces you've built; Customize → You has it, with a warning.) Skippable at every step, shown once per browser,
    re-runnable from Settings or `>setup`. The flow is voiced, and it re-voices itself live
    when you pick a voice in step 3. */
 (function (SP) {
@@ -7,7 +8,7 @@
   const I = SP.icon;
   const S = () => SP.store.state;
   const t = (k, c) => SP.voice.t(k, c);
-  const STEPS = ['name', 'location', 'voice'];
+  let STEPS = ['name', 'who', 'location', 'voice'];
   let step = 0, results = [], prevFocus = null, entering = false; // animate the card only when it first opens
   const root = () => document.getElementById('onboard');
 
@@ -27,6 +28,8 @@
     const s = S();
     if (STEPS[step] === 'name') return '<h2 id="ob-title">' + esc(t('ob_title_name')) + '</h2><p class="muted">' + esc(t('ob_name_hint')) + '</p>' +
       '<input class="ob-input" data-ob-name value="' + esc(s.name) + '" placeholder="' + esc(t('ob_name_ph')) + '" autocomplete="given-name" maxlength="40" aria-labelledby="ob-title">';
+    if (STEPS[step] === 'who') { const P = SP.profiles.PROFILES; return '<h2 id="ob-title">' + esc(t('ob_title_who')) + '</h2><p class="muted">' + esc(t('ob_who_hint')) + '</p>' +
+      '<div class="ob-voices ob-who" role="radiogroup" aria-labelledby="ob-title">' + SP.profiles.ORDER.map((k) => '<button role="radio" aria-checked="' + (s.profile === k) + '" data-ob-who="' + k + '"><b>' + I(P[k].icon, 16) + ' ' + esc(P[k].name) + '</b><span>' + esc(P[k].blurb) + '</span></button>').join('') + '</div>'; }
     if (STEPS[step] === 'location') return '<h2 id="ob-title">' + esc(t('ob_title_loc')) + '</h2><p class="muted">' + esc(t('ob_loc_hint')) + '</p>' +
       '<form class="ob-loc" data-ob-loc><input class="ob-input" name="city" placeholder="' + esc(t('locPlaceholder')) + '" autocomplete="address-level2" aria-labelledby="ob-title"><button class="btn">' + esc(t('btn_find')) + '</button></form>' +
       (results.length ? '<ul class="ob-results">' + results.map((x, i) => '<li><button data-ob-pick="' + i + '">' + esc(x.name) + ' <small class="muted">' + esc([x.admin1, x.country].filter(Boolean).join(', ')) + '</small></button></li>').join('') + '</ul>' : '') +
@@ -88,6 +91,8 @@
       if (!navigator.geolocation) return SP.ui.toast('Geolocation isn’t available');
       navigator.geolocation.getCurrentPosition((p) => setLocation('My location', p.coords.latitude, p.coords.longitude), () => SP.ui.toast('Location permission denied'));
     });
+    // Picking a setup lays the page out behind the dialog, so you can see what you're getting.
+    on('[data-ob-who]', 'click', (e) => { SP.profiles.apply(e.currentTarget.dataset.obWho); render(); });
     // Picking a voice re-voices the page *and* this dialog, immediately.
     on('[data-ob-voice]', 'click', (e) => {
       const k = e.currentTarget.dataset.obVoice;
@@ -110,6 +115,7 @@
 
   function start() {
     step = 0; results = []; prevFocus = document.activeElement;
+    STEPS = S().onboarded ? ['name', 'location', 'voice'] : ['name', 'who', 'location', 'voice'];
     if (SP.panel.isOpen()) SP.panel.close();
     root().hidden = false; entering = true;
     document.body.classList.add('onboarding');

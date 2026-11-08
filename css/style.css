@@ -1151,3 +1151,9 @@ body.onboarding #main, body.onboarding #rail { pointer-events: none; }
 .puz-big .sud-grid { --s: clamp(30px, calc((100vw - 80px) / 9.6), 52px); }
 .puz-big .sud-pad { max-width: 460px; } .puz-big .sud-pad button { height: 42px; font-size: 18px; }
 .puz-big .puz-aside { font-size: 14px; }
+
+/* ---- Starting setups ---- */
+.ob-who b { display: inline-flex; align-items: center; gap: 6px; }
+.ob-who b svg { color: var(--accent); }
+.setup-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.setup-row select { flex: 1; min-width: 150px; }

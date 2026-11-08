@@ -4,6 +4,7 @@
    Values: strings, functions of a context object, or arrays (one picked per hour). */
 (function (SP) {
   'use strict';
+  const DEVY = /\b(bugs|sprint|stand-?up|refactor\w*|last commit|repos?|PRs?|CI|GitHub|deploy\w*|production|codebase)\b/;
 
   const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many || one + 's');
   function wx({ code, temp, units }) {
@@ -63,7 +64,7 @@
       reset_title: 'Reset everything?', reset_body: 'All spaces, bookmarks, tasks, notes and settings go back to defaults.', reset_ok: 'Reset',
       import_title: 'Import settings?', import_body: 'This replaces your current startpage data.', import_ok: 'Import',
       dlg_save: 'Save', dlg_cancel: 'Cancel',
-      search_placeholder: 'Search the web, GitHub, docs, or anything…',
+      search_placeholder: ['Search the web, GitHub, docs, or anything…', 'Search the web, or type a sum, or a command…'],
       rail_customize: 'Customize', rail_newSpace: 'New space',
       grid_empty: 'This space has no widgets yet.', grid_emptyBtn: 'Add widgets',
       w_bookmarks: 'Bookmarks', w_tasks: 'Tasks', w_notes: 'Notes', w_github: 'GitHub',
@@ -683,13 +684,20 @@
       for (const ch of key || '') h = (h * 31 + ch.charCodeAt(0)) >>> 0;
       for (let depth = 0; depth < 4; depth++) {
         if (typeof val === 'function') val = val(ctx || {});
-        else if (Array.isArray(val)) val = val.length ? val[random ? Math.floor(Math.random() * val.length) : (h + depth * 7) % val.length] : undefined;
+        else if (Array.isArray(val)) {
+          // Developer jokes are only for developers (js/profiles.js): drop those variations when there are others.
+          if (val.length > 1 && SP.profiles && !SP.profiles.isDev()) { const plain = val.filter((x) => !this.devy(x, ctx)); if (plain.length) val = plain; }
+          val = val.length ? val[random ? Math.floor(Math.random() * val.length) : (h + depth * 7) % val.length] : undefined;
+        }
         else break;
       }
       // Strings pass through the swearing mask, and on Friday nights, the bottle (js/tipsy.js).
       if (typeof val !== 'string') return val;
       val = this.clean(val);
       return SP.tipsy ? SP.tipsy.apply(val, key) : val;
+    },
+    devy(x, ctx) {
+      try { const s = typeof x === 'function' ? x(ctx || {}) : x; return typeof s === 'string' && DEVY.test(s); } catch (e) { return false; }
     },
     /* Brutal swears. With swearing switched off (Customize → Voice), the words are masked: f***, s***. */
     clean(s) {

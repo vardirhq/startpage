@@ -153,7 +153,9 @@ Give it your location and it follows the real world: rain when it’s raining ou
 
 ## What’s on it
 
-Widgets you can put on any space (Home, Work, Gaming, Dev, or your own), each with its own layout and card sizes:
+**Made for you, whoever you are.** Setup asks what the page is for, and lays it out to match: **Student** (exam countdowns, a study space, a break space with the puzzles), **Creative** (a studio space with focus, notes, habits and a time capsule), **Home & family** (the calendar, the forecast, and a weekend space where Decide picks dinner), **Gamer** (release countdowns and what to play tonight), **Developer** (GitHub, CI, repo vitals, Hacker News) or **Just the basics**. Each comes with its own spaces, bookmarks and scene. Change your mind under Customize → You. And the developer jokes (refactoring at 2am, sprints, stand-ups) only show up if you’re a developer, or you’ve connected GitHub.
+
+Widgets you can put on any space, each with its own layout and card sizes:
 
 | | |
 |---|---|
@@ -199,7 +201,7 @@ This uses the Claude API with **your own key** (Customize → Voice → Ask a vo
 - **Firefox:** use the `-firefox.zip` from Releases, via *about:debugging → Load Temporary Add-on*.
 - **Across devices:** add a GitHub token with `gist` access (Customize → Data → Sync) and your setup follows you through a private gist. The token itself is never uploaded.
 
-A fresh install starts empty: no name, no location, just a short setup, which you can skip, and a few example tasks that explain themselves.
+A fresh install starts empty: no name, no location, just a short setup (your name, what the page is for, where you are, and a voice), which you can skip, and a few example tasks that explain themselves.
 
 <br clear="right">
 
@@ -244,6 +246,7 @@ scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 | `js/widgets.js`, `js/modules.js`, `js/modules2.js` | Every card on the page |
 | `js/palette.js` | The search bar’s maths parser, unit, currency and date conversions, and `>` commands |
 | `js/panel.js` | Customize: six tabs (Space, Look, Voice, You, Progress, Data), plus a search across all of them |
+| `js/profiles.js` | The starting setups (student, creative, home & family, gamer, developer, basics), and who gets developer jokes |
 | `js/onboarding.js`, `js/brief.js`, `js/dares.js`, `js/wrapped.js`, `js/achieve.js`, `js/eggs.js` | Setup, the morning brief, dares, the weekly recap, achievements, discoveries |
 | `js/ask.js`, `js/maker.js` | Claude: Ask (with tools) and the voice maker (structured output, sanitised share links) |
 | `js/speak.js`, `js/sync.js` | Read-aloud; gist sync |
