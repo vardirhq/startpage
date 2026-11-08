@@ -231,6 +231,8 @@ node --test test/*.test.js       # unit tests
 scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 ```
 
+Every push and pull request runs the same checks on GitHub Actions: a syntax check of every script, the unit tests, and a trial build of both extension packages.
+
 <details>
 <summary><b>Where things live</b></summary>
 

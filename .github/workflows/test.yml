@@ -1,0 +1,30 @@
+name: Test
+
+# Every push and pull request: the unit tests, a syntax check of every script, and a trial build of the
+# Chrome and Firefox packages (which also fails on inline scripts or eval, as MV3 extension pages forbid them).
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: for f in js/*.js sw.js; do node --check "$f"; done
+      - name: Unit tests, then package the extension
+        run: scripts/package.sh
