@@ -74,7 +74,7 @@
 
   /* ---- the slur: deterministic, seeded by the line itself ---- */
   const SOBER = /^(morning_after|tgl_)/;
-  const DRUNK = /^(re_|heckle|fo_|rps_|bm_roast|capsule_(ready|open|sealed)|tipsy_in)|^(greet|heroSub|tasksEmpty|focusDone|breakDone|habitsEmpty|cdEmpty|grid_empty|welcomeBack|welcomeVoice|streakToast|weatherQuip|dare_done|dare_declined|mood_log|decide_aside|decide_edge|ball|wyr_won|wyr_lost|pet_poke|pet_meet|notes_placeholder|task_placeholder|search_placeholder|since_empty|since_reset|otd_intro|mb_noTasks|lvl_up|ach_toast|puz_solved|puz_hint|puz_reveal|puz_streak|puz_tomorrow|focusToday|moonQuip|toast_location|chaosOn|bday_card)$/;
+  const DRUNK = /^(re_|heckle|fo_|rps_|bm_roast|capsule_(ready|open|sealed)|tipsy_in)|^(greet|heroSub|tasksEmpty|focusDone|breakDone|habitsEmpty|cdEmpty|grid_empty|welcomeBack|welcomeVoice|streakToast|weatherQuip|dare_done|dare_declined|mood_log|decide_aside|decide_edge|ball|wyr_won|wyr_lost|pet_poke|pet_meet|notes_placeholder|task_placeholder|search_placeholder|since_empty|since_reset|otd_intro|mb_noTasks|lvl_up|ach_toast|puz_solved|puz_hint|puz_reveal|puz_streak|puz_tomorrow|shelf_pick|shelf_finish|flash_done|shop_done|prompt_did|focusToday|moonQuip|toast_location|chaosOn|bday_card)$/;
   const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h; };
   const rng = (seed) => () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 

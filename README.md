@@ -116,7 +116,7 @@ Customize → Voice → **Create a voice**. Describe a personality, say “a pir
 - **Morning brief.** On the first tab of the day: the weather, what’s on your list, the streak you’ll lose if you skip today, and what’s coming up this week. In voice, of course.
 - **Daily dares.** One small, optional dare a day. *“Finish one task before you open YouTube. I dare you.”* Say no and you just get a look: *“Saw that coming from a mile away. Two miles.”* No penalties, ever.
 - **Wrapped.** On the first tab each Sunday, your week, narrated: tasks done, focus time, streaks, how often you opened this page (and how many of those visits were after midnight). Save it as an image to share.
-- **Levels.** Tasks, focus sessions, daily puzzles, dares and habits earn points, and every voice has its own titles. Professional promotes you from Intern to Chief Everything Officer; Victorian lets you up from the scullery; Monday goes from *Mild disappointment* to *Fine, you win*.
+- **Levels.** Tasks, focus sessions, daily puzzles, prompts, flashcard reviews, finished games and books, dares and habits earn points, and every voice has its own titles. Professional promotes you from Intern to Chief Everything Officer; Victorian lets you up from the scullery; Monday goes from *Mild disappointment* to *Fine, you win*.
 - **Time capsule.** Write a note to future you and seal it for a week, a month, three months or a year. No peeking. When it’s due, you break a wax seal and the voice of the day introduces it: *“8 days ago, you wrote this. Let’s see how that aged.”*
 - **Your birthday.** Tell it the date (Customize → You) and on the day the greeting changes, balloons rise through the scene, the cat wears a party hat, and every voice leaves you a card. The one you’ve spent the most days with gets the big one. Secret voices you haven’t earned leave sealed cards.
 - **Achievements.** Sixteen of them, three of which unlock new scenes (Dunes, Harbor, Polar Night).
@@ -141,6 +141,8 @@ A small ginger pixel cat lives on top of your cards. It wanders, naps, sleeps at
 
 The background is procedurally generated pixel art: mountains, cities, dunes, auroras, drawn fresh from a seed with no image files. Shuffle it as often as you like.
 
+Not a fan of dark mode? **Daydream** is a bright, soft afternoon with light cards to match. Light cards work with any scene too (Customize → Look → Cards), and the accent colour deepens a shade so text stays readable.
+
 Give it your location and it follows the real world: rain when it’s raining outside, fog, snow, the occasional thunderstorm, and light that tracks your actual sunrise and sunset. The seasons show up too (blossoms, fireflies, falling leaves, flurries), flipped if you live south of the equator. A few holidays bring visitors:
 
 | When | What happens |
@@ -153,13 +155,14 @@ Give it your location and it follows the real world: rain when it’s raining ou
 
 ## What’s on it
 
-**Made for you, whoever you are.** Setup asks what the page is for, and lays it out to match: **Student** (exam countdowns, a study space, a break space with the puzzles), **Creative** (a studio space with focus, notes, habits and a time capsule), **Home & family** (the calendar, the forecast, and a weekend space where Decide picks dinner), **Gamer** (release countdowns and what to play tonight), **Developer** (GitHub, CI, repo vitals, Hacker News) or **Just the basics**. Each comes with its own spaces, bookmarks and scene. Change your mind under Customize → You. And the developer jokes (refactoring at 2am, sprints, stand-ups) only show up if you’re a developer, or you’ve connected GitHub.
+**Made for you, whoever you are.** Setup asks what the page is for, and lays it out to match: **Student** (exam countdowns, flashcards, a study space and a break space with the puzzles), **Creative** (a daily prompt, a studio space with focus, notes and habits), **Home & family** (the shopping list, the calendar, and a weekend space where Decide picks dinner), **Gamer** (the shelf for your backlog, release countdowns), **Developer** (GitHub, CI, repo vitals, Hacker News) or **Just the basics** (five cards and the light Daydream scene). Each comes with its own spaces, bookmarks and scene. Change your mind under Customize → You. And the developer jokes (refactoring at 2am, sprints, stand-ups) only show up if you’re a developer, or you’ve connected GitHub.
 
 Widgets you can put on any space, each with its own layout and card sizes:
 
 | | |
 |---|---|
 | **Daily** | clock · weather · forecast (with air quality) · moon · on this day · daily quote |
+| **For everyone else** | **shelf**: games, books, shows and films you mean to get to, with a *pick for tonight* · **flashcards**: a small deck that comes back just before you’d forget it (1, 3, 7, 16, then 35 days) · **shopping list**: commas add several, copy it to send · **daily prompt**: one thing to write, draw or make, with a streak |
 | **Getting things done** | tasks · notes · focus timer · habits with streaks and a heatmap · countdowns · calendar with week numbers · days since |
 | **For developers** | GitHub activity and CI · repo vitals (which of your repos are alive, fading or dead) · Hacker News / dev.to |
 | **Everything else** | bookmarks and folders · music player (your own streams) · currency converter · mood check-in · time capsule · daily nonogram · daily sudoku · decide (see below) |
@@ -243,7 +246,7 @@ scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 | `js/puzzles.js`, `js/puzzlecards.js` | Daily puzzles: seeded generators, a nonogram line solver and a sudoku solver (the engine); the two cards and their bigger boards |
 | `js/tipsy.js` | Friday night mode: a deterministic slur applied to the chattier lines of any voice (so new content gets drunk for free) |
 | `js/lines.js` | Fills every voice’s gaps, and adds variations to the lines you see most (page copy rotates hourly; toasts pick fresh each time) |
-| `js/widgets.js`, `js/modules.js`, `js/modules2.js` | Every card on the page |
+| `js/widgets.js`, `js/modules.js`, `js/modules2.js`, `js/modules3.js` | Every card on the page (modules3: shelf, flashcards, shopping list, daily prompt) |
 | `js/palette.js` | The search bar’s maths parser, unit, currency and date conversions, and `>` commands |
 | `js/panel.js` | Customize: six tabs (Space, Look, Voice, You, Progress, Data), plus a search across all of them |
 | `js/profiles.js` | The starting setups (student, creative, home & family, gamer, developer, basics), and who gets developer jokes |

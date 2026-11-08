@@ -38,6 +38,7 @@ require('../js/birthday.js');
 require('../js/faceoff.js');
 require('../js/levels.js');
 require('../js/roasts.js');
+require('../js/modules3.js');
 require('../js/puzzles.js');
 require('../js/puzzlecards.js');
 require('../js/tipsy.js');
@@ -470,4 +471,24 @@ test('setups: every card they use exists, and every setup starts with search', (
     for (const w of s.widgets) assert.ok(known.has(w), k + '/' + s.id + ' uses unknown card ' + w);
   }
   assert.deepEqual(window.SP.profiles.ORDER.slice().sort(), Object.keys(window.SP.profiles.PROFILES).sort());
+});
+
+/* ---- Shelf, flashcards, prompts ---- */
+test('flashcards: right answers wait longer each time (1, 3, 7, 16, 35 days); a miss starts over tomorrow', () => {
+  const C = window.SP.cards3, today = window.SP.puzzles.dayKey(), c = { box: 0 };
+  const gap = () => Math.round((new Date(c.due + 'T12:00') - new Date(today + 'T12:00')) / 864e5);
+  const seen = []; for (let i = 0; i < 6; i++) { C.grade(c, true); seen.push(gap()); }
+  assert.deepEqual(seen, [1, 3, 7, 16, 35, 35]);
+  C.grade(c, false); assert.equal(c.box, 0); assert.equal(gap(), 1);
+});
+test('prompts: plenty of each kind, the same all day, different kinds differ', () => {
+  const C = window.SP.cards3;
+  for (const k of ['write', 'draw', 'make']) { assert.ok(C.PROMPTS[k].length >= 25, k); assert.equal(new Set(C.PROMPTS[k]).size, C.PROMPTS[k].length, k + ' has duplicates'); }
+  window.SP.store.state = JSON.parse(JSON.stringify(rich));
+  assert.equal(C.todays('write'), C.todays('write'));
+  assert.ok(C.PROMPTS.draw.includes(C.todays('draw')));
+});
+test('shelf: guesses shows and books from the title', () => {
+  const g = window.SP.cards3.guessKind;
+  assert.deepEqual(['Severance season 2', 'Dune by Frank Herbert', 'Hades', 'The Expanse S03'].map(g), ['show', 'book', null, 'show']);
 });

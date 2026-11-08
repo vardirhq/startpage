@@ -309,6 +309,19 @@
       ],
       fx: 'dust',
     },
+    daydream: {
+      name: 'Daydream', tint: '#f3effb', horizon: 0.68, light: true, // a bright, soft afternoon; turns the cards light too
+      sky: ['#86b9f5', '#a9cdf7', '#cfe2fb', '#f3e6f4', '#ffe0d2'],
+      sun: { x: 0.74, y: 0.24, r: 0.055, top: '#fffcef' },
+      glow: { x: 0.74, y: 0.24, r: 0.45, c: '#fff6e6', s: 0.55 },
+      clouds: { n: 8, y: [0.1, 0.42], lit: '#ffffff', dark: '#e3d9f2', a: 0.95 },
+      mountains: [
+        { height: 0.34, rough: 0.5, color: '#b7a6de', lit: '#d3c6f1', haze: '#f2d9ec', lightLeft: true },
+        { height: 0.19, rough: 0.58, color: '#94c7aa', lit: '#b6dfc6', lightLeft: true },
+      ],
+      shore: '#6fae8a', water: '#9fcbef', waterMix: 0.45, treeMin: 3, treeMax: 9, sparkle: '#ffffff',
+      fg: '#4f8f6c', fgMid: '#6fae8a', fx: 'dust',
+    },
     /* ---- reward scenes: unlocked by achievements (js/achieve.js) ---- */
     dunes: {
       name: 'Dunes', tint: '#2a1410', horizon: 1, locked: true,

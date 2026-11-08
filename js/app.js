@@ -11,7 +11,7 @@
     focus: { label: 'Focus', spans: {} },
     split: { label: 'Two columns', spans: { bookmarks: 24, music: 24 } },
     grid: { label: 'Classic', spans: { clock: 7, weather: 8, github: 9, bookmarks: 11, tasks: 6.5, notes: 6.5, music: 13, quote: 11,
-      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8, moon: 8, onthisday: 10, fx: 8, mood: 7, since: 8, decide: 7, capsule: 8, nonogram: 8, sudoku: 8 } },
+      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8, moon: 8, onthisday: 10, fx: 8, mood: 7, since: 8, decide: 7, capsule: 8, nonogram: 8, sudoku: 8, shelf: 10, flash: 8, shop: 7, prompt: 9 } },
     dense: { label: 'Dense', spans: { bookmarks: 12, github: 12, music: 12, quote: 12, forecast: 12, news: 12, habits: 12, onthisday: 12, nonogram: 12, sudoku: 12 } },
   };
   const DEFAULT_SPAN = { focus: 24, split: 12, grid: 8, dense: 6 };
@@ -194,14 +194,27 @@
   }
 
   /* ---------- theme & background ---------- */
+  // Darken a colour until it reads on white (WCAG contrast ≥ 4.5), keeping its hue.
+  function deepen(h) {
+    const c = hexToRgb(h).split(',').map(Number), lum = (r) => { const v = r.map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    let k = 1, out = c;
+    while (k > 0.3 && 1.05 / (lum(out) + 0.05) < 4.5) { k -= 0.04; out = c.map((x) => Math.round(x * k)); }
+    return '#' + out.map((x) => x.toString(16).padStart(2, '0')).join('');
+  }
   function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(','); }
   let bgUrl = null;
   async function applyTheme() {
     const s = S(), t = SP.scene.themes[s.theme] || SP.scene.themes.midnight, root = document.documentElement.style;
-    root.setProperty('--accent', s.accent);
-    root.setProperty('--accent-rgb', hexToRgb(s.accent));
-    root.setProperty('--tint-rgb', hexToRgb(t.tint));
+    // Light cards: Daydream asks for them; anyone can choose them (or dark) under Customize → Look.
+    const light = s.ui === 'light' || (s.ui !== 'dark' && !!t.light);
+    // On light cards the accent is used a shade deeper, so accent-coloured text stays readable.
+    const acc = light ? deepen(s.accent) : s.accent;
+    root.setProperty('--accent', acc);
+    root.setProperty('--accent-rgb', hexToRgb(acc));
+    root.setProperty('--tint-rgb', hexToRgb(light && !t.light ? '#f3effb' : t.tint));
     document.documentElement.dataset.theme = s.theme;
+    document.documentElement.dataset.ui = light ? 'light' : 'dark';
+    const mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.content = light ? '#f3effb' : '#15112e';
     const meta = SP.scene.render($('#bg-canvas'), s.theme, s.seed, { meta: true });
     SP.anim.start(s.animate && !s.customBg ? meta : null);
     const img = $('#bg-image');

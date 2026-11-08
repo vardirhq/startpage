@@ -33,8 +33,8 @@
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
 
-  const WEIGHTS = { done: 10, focus: 25, dares: 40, habits: 5, moods: 5, puzzles: 20 };
-  const LABEL = { done: 'tasks', focus: 'focus', dares: 'dares', habits: 'habits', moods: 'moods', puzzles: 'puzzles', ach: 'achievements', eggs: 'discoveries' };
+  const WEIGHTS = { done: 10, focus: 25, dares: 40, habits: 5, moods: 5, puzzles: 20, shelf: 15, decks: 10, prompts: 15 };
+  const LABEL = { done: 'tasks', focus: 'focus', dares: 'dares', habits: 'habits', moods: 'moods', puzzles: 'puzzles', shelf: 'finished', decks: 'reviews', prompts: 'prompts', ach: 'achievements', eggs: 'discoveries' };
   function breakdown() {
     const t = S().totals || {}, out = {};
     for (const [k, w] of Object.entries(WEIGHTS)) out[k] = Math.max(0, t[k] || 0) * w;

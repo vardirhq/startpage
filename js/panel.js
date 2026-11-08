@@ -125,7 +125,11 @@
           (hidden.length ? '<h4 class="p-sub">' + L('moreWidgets') + '</h4><ul class="w-list">' + hidden.map(row).join('') + '</ul>' : ''));
     },
     look() {
-      return section('sec_theme', themePicker()) +
+      const ui = S().ui || 'auto';
+      return section('sec_theme', themePicker() +
+          '<div class="field" data-find="light dark mode cards appearance bright"><span>Cards</span><div class="seg" role="radiogroup" aria-label="Cards">' +
+          [['auto', 'Match the scene'], ['dark', 'Dark'], ['light', 'Light']].map(([k, n]) => '<button role="radio" data-ui="' + k + '" aria-checked="' + (ui === k) + '">' + n + '</button>').join('') +
+          '</div><small class="muted">Daydream comes with light cards. Pick Light or Dark to keep one look whatever the scene.</small></div>') +
         section('sec_background', bgRow()) +
         section('sec_accent', accentRow(true)) +
         section('sec_motion', toggle('animate', 'tgl_animate', S().animate) + toggle('liveSky', 'tgl_liveSky', S().liveSky !== false) + toggle('seasons', 'tgl_seasons', S().seasons !== false) +
@@ -236,6 +240,7 @@
     on('[data-goto]', 'click', (e) => open(e.currentTarget.dataset.goto, e.currentTarget.dataset.focus));
     on('[data-find-input]', 'input', (e) => { query = e.target.value.trim(); render(); });
     on('[data-find-input]', 'keydown', (e) => { if (e.key === 'Escape' && query) { e.preventDefault(); e.stopPropagation(); query = ''; render(); } });
+    on('[data-ui]', 'click', (e) => { const v = e.currentTarget.dataset.ui; if (v === 'auto') delete S().ui; else S().ui = v; save(); SP.app.applyTheme(); render(); });
     on('[data-layout]', 'click', (e) => { S().layout = e.currentTarget.dataset.layout; save(); SP.app.renderMain(); render(); });
     on('[data-wtoggle]', 'change', (e) => { setWidget(e.target.dataset.wtoggle, e.target.checked); render(); });
     on('[data-theme]', 'click', (e) => { if (!SP.achieve.sceneUnlocked(e.currentTarget.dataset.theme)) return; S().theme = e.currentTarget.dataset.theme; S().customBg = false; save(); SP.app.applyTheme(); SP.app.renderMain(); render(); });
