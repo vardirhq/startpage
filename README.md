@@ -108,6 +108,7 @@ Customize → Voice → **Create a voice**. Describe a personality, say “a pir
 - **Chaos mode** gives every card on the page its own voice. It’s exactly as calm as it sounds.
 - **They fight about you.** One day a week, two voices argue under the greeting about your to-do list, your sleep, your streaks or your focus, using your real numbers. You vote. The winner gloats; if your voice loses, it sulks on the summary line for the rest of the day. *“I lost the face-off. Today’s summary is cancelled. Figure it out yourself.”*
 - **They notice your bookmarks.** Open YouTube for the fifth time and Monday has thoughts: *“5 trips to youtube.com. “Just one video.” Sure.”* Counted only in your browser.
+- **They drink on Fridays.** On Friday and Saturday nights (22:00 to 03:00), whichever voice you use has had a few. Its chatter slurs, hiccups and drifts into over-affectionate asides, while buttons and settings stay sober. Brutal admits it’s proud of you; Victorian insists it was one sherry; the cat walks a little unsteadily. If you were there, the next morning brings something sheepish: *“About last night. I said some nice things. They were lies. Mostly.”* Switch it off with *Friday night mode* in Customize → Voice.
 - **They can speak.** Turn on *Read reactions aloud* and each voice gets its own pitch and pace: a slow Victorian, a breathless Supportive, a Ghost you can barely hear.
 
 ## Little rituals
@@ -228,6 +229,7 @@ scripts/package.sh               # tests + Chrome and Firefox zips in dist/
 | `js/react.js`, `js/bonds.js`, `js/secrets.js` | Reactions, heckles, the activity log; grudges and bond levels; the three secret voices |
 | `js/pet.js`, `js/sound.js` | The cat (a 20×17 sprite on a timer, not every frame); synthesised sound effects (Web Audio) |
 | `js/capsule.js`, `js/birthday.js`, `js/faceoff.js`, `js/levels.js`, `js/roasts.js` | Time capsules, birthday mode, weekly face-offs, levels and titles, bookmark roasts |
+| `js/tipsy.js` | Friday night mode: a deterministic slur applied to the chattier lines of any voice (so new content gets drunk for free) |
 | `js/lines.js` | Fills every voice’s gaps, and adds variations to the lines you see most (page copy rotates hourly; toasts pick fresh each time) |
 | `js/widgets.js`, `js/modules.js`, `js/modules2.js` | Every card on the page |
 | `js/palette.js` | The search bar’s maths parser, unit, currency and date conversions, and `>` commands |

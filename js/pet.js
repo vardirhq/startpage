@@ -94,7 +94,8 @@
   function place() {
     if (!el || !track) return;
     el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(track.y - H * SCALE + 3) + 'px)';
-    cv.style.transform = face < 0 ? 'scaleX(-1)' : '';
+    const wob = SP.tipsy && SP.tipsy.active() && !still() ? ' rotate(' + (Math.sin(performance.now() / 260) * 7).toFixed(1) + 'deg)' : ''; // Friday night: a little unsteady
+    cv.style.transform = (face < 0 ? 'scaleX(-1)' : '') + wob;
   }
 
   function decide(t) {

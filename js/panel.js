@@ -138,7 +138,7 @@
         section('sec_talk', toggle('showSummary', 'tgl_summary', S().showSummary) + toggle('heckles', 'tgl_heckles', S().heckles !== false) +
           toggle('dares', 'tgl_dares', S().dares !== false) + toggle('brief', 'tgl_brief', S().brief !== false) +
           (SP.speak.supported() ? toggle('speak', 'tgl_speak', !!S().speak) : '') + (SP.sound.supported() ? toggle('sounds', 'tgl_sounds', !!S().sounds) : '') +
-          toggle('faceoffs', 'tgl_faceoffs', S().faceoffs !== false) + toggle('roasts', 'tgl_roasts', S().roasts !== false) + toggle('swear', 'tgl_swear', S().swear !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
+          toggle('faceoffs', 'tgl_faceoffs', S().faceoffs !== false) + toggle('roasts', 'tgl_roasts', S().roasts !== false) + toggle('swear', 'tgl_swear', S().swear !== false) + toggle('tipsy', 'tgl_tipsy', S().tipsy !== false) + toggle('chaos', 'tgl_chaos', !!S().chaos)) +
         section('sec_myvoices', '<p class="small muted">Describe a personality and Claude writes it, using your API key. Share your voices as a link or a file.</p>' + SP.maker.sectionHtml()) +
         section('sec_ask', SP.ask.settingsHtml());
     },
@@ -252,6 +252,7 @@
       if (k === 'syncAuto') { S().sync.auto = v; save(); return; }
       if (k === 'animate') { S().animate = v; save(); SP.app.applyTheme(); render(); return; }
       if (k === 'showSummary' || k === 'heckles' || k === 'dares' || k === 'faceoffs') { S()[k] = v; save(); SP.app.renderHero(); return; }
+      if (k === 'tipsy') { S().tipsy = v; save(); SP.app.renderAll(); return; }
       if (k === 'swear') { S().swear = v; save(); SP.app.renderAll(); return; }
       if (k === 'sounds') { S().sounds = v; save(); if (v) SP.sound.play('tick'); return; }
       if (k === 'speak') { S().speak = v; save(); if (v) SP.speak.say(SP.voice.t('speakHello'), null, true); else SP.speak.stop(); return; }

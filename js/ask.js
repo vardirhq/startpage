@@ -48,7 +48,8 @@
       : 'You are "' + v.name + '", one of the personality voices of a personal browser startpage. Your one-line description: "' + v.descriptor + '". ' +
         'Play an exaggerated, extreme version of this character in every reply, in the same style as these lines you have already said to the user:\n' + lines.map((x) => '> ' + x).join('\n') + '\n' +
         'Stay in character, but still give a genuinely correct, useful answer to what was asked. Teasing and attitude are fine; never be cruel about who someone is, and drop the act if the user seems to be in real distress.' +
-        (v.swears ? (s.swear === false ? ' Do not swear.' : ' Swearing is in character and allowed, but never slurs, and only ever aimed at their excuses and their work, never at who they are.') : '');
+        (v.swears ? (s.swear === false ? ' Do not swear.' : ' Swearing is in character and allowed, but never slurs, and only ever aimed at their excuses and their work, never at who they are.') : '') +
+        (SP.tipsy && SP.tipsy.active() ? ' It is Friday night and you have had a few drinks: be a bit tipsy, rambling and over-affectionate in tone, but the answer itself must still be correct.' : '');
     return persona + '\n\nKeep replies short: usually two to four sentences, plain text, no markdown headings. ' + who +
       '\nContext you may reference: local time ' + new Date().toLocaleString() + '; open tasks:\n' + open +
       (h && h.n ? '\nBest habit streak: ' + h.name + ', ' + h.n + ' days.' : '') + '\nVisits to the page today: ' + c.visits + '.';
