@@ -28,7 +28,7 @@ Then pick a voice, and the entire page, settings included, is rewritten in that 
 
 The voices react as things happen: finishing a task, pausing the timer at 23:41, breaking a streak, opening a tab at 3am. Now and then they interrupt each other. Every Sunday you get a weekly recap narrated by your voice, which you can save as an image. Bring your own Claude API key and you can ask your voice anything.
 
-The sky outside your window follows the real weather and your real sunrise. Earn new scenes with achievements, take (or chicken out of) a daily dare, and hunt for hidden discoveries. The seasons change the scene, and holidays bring guests: Ghost haunts the last week of October. Have your voice read things aloud, get a morning brief, or write your own voice ("a pirate who hates Mondays") and share it as a link.
+The sky outside your window follows the real weather and your real sunrise. On Friday nights, they’ve had a few. Earn new scenes with achievements, take (or chicken out of) a daily dare, and hunt for hidden discoveries. The seasons change the scene, and holidays bring guests: Ghost haunts the last week of October. Have your voice read things aloud, get a morning brief, or write your own voice ("a pirate who hates Mondays") and share it as a link.
 
 Private by design: no account, no analytics, no server. Your data stays in your browser. Optional sync goes through a private GitHub Gist in your own account.
 
@@ -37,6 +37,7 @@ Private by design: no account, no analytics, no server. Your data stays in your 
 - Single purpose: replaces the new tab page with a customizable dashboard.
 - Permissions: none requested.
 - Remote code: none. All code ships in the package.
+- Content: on Friday and Saturday nights the voices act tipsy (slurred text, hiccups), as a comedy bit with no promotion of drinking; it can be switched off in settings.
 - Content: one optional voice (Brutal) uses profanity. It is labelled “Swears” wherever you pick a voice, is never the default, and can be masked with a setting.
 - Data usage: the extension does not collect or transmit user data to the developer. Requests go directly from the user's browser to the third-party services listed in PRIVACY.md, and only when the user enables them.
 - Privacy policy URL: https://github.com/vardirhq/startpage/blob/main/PRIVACY.md

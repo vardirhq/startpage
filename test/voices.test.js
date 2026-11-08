@@ -37,6 +37,7 @@ require('../js/birthday.js');
 require('../js/faceoff.js');
 require('../js/levels.js');
 require('../js/roasts.js');
+require('../js/tipsy.js');
 require('../js/lines.js');
 const V = window.SP.voice;
 
@@ -366,4 +367,36 @@ test('swearing off masks Brutal’s swear words, and only those', () => {
 test('only Brutal swears (the other voices stay clean)', () => {
   const SWEARS = /\b(fuck\w*|bullshit|shit\w*|goddamn\w*|bastards?)\b/i;
   for (const vk of Object.keys(V.list)) { if (vk === 'brutal') continue; const bad = lines(vk).filter((s) => SWEARS.test(s)); assert.deepEqual(bad, [], vk + ': ' + bad[0]); }
+});
+
+/* ---- Friday night mode ---- */
+test('Friday night mode: Friday and Saturday, 22:00 to 03:00', () => {
+  const T = window.SP.tipsy, at = (d, h, m) => new Date(2026, 10, d, h, m || 0); // 13 Nov 2026 is a Friday
+  assert.ok(T.night(at(13, 23)) && T.night(at(14, 1)) && T.night(at(14, 22)) && T.night(at(15, 2, 59)));
+  assert.ok(!T.night(at(13, 21, 59)) && !T.night(at(14, 4)) && !T.night(at(15, 22)) && !T.night(at(12, 23)) && !T.night(at(13, 2)));
+  assert.equal(T.night(at(14, 1)), '2026-11-13'); // after midnight still belongs to Friday night
+});
+test('Friday night mode: slurs the chatter, deterministically, and leaves task names and numbers alone', () => {
+  const T = window.SP.tipsy;
+  const line = 'This is your 3rd session. Still “Fix the flaky test”, still nothing. Seriously.';
+  const a = T.slur(line, 'monday'), b = T.slur(line, 'monday');
+  assert.equal(a, b, 'same line, same slur (no flicker)');
+  assert.notEqual(a, line);
+  assert.ok(a.includes('“Fix the flaky test”') && a.includes('3rd'), a);
+  assert.ok(/sh/i.test(a), a);
+});
+test('Friday night mode: only on Friday nights, only for chatter, and it can be switched off', () => {
+  const S = window.SP.store.state, T = window.SP.tipsy, real = Date.now;
+  Date.now = () => +new Date(2026, 10, 13, 23, 30);
+  try {
+    S.tipsy = true;
+    const chat = 'Seriously, this is a sentence with lots of s sounds in it.';
+    assert.notEqual(T.apply(chat, 're_taskDone'), chat);
+    assert.equal(T.apply('Settings', 'tab_settings'), 'Settings');     // labels stay sober
+    assert.equal(T.apply(chat, 'morning_after'), chat);                // the morning after is very sober
+    S.tipsy = false;
+    assert.equal(T.apply(chat, 're_taskDone'), chat);
+    S.tipsy = true; Date.now = () => +new Date(2026, 10, 13, 14, 0);   // Friday afternoon: sober
+    assert.equal(T.apply(chat, 're_taskDone'), chat);
+  } finally { Date.now = real; delete S.tipsy; }
 });

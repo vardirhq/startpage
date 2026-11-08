@@ -686,7 +686,10 @@
         else if (Array.isArray(val)) val = val.length ? val[random ? Math.floor(Math.random() * val.length) : (h + depth * 7) % val.length] : undefined;
         else break;
       }
-      return typeof val === 'string' ? this.clean(val) : val;
+      // Strings pass through the swearing mask, and on Friday nights, the bottle (js/tipsy.js).
+      if (typeof val !== 'string') return val;
+      val = this.clean(val);
+      return SP.tipsy ? SP.tipsy.apply(val, key) : val;
     },
     /* Brutal swears. With swearing switched off (Customize → Voice), the words are masked: f***, s***. */
     clean(s) {
