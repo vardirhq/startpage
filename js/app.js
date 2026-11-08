@@ -11,8 +11,8 @@
     focus: { label: 'Focus', spans: {} },
     split: { label: 'Two columns', spans: { bookmarks: 24, music: 24 } },
     grid: { label: 'Classic', spans: { clock: 7, weather: 8, github: 9, bookmarks: 11, tasks: 6.5, notes: 6.5, music: 13, quote: 11,
-      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8, moon: 8, onthisday: 10, fx: 8, mood: 7, since: 8, decide: 7, capsule: 8 } },
-    dense: { label: 'Dense', spans: { bookmarks: 12, github: 12, music: 12, quote: 12, forecast: 12, news: 12, habits: 12, onthisday: 12 } },
+      forecast: 12, focus: 8, calendar: 7, countdown: 8, worldclock: 7, habits: 10, news: 12, vitals: 8, moon: 8, onthisday: 10, fx: 8, mood: 7, since: 8, decide: 7, capsule: 8, nonogram: 8, sudoku: 8 } },
+    dense: { label: 'Dense', spans: { bookmarks: 12, github: 12, music: 12, quote: 12, forecast: 12, news: 12, habits: 12, onthisday: 12, nonogram: 12, sudoku: 12 } },
   };
   const DEFAULT_SPAN = { focus: 24, split: 12, grid: 8, dense: 6 };
   const space = () => S().spaces.find((s) => s.id === S().activeSpace) || S().spaces[0];

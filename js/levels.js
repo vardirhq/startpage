@@ -1,4 +1,4 @@
-/* Levels. Finished tasks, focus sessions, dares, habits, mood check-ins, achievements and discoveries
+/* Levels. Finished tasks, focus sessions, dares, habits, mood check-ins, daily puzzles, achievements and discoveries
    earn points; every voice has its own titles for your level (Professional promotes you, Victorian
    lets you up from the scullery). Shown in Customize → Progress and next to the date. */
 (function (SP) {
@@ -33,8 +33,8 @@
   };
   for (const [k, l] of Object.entries(LINES)) Object.assign(V[k], l);
 
-  const WEIGHTS = { done: 10, focus: 25, dares: 40, habits: 5, moods: 5 };
-  const LABEL = { done: 'tasks', focus: 'focus', dares: 'dares', habits: 'habits', moods: 'moods', ach: 'achievements', eggs: 'discoveries' };
+  const WEIGHTS = { done: 10, focus: 25, dares: 40, habits: 5, moods: 5, puzzles: 20 };
+  const LABEL = { done: 'tasks', focus: 'focus', dares: 'dares', habits: 'habits', moods: 'moods', puzzles: 'puzzles', ach: 'achievements', eggs: 'discoveries' };
   function breakdown() {
     const t = S().totals || {}, out = {};
     for (const [k, w] of Object.entries(WEIGHTS)) out[k] = Math.max(0, t[k] || 0) * w;
@@ -57,7 +57,7 @@
     const i = info(), pct = Math.round(((i.xp - i.from) / (i.to - i.from)) * 100), b = breakdown();
     return '<div class="lvl"><div class="lvl-top"><b class="lvl-n">' + i.level + '</b><span><strong>' + esc(i.title) + '</strong><small>' + i.xp + ' points · ' + (i.to - i.xp) + ' to level ' + (i.level + 1) + '</small></span></div>' +
       '<div class="lvl-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Progress to the next level"><i style="width:' + pct + '%"></i></div>' +
-      '<p class="small muted">' + Object.entries(b).filter(([, v]) => v).map(([k, v]) => LABEL[k] + ' ' + v).join(' · ') + (Object.values(b).some(Boolean) ? '' : 'Finish tasks, focus, take dares and keep habits to earn points.') + '</p></div>';
+      '<p class="small muted">' + Object.entries(b).filter(([, v]) => v).map(([k, v]) => LABEL[k] + ' ' + v).join(' · ') + (Object.values(b).some(Boolean) ? '' : 'Finish tasks, focus, solve the daily puzzles, take dares and keep habits to earn points.') + '</p></div>';
   }
 
   function check(quiet) {
