@@ -24,6 +24,8 @@ Then pick a voice, and the entire page, settings included, is rewritten in that 
 • Weepy: mourns every task you finish.
 • Victorian: disapproves of you, the internet, and tabs.
 • Conspiracist: everything is connected. Spots “patterns” in your own tasks, weather and dates. Harmless, invented theories only.
+• Narrator: describes you, to you, in the third person. Even when you do nothing at all.
+• Cat: meows. Purrs, hisses, chirps. Meows your numbers. That’s it.
 • Brutal: no mercy, no filter. Grades your week. Mean about your work, never about you. Swears (clearly labelled, and you can switch it off: the words are masked).
 • …and three secret voices you have to earn.
 

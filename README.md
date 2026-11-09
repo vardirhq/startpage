@@ -82,6 +82,19 @@ A lovable, paranoid detective who believes everything is connected. Its trick: i
 
 Three open tasks and three degrees outside? Documented. A build that failed while it was raining? Explain that. Very rarely it drops the act (*“For the record, I’m genuinely glad you’re here.”*) and then picks it straight back up: *“Forget I said that. They’re listening.”* The conspiracies are all harmless and made up: the pigeons, the printer, Big Calendar. Never real ones.
 
+### Narrator · *telling your story*
+![Narrator: “As the evening drew in, the story found its way back to its hero, Alex.”](docs/voices/narrator.png)
+
+Describes you, to you, in the third person. Dry, patient, faintly amused, and always one step ahead of you:
+> “Alex wrote down “Fix the flaky test”. The narrator suspected it would be there for some time.”
+
+Leave the page open without touching it, and after a while that becomes part of the story too: *“Minutes passed. Alex had opened a new tab for something, and could no longer remember what.”*
+
+### Cat · *meow*
+![Cat: “Mrrp? Mrrrow, mrrp.”](docs/voices/cat.png)
+
+It’s a cat. Everything it says is a meow, a purr, a chirp, a hiss or a trill. Finish a task: *“Mrrp!”* Delete one unfinished: *“Hsss.”* Open a tab at 3am: *“MRAOW.”* It can’t count, so it meows numbers: three open tasks is *“Meow. Meow. Mrrp.”* Buttons and settings keep their plain words, because a cat can’t label the “Delete everything” button and you need to know which one you’re pressing.
+
 ### …and three you have to earn
 
 They wait in the voice picker as `???`, each with a hint.

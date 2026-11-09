@@ -531,3 +531,26 @@ test('Conspiracist: no theory when nothing lines up, and steady within the hour'
   const a = window.SP.theory(d), b = window.SP.theory(new Date(2026, 10, 9, 14, 50));
   assert.ok(a && a === b, a + ' / ' + b);
 });
+
+/* ---- Cat and Narrator stay in character ---- */
+const CHATTER = ['greet', 'heroSub', 'tasksEmpty', 'focusDone', 'breakDone', 'habitsEmpty', 'cdEmpty', 'grid_empty', 'streakToast', 'weatherQuip', 're_taskAdd', 're_taskDone', 're_taskAllDone',
+  're_taskUndo', 're_taskDelete', 're_focusPause', 're_late', 're_visits', 'welcomeBack', 'dare_done', 'dare_declined', 'mb_noTasks', 'mood_q', 'mood_log', 'decide_aside', 'ball',
+  'wr_outro', 'lvl_up', 'puz_solved', 'shelf_pick', 'heckle', 'tipsy_in', 'bday_card'];
+const ctxFor = (k) => (k === 'greet' ? 'evening' : k === 'weatherQuip' ? { code: 61 } : k === 'mood_log' ? { n: 4 } : CTX);
+test('the Cat only makes cat sounds, and meows numbers', () => {
+  const SOUND = /^(m+e+o+w+|m+e+w+|m+r+[aoe]*w*p*|p+r+p*|h+s+|chirrup|ek|mraow)$/i, bad = [];
+  window.SP.store.state = JSON.parse(JSON.stringify(rich)); window.SP.store.state.voice = 'cat';
+  for (const k of CHATTER) for (const line of expand(V.list.cat[k], ctxFor(k))) {
+    const words = String(line).split(/[\s\-.,!?…:]+/).filter(Boolean);
+    if (!words.length || words.some((w) => !SOUND.test(w))) bad.push(k + ': ' + line);
+  }
+  assert.deepEqual(bad, []);
+  assert.equal(expand(V.list.cat.mb_tasks, { n: 3 })[0], 'Meow. Meow. Mrrp. Mrrp.');
+});
+test('the Narrator talks about you, never to you', () => {
+  const bad = [];
+  window.SP.store.state = JSON.parse(JSON.stringify(rich)); window.SP.store.state.name = 'Sam'; window.SP.store.state.voice = 'narrator';
+  for (const k of CHATTER.filter((k) => k !== 'bday_card')) for (const line of expand(V.list.narrator[k], ctxFor(k))) if (/\byou(r|rs|rself)?\b/i.test(line)) bad.push(k + ': ' + line);
+  assert.deepEqual(bad, []);
+  assert.ok(expand(V.list.narrator.re_taskDone, CTX).some((l) => /Sam/.test(l)), 'uses the name');
+});

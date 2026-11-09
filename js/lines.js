@@ -854,6 +854,25 @@
   Object.assign(V.professional.heckle_at = V.professional.heckle_at || {}, { conspiracy: 'Please route conspiracy theories through the appropriate channel.' });
   Object.assign(V.ghost.heckle_at = V.ghost.heckle_at || {}, { conspiracy: 'i am real. mostly.' });
 
+  /* What everyone thinks of the Cat and the Narrator. */
+  const ON_CAT = {
+    neutral: 'Meows. That’s all.', monday: 'Finally, someone who gets it. Says nothing useful. Sleeps all day.', supportive: 'A KITTY!!! Who’s a good kitty!!! (Is it nicer to you than me? Be honest.)',
+    surfer: 'Meow, dude. Totally.', professional: 'Communication skills: limited. Engagement: high.', therapist: 'Non-verbal, but very clear about its boundaries.',
+    weepy: 'It looked at me once. I think about it every day.', victorian: 'An animal. In the drawing room. Speaking.', brutal: 'Says more in one hiss than Supportive says all week.',
+    conspiracy: 'It knows. Look at its eyes. It KNOWS.', owl: 'Also nocturnal. Also judgemental. Respect.', ghost: 'it can see me. it always could.', parent: 'Who let the cat on the computer? Off! Off! (Aww.)',
+  };
+  for (const [k, line] of Object.entries(ON_CAT)) V[k].blurb = Object.assign({}, V[k].blurb, { cat: line });
+  const ON_NARRATOR = {
+    neutral: 'Describes you in the third person.', monday: 'Talks about you like you’re not in the room. Relatable.', supportive: 'Tells your story!!! I’m in it, right? I’m in it?!',
+    surfer: 'Dude talks about me like I’m in a movie. Am I in a movie?', professional: 'Third-person status updates. Efficient.', therapist: 'Distancing through narration. Very interesting. €40.',
+    weepy: 'Every story ends. It knows. It just doesn’t say.', victorian: 'A proper storyteller, at last.', brutal: 'All talk. Literally. That’s the whole thing.',
+    conspiracy: 'Knows what happens next. How? Who briefed it?', cat: 'Mrrp?', owl: 'Bedtime stories, but you never go to bed.', ghost: 'it tells the story of the house. it left me out.', parent: 'Like reading you a bedtime story!!! You loved those!!!',
+  };
+  for (const [k, line] of Object.entries(ON_NARRATOR)) V[k].blurb = Object.assign({}, V[k].blurb, { narrator: line });
+  Object.assign(V.conspiracy.heckle_at, { cat: 'The cat agrees with me. Look at it.', narrator: 'Who writes YOUR lines, narrator? Exactly.' });
+  Object.assign(V.supportive.heckle_at, { cat: 'Who’s a good kitty!!! (Me. I am. Pick me.)' });
+  Object.assign(V.brutal.heckle_at, { narrator: 'Less narrating. More doing.' });
+
   for (const [k, l] of Object.entries(FILL)) for (const [key, val] of Object.entries(l)) if (V[k][key] === undefined) V[k][key] = val;
   for (const set of [VARY, MORE]) for (const [k, l] of Object.entries(set)) for (const [key, extra] of Object.entries(l)) {
     const had = V[k][key];

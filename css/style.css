@@ -1255,3 +1255,7 @@ body.onboarding #main, body.onboarding #rail { pointer-events: none; }
 [data-ui="light"] .wc-ic.day { color: #a16207; }
 [data-ui="light"] .sc.bad { color: #dc2626; }
 [data-ui="light"] .v-tag { color: #9f1239; background: #ffe4e6; border-color: #fda4af; }
+/* The greeting area sits on the scene: on light cards, its soft text goes dark too. */
+[data-ui="light"] .g-sub, [data-ui="light"] .g-tag { color: var(--muted); }
+[data-ui="light"] .g-heckle { color: var(--faint); }
+[data-ui="light"] .quote cite { color: rgba(31, 26, 58, 0.8); text-shadow: none; }
