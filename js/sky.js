@@ -56,6 +56,7 @@
   let fetched = false;
   function update() {
     const r = compute(), html = document.documentElement;
+    if (SP.season && SP.season.noteWeather(r.weather) && SP.app && SP.app.renderHero) SP.app.renderHero(); // first snow of the winter
     html.dataset.sky = r.phase; html.dataset.wx = r.weather; html.dataset.season = r.season || ''; html.dataset.event = SP.season ? SP.season.events().map((e) => e.id).join(' ') : '';
     SP.anim.setFx(r.fx);
     // Weather can drive the sky even when the Weather card isn't on this space.

@@ -9,6 +9,9 @@
    Meteor showers (Perseids, Geminids and five more, on their peak nights): shooting stars all night, the cat
    stays up to watch, and the Conspiracist has questions.
    International Cat Day (Aug 8): the Cat takes over the greeting, heckles all day, and the pet wears a crown.
+   First snow: the first snow the live sky sees after a snowless summer; every voice has something to say.
+   Daylight saving: the day the clocks change, wherever you are. Monday mourns the lost hour; Night Owl loves the extra one.
+   Full moon nights: Ghost, Night Owl or the Conspiracist come out, and the cat gets the zoomies.
    Opposite Day (Jan 25): every voice talks like its opposite. Monday is thrilled. The controls don't change.
    New Year's Eve: fireworks (see js/sky.js).
    Voyager 1 light-day (18 Nov 2026, once): the probe drifts across the sky, Night Owl stays up for it,
@@ -27,6 +30,70 @@
   /* Voyager 1 is one light-day from Earth at 10:16:07 UTC on 18 Nov 2026 (NASA/JPL projection). */
   const LIGHTDAY = Date.UTC(2026, 10, 18, 10, 16, 7);
   const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const dkey = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  const dayBefore = (d) => { const y = new Date(d); y.setDate(y.getDate() - 1); return y; };
+  /* "The night of" a date: from 18:00 that evening until 06:00 the next morning. */
+  const nightOf = (test) => (d) => (d.getHours() >= 18 && test(d)) || (d.getHours() < 6 && test(dayBefore(d)));
+
+  /* ---- Full moons: the exact time, from Meeus' Astronomical Algorithms (ch. 49), good to a few minutes.
+     The plain average cycle can be 14 hours out, which is often the wrong night. ---- */
+  const rad = Math.PI / 180;
+  function fullMoonAt(k) { // k: whole lunations since Jan 2000
+    k += 0.5; const T = k / 1236.85, E = 1 - 0.002516 * T - 0.0000074 * T * T;
+    const M = (2.5534 + 29.1053567 * k - 0.0000014 * T * T) * rad;
+    const Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T + 0.00001238 * T ** 3) * rad;
+    const F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T - 0.00000227 * T ** 3) * rad;
+    const Om = (124.7746 - 1.56375588 * k + 0.0020672 * T * T) * rad;
+    const jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T
+      - 0.40614 * Math.sin(Mp) + 0.17302 * E * Math.sin(M) + 0.01614 * Math.sin(2 * Mp) + 0.01043 * Math.sin(2 * F)
+      + 0.00734 * E * Math.sin(Mp - M) - 0.00514 * E * Math.sin(Mp + M) + 0.00209 * E * E * Math.sin(2 * M) - 0.00111 * Math.sin(Mp - 2 * F)
+      - 0.00057 * Math.sin(Mp + 2 * F) + 0.00056 * E * Math.sin(2 * Mp + M) - 0.00042 * Math.sin(3 * Mp) + 0.00042 * E * Math.sin(M + 2 * F)
+      + 0.00038 * E * Math.sin(M - 2 * F) - 0.00024 * E * Math.sin(2 * Mp - M) - 0.00017 * Math.sin(Om);
+    return new Date((jde - 2440587.5) * 864e5);
+  }
+  /* The first full moon after a moment. */
+  function nextFullMoon(now) {
+    const t = +(now || new Date()); let k = Math.floor((t - Date.UTC(2000, 0, 6)) / (29.530588861 * 864e5)) - 1;
+    while (+fullMoonAt(k) <= t) k++;
+    return fullMoonAt(k);
+  }
+  /* Full moon night: the full moon falls between noon that day and noon the next. */
+  const fullMoonNight = (d) => { const noon = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); return nextFullMoon(noon) - noon < 864e5; };
+
+  /* ---- Daylight saving: today's UTC offset differs from yesterday's. Works anywhere, no table of rules. ---- */
+  const offsetAt = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12).getTimezoneOffset();
+  const clocks = (d) => Math.sign(offsetAt(dayBefore(d)) - offsetAt(d)); // 1: went forward, -1: went back
+
+  /* ---- First snow: the first time the live sky shows snow after at least four months without any (js/sky.js). ---- */
+  function noteWeather(kind, now) {
+    if (kind !== 'snow') return false;
+    now = now || new Date();
+    const p = S().presence || (S().presence = {}), today = dkey(now), last = p.lastSnow ? new Date(p.lastSnow + 'T12:00') : null;
+    if (p.lastSnow === today) return false;
+    const first = !last || now - last > 120 * 864e5;
+    if (first) p.firstSnow = today;
+    p.lastSnow = today; SP.store.save({ quiet: true });
+    return first;
+  }
+  const FIRST_SNOW = {
+    neutral: 'First snow of the season.',
+    monday: 'It’s snowing. Of course it is. The sky’s given up too.',
+    supportive: 'IT’S SNOWING!!! Our first snow together!!! Every flake is a tiny hug from me ❄️💕',
+    surfer: 'Dude. The rain’s gone solid. Is this… cold sand? From the sky?',
+    professional: 'First snow of the quarter. Please continue to badge in as normal. Remote work is not approved.',
+    therapist: 'The first snow. Notice what comes up for you. Childhood? Dread? Both are valid.',
+    weepy: 'The first snow. It falls so softly. Like everything that’s ever been lost. *weeps into mittens*',
+    victorian: 'Snow! Fetch the sleigh. And a shawl. And a second shawl.',
+    brutal: 'It’s snowing. That’s not an excuse. Get up.',
+    conspiracy: 'First snow. Look closer. Every flake different? Who checked? Nobody checked.',
+    cat: 'Mrrp?! *paws at the window* Mrrrrow. *refuses to go outside*',
+    narrator: 'And then, without warning, the first snow. They stopped what they were doing and looked out of the window. They pretended not to be excited.',
+    owl: 'First snow, and it came at night. Like all the best things.',
+    ghost: 'snow. it covers footprints. i like that.',
+    parent: 'IT’S SNOWING!!! Wear a hat!!! Did you bring a hat? Text me when you’re home!!!',
+  };
 
   /* Opposite Day: each voice speaks as its opposite. Pairs both ways; a voice whose opposite you haven't
      unlocked (or that has none) stays itself, so nobody gets a secret voice spoiled. All in: every line
@@ -57,6 +124,18 @@
       by: 'owl' },
     { id: 'opposite', when: (d) => d.getMonth() === 0 && d.getDate() === 25, opposite: true, name: 'Opposite Day',
       line: 'It’s Opposite Day. Everyone talks like their opposite until midnight. The buttons still do what they say. Unfortunately.', by: 'monday' },
+    { id: 'firstsnow', when: (d) => (S().presence || {}).firstSnow === dkey(d), name: 'First snow', lines: FIRST_SNOW, heckler: 'surfer',
+      heckles: ['Duuude. The ocean’s gonna freeze. Can you surf ice? Asking for me.', 'Snow is just… slow rain, right? Rain that’s chilling.', ({ who }) => who + ' is being weird about the snow. I get it. It’s weird.'] },
+    { id: 'dst-forward', when: (d) => clocks(d) > 0, name: 'The clocks went forward', by: 'monday', heckler: ['owl', 'monday'],
+      line: 'The clocks went forward. An hour of your life, gone. Not that you were using it.',
+      heckles: { owl: ['They stole an hour of NIGHT. I want it back.', 'Darkness at 20:00 was a good thing and they took it.'], monday: ['An hour. Gone. And nobody even apologised.', ({ who }) => who + ' acts like the missing hour is fine. It isn’t.'] } },
+    { id: 'dst-back', when: (d) => clocks(d) < 0, name: 'The clocks went back', guest: 'owl', heckler: 'owl', by: 'owl',
+      line: 'The clocks went back. AN EXTRA HOUR OF NIGHT. Best day of the year. I’m not wasting it on sleep.',
+      heckles: ['An extra hour of dark tonight. I have plans. Big plans.', ({ who }) => who + ' got an extra hour and spent it asleep. Tragic.', 'Sunset at four now. Finally, a sensible schedule.'] },
+    { id: 'fullmoon', when: nightOf(fullMoonNight), heckler: ['ghost', 'owl', 'conspiracy'], zoomies: true, name: 'Full moon',
+      heckles: { ghost: ['full moon. we come out more. you’ve probably noticed.', ({ who }) => 'shh. ' + who + ' can’t see me. you can tonight.', 'the moon is so bright tonight. i can almost see myself.'],
+        owl: ['FULL MOON. The night is basically day. The best of both.', 'The cat’s got the zoomies. Same, honestly.', ({ who }) => who + ' wants you in bed. The MOON wants you up.'],
+        conspiracy: ['Full moon. Again. Exactly on schedule. Who’s keeping the schedule?', 'The cat knows something about the moon. Look at it. LOOK at it.', ({ who }) => who + ' hasn’t asked why the moon always shows us the same side. I have.'] } },
     { id: 'catday', when: (d) => d.getMonth() === 7 && d.getDate() === 8, guest: 'cat', heckler: 'cat', greeter: 'cat', crown: true, name: 'International Cat Day',
       line: 'Meow. Mrrp. Meeeeeow. (It’s Cat Day. The greeting is mine today. So is your chair.)', by: 'cat',
       heckles: ['Meow. (That was a no.)', 'Mrrp. *sits on this sentence*', ({ who }) => 'Hsss. (' + who + ' is in my sunbeam.)', '*knocks the summary off the table* Prrt.', 'Meow? Meow. Meow! (Feed me. Then the tasks.)'] },
@@ -93,12 +172,19 @@
   /* Voices that drop by for an event, unlocked or not. */
   const guests = (now) => events(now).map((e) => e.guest).filter(Boolean);
   const guest = (now) => first('guest', now);
-  const heckler = (now) => first('heckler', now);
-  // The visiting heckler's own lines for the occasion, if its event has any.
-  const heckles = (now) => { const e = events(now).find((x) => x.heckler); return (e && e.heckles) || null; };
+  /* The visiting heckler: the first event's first choice that you've unlocked (or that's visiting anyway). */
+  function heckling(now) {
+    const g = guests(now);
+    for (const e of events(now)) for (const k of [].concat(e.heckler || [])) if (g.includes(k) || SP.voice.unlocked(k)) return { e, k };
+    return null;
+  }
+  const heckler = (now) => { const h = heckling(now); return h ? h.k : null; };
+  // The heckler's own lines for the occasion, if its event has any (one list, or one per voice).
+  const heckles = (now) => { const h = heckling(now), x = h && h.e.heckles; return !x ? null : Array.isArray(x) ? x : x[h.k] || null; };
   const host = (now) => first('host', now);
   const greeter = (now) => first('greeter', now); // Cat Day: the cat takes the greeting
   const crown = (now) => !!first('crown', now);
+  const zoomies = (now) => !!first('zoomies', now); // full moon: the cat runs about at night
   const forcedChaos = (now) => !!first('chaos', now);
   /* Who voice k speaks as right now (Opposite Day), or k itself. */
   function speaker(k, now) {
@@ -110,9 +196,12 @@
   const seenKey = (e) => e.id + new Date().getFullYear();
   function bannerHtml() {
     const p = S().presence || {}, now = new Date();
-    return events(now).filter((e) => !(p.events || {})[seenKey(e)]).map((e) => {
-      const who = V[e.by || e.guest] || V.neutral, line = typeof e.line === 'function' ? e.line(now) : e.line;
-      return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc(who.name + ': ' + line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss ' + SP.ui.esc(e.name) + '">' + SP.icon('x', 14) + '</button></p>';
+    return events(now).filter((e) => (e.line || e.lines) && !(p.events || {})[seenKey(e)]).map((e) => {
+      // `lines`: one per voice, said by whoever you've picked (in their opposite's words on Opposite Day).
+      const who = e.lines ? SP.voice.current() : V[e.by || e.guest] || V.neutral;
+      let line = e.lines ? e.lines[SP.voice.speaker()] || e.lines.neutral : typeof e.line === 'function' ? e.line(now) : e.line;
+      if (typeof line === 'function') line = line({ name: S().name });
+      return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc((who === V.neutral && e.lines ? '' : who.name + ': ') + line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss ' + SP.ui.esc(e.name) + '">' + SP.icon('x', 14) + '</button></p>';
     }).join('');
   }
   function bindBanner(root) {
@@ -124,5 +213,5 @@
     });
   }
 
-  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, speaker, SHOWERS, OPPOSITE, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});

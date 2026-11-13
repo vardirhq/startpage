@@ -107,6 +107,9 @@
 
   function decide(t) {
     if (wet()) return set('shelter', 6000);
+    if (night() && SP.season && SP.season.zoomies() && track && Math.random() < 0.6) { // full moon: zoomies
+      zEl.hidden = true; target = track.left + Math.random() * (track.right - track.left); mode = 'run'; until = performance.now() + 4000; return;
+    }
     const sky = fx().includes('meteors'); // a meteor night: it stays up and watches
     if (night() && !sky && Math.random() < 0.85) return set('sleep', 20000);
     if (sky && Math.random() < 0.7) { face = 1; return set('sit', 6000 + Math.random() * 6000); }

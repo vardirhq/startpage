@@ -244,6 +244,55 @@ test('meteor nights: peak evening until dawn; Cat Day; both stack with others', 
   assert.equal(Se.heckler(cat), 'cat');
 });
 
+test('full moons: exact to minutes, one night each; the moon widget agrees', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  for (const [from, want] of [['2024-01-20', '2024-01-25T17:54Z'], ['2025-12-01', '2025-12-04T23:14Z'], ['2026-11-20', '2026-11-24T14:53Z']])
+    assert.ok(Math.abs(Se.nextFullMoon(new Date(from)) - new Date(want)) < 5 * 6e4, want);
+  const full = Se.nextFullMoon(new Date(2026, 10, 20)), eve = new Date(full); if (eve.getHours() < 12) eve.setDate(eve.getDate() - 1); eve.setHours(22, 0, 0, 0);
+  assert.ok(Se.events(eve).some((e) => e.id === 'fullmoon'), 'on the night');
+  const after = new Date(eve); after.setDate(after.getDate() + 1);
+  const before = new Date(eve); before.setDate(before.getDate() - 1);
+  assert.ok(!Se.events(after).some((e) => e.id === 'fullmoon') && !Se.events(before).some((e) => e.id === 'fullmoon'), 'one night only');
+  assert.ok(Se.zoomies(eve));
+  assert.equal(Se.heckler(eve), 'conspiracy', 'Ghost and Night Owl only once you have them');
+  window.SP.store.state.unlocked = ['owl'];
+  assert.equal(Se.heckler(eve), 'owl');
+  assert.ok(Se.heckles(eve).some((x) => typeof x === 'string' && /FULL MOON/.test(x)), 'the heckler’s own lines');
+  assert.equal(+window.SP.moon(+new Date(2026, 10, 20)).nextFull, +full);
+});
+
+test('daylight saving: found from the UTC offset, wherever you are', () => {
+  const Se = window.SP.season, tz = process.env.TZ;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  const changes = (zone) => { process.env.TZ = zone; const out = []; for (let d = new Date(2026, 0, 1); d.getFullYear() === 2026; d.setDate(d.getDate() + 1)) { const c = Se.clocks(d); if (c) out.push((d.getMonth() + 1) + '/' + d.getDate() + (c > 0 ? '+' : '-')); } return out; };
+  try {
+    assert.deepEqual(changes('Europe/Oslo'), ['3/29+', '10/25-']);
+    assert.deepEqual(changes('Australia/Sydney'), ['4/5-', '10/4+']);
+    assert.deepEqual(changes('Asia/Tokyo'), []);
+    process.env.TZ = 'Europe/Oslo';
+    assert.ok(Se.events(new Date(2026, 9, 25, 12)).some((e) => e.id === 'dst-back'));
+    // Haunted week starts the same day: both visit, and the one-day event heckles.
+    assert.deepEqual(Se.guests(new Date(2026, 9, 25, 12)).sort(), ['ghost', 'owl']);
+    assert.equal(Se.heckler(new Date(2026, 9, 25, 12)), 'owl');
+  } finally { if (tz === undefined) delete process.env.TZ; else process.env.TZ = tz; }
+});
+
+test('first snow: once per winter, from the live sky; each voice says its own line', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  const d = new Date(2026, 10, 20, 9);
+  assert.ok(!Se.noteWeather('rain', d));
+  assert.ok(Se.noteWeather('snow', d), 'first snow');
+  assert.ok(!Se.noteWeather('snow', d), 'once');
+  assert.ok(Se.events(d).some((e) => e.id === 'firstsnow'));
+  assert.ok(!Se.events(new Date(2026, 10, 21, 9)).some((e) => e.id === 'firstsnow'), 'just the day');
+  assert.ok(!Se.noteWeather('snow', new Date(2027, 0, 10, 9)), 'not again the same winter');
+  assert.ok(Se.noteWeather('snow', new Date(2027, 10, 2, 9)), 'next winter');
+  const e = Se.EVENTS.find((x) => x.id === 'firstsnow');
+  for (const k of Object.keys(window.SP.voice.list)) if (!window.SP.voice.list[k].custom) assert.ok(e.lines[k], k + ' has a first-snow line');
+});
+
 test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {
   const Se = window.SP.season, d = new Date(2027, 0, 25, 12);
   window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });

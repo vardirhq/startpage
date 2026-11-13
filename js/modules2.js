@@ -82,7 +82,7 @@
     const name = names[Math.floor(((f * 8) + 0.5) % 8)];
     const cycle = Math.floor(days / SYN);
     const at = (x) => { let d = REF + (cycle + x) * SYN * 864e5; if (d < (now || Date.now())) d += SYN * 864e5; return new Date(d); };
-    return { age, f, illum, name, nextFull: at(0.5), nextNew: at(1) };
+    return { age, f, illum, name, nextFull: SP.season ? SP.season.nextFullMoon(new Date(now || Date.now())) : at(0.5), nextNew: at(1) }; // the exact full moon (js/season.js)
   }
   function drawMoon(canvas, f, south) {
     const g = canvas.getContext('2d'), N = 32, r = 14, c = 15.5;
