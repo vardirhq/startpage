@@ -5,7 +5,9 @@
    Yule (Dec 20–26): fairy lights, and Victorian narrates the weekly recap.
    Valentine's Day: hearts, and Super Supportive won't stop butting in.
    April Fools' Day: Chaos mode, whether you like it or not.
-   New Year's Eve: fireworks (see js/sky.js). */
+   New Year's Eve: fireworks (see js/sky.js).
+   Voyager 1 light-day (18 Nov 2026, once): the probe drifts across the sky, Night Owl stays up for it,
+   and the banner says when a hello sent now would reach it. */
 (function (SP) {
   'use strict';
   const S = () => SP.store.state;
@@ -17,7 +19,17 @@
     return ['spring', 'summer', 'autumn', 'winter'][south ? (n + 2) % 4 : n];
   }
 
+  /* Voyager 1 is one light-day from Earth at 10:16:07 UTC on 18 Nov 2026 (NASA/JPL projection). */
+  const LIGHTDAY = Date.UTC(2026, 10, 18, 10, 16, 7);
+  const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+
   const EVENTS = [
+    { id: 'voyager', when: (d) => d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() === 18, fx: ['voyager'], guest: 'owl', heckler: 'owl', name: 'Voyager 1: one light-day',
+      line: (now) => +now < LIGHTDAY
+        ? 'At ' + hhmm(LIGHTDAY) + ' today, Voyager 1 is one whole light-day from Earth. First thing we ever made to get that far. I’m staying up. I was staying up anyway.'
+        : 'Voyager 1 is one light-day away. Say hello now and it hears you tomorrow at ' + hhmm(+now + 864e5) + '. Launched in 1977 and STILL not asleep. My hero.',
+      heckles: ['Sorry, can’t talk, I’m watching a 49-year-old probe leave the solar system.', ({ who }) => who + ' thinks a day is a long time to wait for a reply. Voyager waits a day for everything.', 'Imagine being that far from home and still answering emails.'],
+      by: 'owl' },
     { id: 'haunted', when: (d) => d.getMonth() === 9 && d.getDate() >= 25, fx: ['bats'], guest: 'ghost', heckler: 'ghost', name: 'Haunted week',
       line: 'the house is haunted this week. by me. hello again.' },
     { id: 'yule', when: (d) => d.getMonth() === 11 && d.getDate() >= 20 && d.getDate() <= 26, fx: ['lights'], host: 'victorian', name: 'Yuletide',
@@ -48,6 +60,7 @@
   const guest = (now) => { const e = event(now); return e && e.guest; };
   const heckler = (now) => { const e = event(now); return e && e.heckler; };
   const host = (now) => { const e = event(now); return e && e.host; };
+  const heckles = (now) => { const e = event(now); return e && e.heckles; };
   const forcedChaos = (now) => { const e = event(now); return !!(e && e.chaos); };
 
   /* A small banner under the date while an event is on, until you dismiss it. */
@@ -56,12 +69,13 @@
     const p = S().presence || {}, key = e.id + new Date().getFullYear();
     if ((p.events || {})[key]) return '';
     const who = V[e.by || e.guest] || V.neutral;
-    return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc(who.name + ': ' + e.line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss">' + SP.icon('x', 14) + '</button></p>';
+    const line = typeof e.line === 'function' ? e.line(new Date()) : e.line;
+    return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc(who.name + ': ' + line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss">' + SP.icon('x', 14) + '</button></p>';
   }
   function bindBanner(root) {
     const b = root.querySelector('[data-event-x]'); if (!b) return;
     b.onclick = () => { const e = event(), p = S().presence || (S().presence = {}), ev = p.events || (p.events = {}); ev[e.id + new Date().getFullYear()] = 1; SP.store.save({ quiet: true }); SP.app.renderHero(); };
   }
 
-  SP.season = { season, event, fx, guest, heckler, host, forcedChaos, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, event, fx, guest, heckler, heckles, host, forcedChaos, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});

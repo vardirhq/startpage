@@ -7,7 +7,7 @@
   let shooting = null, flakes = [], flies = [], glints = [];
   // Live extras on top of the theme: real weather and the calendar ('rain', 'storm', 'snow', 'flurries', 'fog', 'fireworks', 'bats').
   let fx = [], drops = [], wflakes = [], fogs = [], sparks = [], bats = [], flash = 0, nextRocket = 0;
-  // Seasons and events: 'petals', 'leaves', 'summerflies', 'hearts', 'lights', 'meteors'.
+  // Seasons and events: 'petals', 'leaves', 'summerflies', 'hearts', 'lights', 'meteors', 'voyager'.
   let drift = [], bugs = [], meteors = [], meteorUntil = 0, balloons = [];
   const BALLOON = [[239, 68, 68], [250, 204, 21], [59, 130, 246], [236, 72, 153], [34, 197, 94], [168, 85, 247]];
   const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a.toFixed(3) + ')';
@@ -93,6 +93,12 @@
       ctx.fillStyle = rgba(b.c, 0.95); ctx.fillRect(x - 1, y, 3, 4); ctx.fillRect(x - 2, y + 1, 5, 2); ctx.fillRect(x, y + 4, 1, 1);
       ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(x - 1, y + 1, 1, 1);
       ctx.fillStyle = 'rgba(230,230,240,0.55)'; for (let i = 0; i < 6; i++) ctx.fillRect(x + Math.round(Math.sin(t * 2 + b.ph + i * 0.7) * 0.8), y + 5 + i, 1, 1);
+    }
+    if (fx.includes('voyager')) { // a tiny probe crawls across the sky over ~10 minutes, dish towards home, light blinking
+      const x = Math.round(W + 8 - ((t / 600) % 1) * (W + 16)), y = Math.round(horizon * 0.22 + Math.sin(t / 90) * 3);
+      ctx.fillStyle = 'rgba(205,205,215,0.9)'; ctx.fillRect(x, y, 3, 2); ctx.fillRect(x + 3, y, 4, 1); ctx.fillRect(x - 3, y + 1, 3, 1); ctx.fillRect(x + 1, y + 2, 1, 2);
+      ctx.fillStyle = 'rgba(240,240,250,0.95)'; ctx.fillRect(x - 1, y - 2, 1, 4); ctx.fillRect(x - 2, y - 1, 1, 2);
+      if ((t % 2.5) < 0.25) { ctx.fillStyle = 'rgba(255,90,80,0.95)'; ctx.fillRect(x + 6, y - 1, 1, 1); }
     }
     for (const b of bats) {
       b.x += b.v * dt; b.y += Math.sin(t * 3 + b.ph) * 6 * dt; if (b.x > W + 4) { b.x = -4; b.y = 20 + Math.random() * horizon * 0.5; }

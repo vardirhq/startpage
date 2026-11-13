@@ -279,7 +279,7 @@
     const ev = SP.season && SP.season.heckler(), forced = ev && ev !== cur && V[ev];
     if (!forced && h % 3 !== 0 && !s._heckleAlways) return null;
     const who = forced ? ev : others[(h >>> 3) % others.length], v = V[who];
-    let val = (v.heckle_at && v.heckle_at[cur]) || v.heckle;
+    let val = (forced && SP.season.heckles()) || (v.heckle_at && v.heckle_at[cur]) || v.heckle; // an event can give its visitor something to say
     if (!val) return null;
     if (Array.isArray(val)) val = val[(h >>> 7) % val.length];
     if (typeof val === 'function') val = val({ who: V[cur].name });

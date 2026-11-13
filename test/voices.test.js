@@ -196,6 +196,14 @@ test('seasons: northern and southern hemisphere, event calendar', () => {
   assert.equal(Se.event(new Date(2026, 5, 10)), null);
   assert.ok(Se.fx(new Date(2026, 1, 14), 'day', null).includes('hearts'));
   assert.ok(!Se.fx(new Date(2026, 9, 10), 'day', 'rain').includes('petals'), 'no blossoms in the rain');
+  assert.equal(Se.event(new Date(2026, 10, 18, 12)).id, 'voyager');
+  assert.equal(Se.guest(new Date(2026, 10, 18, 12)), 'owl');
+  assert.ok(Se.fx(new Date(2026, 10, 18, 12), 'night', null).includes('voyager'));
+  assert.equal(Se.event(new Date(2027, 10, 18, 12)), null, 'Voyager is a one-off');
+  assert.equal(Se.event(new Date(2026, 10, 17, 23)), null);
+  const vy = Se.EVENTS.find((e) => e.id === 'voyager');
+  assert.match(vy.line(new Date(Se.LIGHTDAY - 1)), /^At \d\d:\d\d today/);
+  assert.match(vy.line(new Date(Se.LIGHTDAY + 1)), /hears you tomorrow at \d\d:\d\d/);
   window.SP.store.state.seasons = false;
   assert.equal(Se.event(new Date(2026, 9, 28)), null, 'can be turned off');
 });
