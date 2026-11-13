@@ -87,7 +87,7 @@
   async function setVoice(v) {
     const cur = SP.voice.key(), V = SP.voice.list;
     if (v === cur || !SP.voice.unlocked(v)) return;
-    if (V[cur].leave_title) {
+    if (V[SP.voice.speaker(cur)].leave_title) {
       const ctx = { to: V[v].name };
       const ok = await SP.ui.dialog(SP.voice.t('leave_title', ctx), '<p class="muted">' + esc(SP.voice.t('leave_body', ctx)) + '</p>',
         { okText: SP.voice.t('leave_ok'), cancelText: SP.voice.t('leave_cancel') });

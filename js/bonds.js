@@ -128,7 +128,7 @@
     }
     return 0;
   }
-  function mark() { document.documentElement.dataset.voice = SP.voice.key(); document.documentElement.dataset.bond = level(); }
+  function mark() { document.documentElement.dataset.voice = SP.voice.speaker(); document.documentElement.dataset.bond = level(); }
 
   SP.bonds = { grudge, switched, level, day, mark, LEVELS };
 })(window.SP = window.SP || {});

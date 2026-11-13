@@ -61,13 +61,14 @@
   const night = () => { const h = new Date().getHours(); return h >= 23 || h < 6; };
   const wet = () => fx().some((f) => f === 'rain' || f === 'storm');
   const party = () => !!(SP.birthday && SP.birthday.today());
+  const crowned = () => !party() && !!(SP.season && SP.season.crown()); // Cat Day
 
   let drawn = '';
   function draw() {
     if (!cx) return;
     const name = mode === 'sleep' ? 'sleep' : mode === 'walk' || mode === 'run' ? (frame % 2 ? 'walk2' : 'walk1') : mode === 'hop' ? 'walk2' : (frame % 23 === 0 ? 'blink' : 'sit');
     const rows = F[name], dy = mode === 'hop' ? -Math.round(Math.sin(Math.min(1, hopT) * Math.PI) * 6) : 0;
-    const sig = name + dy + mode + party(); if (sig === drawn) return; drawn = sig; // only repaint when the picture changes
+    const sig = name + dy + mode + party() + crowned(); if (sig === drawn) return; drawn = sig; // only repaint when the picture changes
     cx.clearRect(0, 0, W, H);
     const px = (c, xx, yy) => { cx.fillStyle = c; cx.fillRect(xx, yy, 1, 1); };
     // A dark outline, so it reads on any card or scene.
@@ -77,6 +78,12 @@
     if (party()) { // a striped party hat between the ears, with a pom-pom
       const [hx, hy] = HEAD[name], X = OX + hx, Y = OY + dy + hy, Y_ = '#fde047', P = '#ec4899';
       [[1, -5, '#fff'], [2, -5, '#fff'], [1, -4, P], [2, -4, Y_], [1, -3, Y_], [2, -3, P], [0, -2, P], [1, -2, Y_], [2, -2, P], [3, -2, Y_], [0, -1, Y_], [1, -1, P], [2, -1, Y_], [3, -1, P]].forEach(([i, j, c]) => px(c, X + i, Y + j));
+    }
+    if (crowned()) { // a little gold crown with a red jewel
+      const [hx, hy] = HEAD[name], X = OX + hx, Y = OY + dy + hy, G = '#facc15';
+      const C = [[0, -3, G], [3, -3, G], [0, -2, G], [1, -2, G], [2, -2, G], [3, -2, G], [0, -1, G], [1, -1, '#ef4444'], [2, -1, G], [3, -1, G]];
+      C.forEach(([i, j]) => [[1, 0], [-1, 0], [0, -1]].forEach(([a, b]) => px('rgba(15,10,25,0.75)', X + i + a, Y + j + b))); // the same dark outline as the cat
+      C.forEach(([i, j, c]) => px(c, X + i, Y + j));
     }
     if (mode === 'shelter') UMBRELLA.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== '.') px(ch === 'r' ? '#ef4444' : '#374151', i, j); }));
   }
@@ -100,7 +107,12 @@
 
   function decide(t) {
     if (wet()) return set('shelter', 6000);
-    if (night() && Math.random() < 0.85) return set('sleep', 20000);
+    if (night() && SP.season && SP.season.zoomies() && track && Math.random() < 0.6) { // full moon: zoomies
+      zEl.hidden = true; target = track.left + Math.random() * (track.right - track.left); mode = 'run'; until = performance.now() + 4000; return;
+    }
+    const sky = fx().includes('meteors'); // a meteor night: it stays up and watches
+    if (night() && !sky && Math.random() < 0.85) return set('sleep', 20000);
+    if (sky && Math.random() < 0.7) { face = 1; return set('sit', 6000 + Math.random() * 6000); }
     if (Math.random() < L().sleep) return set('sleep', 15000 + Math.random() * 20000); // lazy cats nap in the daytime too
     if (L().play && Math.random() < 0.2) return hop();
     if (fx().some((f) => f === 'fireworks' || f === 'meteors') && Math.random() < 0.5) return hop();

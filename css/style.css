@@ -71,7 +71,8 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
 [data-season="autumn"] #bg-canvas { --season-f: sepia(0.18) saturate(1.1); }
 [data-season="winter"] #bg-canvas { --season-f: saturate(0.85) hue-rotate(8deg); }
 [data-season="spring"] #bg-canvas { --season-f: saturate(1.08); }
-[data-event="haunted"] #bg-canvas { --season-f: hue-rotate(-25deg) saturate(1.2) brightness(0.85); }
+[data-event~="fullmoon"] #bg-canvas { --season-f: brightness(1.12) saturate(0.9); }
+[data-event~="haunted"] #bg-canvas { --season-f: hue-rotate(-25deg) saturate(1.2) brightness(0.85); }
 /* Ghost grows less transparent the longer you stay with it (js/bonds.js). */
 [data-voice="ghost"] .card { transition: opacity 1s; }
 [data-voice="ghost"][data-bond="0"] .card { opacity: 0.72; }

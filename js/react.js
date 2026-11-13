@@ -173,7 +173,7 @@
   const COOL = { taskAdd: 25e3, taskDone: 12e3, taskUndo: 20e3, taskDelete: 8e3 };
   let last = 0; const per = {};
   function line(ev, ctx, voiceKey) {
-    const v = V[voiceKey || SP.voice.key()], key = 're_' + ev;
+    const v = V[SP.voice.speaker(voiceKey)], key = 're_' + ev; // Opposite Day: the words come from the opposite
     const val = v[key] !== undefined ? v[key] : V.neutral[key];
     if (val === undefined) return '';
     return SP.voice.resolve(val, key, ctx, true) || '';
@@ -278,12 +278,12 @@
     if (!others.length) return null;
     const ev = SP.season && SP.season.heckler(), forced = ev && ev !== cur && V[ev];
     if (!forced && h % 3 !== 0 && !s._heckleAlways) return null;
-    const who = forced ? ev : others[(h >>> 3) % others.length], v = V[who];
-    let val = (v.heckle_at && v.heckle_at[cur]) || v.heckle;
+    const who = forced ? ev : others[(h >>> 3) % others.length], v = V[SP.voice.speaker(who)];
+    let val = (forced && SP.season.heckles()) || (v.heckle_at && v.heckle_at[cur]) || v.heckle; // an event can give its visitor something to say
     if (!val) return null;
     if (Array.isArray(val)) val = val[(h >>> 7) % val.length];
     if (typeof val === 'function') val = val({ who: V[cur].name });
-    return { who: v.name, key: who, text: val };
+    return { who: V[who].name, key: who, text: val };
   }
 
   SP.react = Object.assign(react, { on, stat, visit, unlock, checkUnlocks, heckle, line, _reset() { last = 0; for (const k in per) delete per[k]; } });

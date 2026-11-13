@@ -689,11 +689,13 @@
       list: (a) => (a || []).map((s) => '“' + (String(s).length > 48 ? String(s).slice(0, 46) + '…' : s) + '”').join(' and ') }, // “a” and “b”
     list: VOICES,
     _override: null, // Chaos mode: a card can be rendered in a different voice
-    unlocked(k) { const v = VOICES[k]; return !!v && (!v.secret || (SP.store.state.unlocked || []).includes(k) || (!!SP.season && SP.season.guest() === k)); }, // event guests visit
+    unlocked(k) { const v = VOICES[k]; return !!v && (!v.secret || (SP.store.state.unlocked || []).includes(k) || (!!SP.season && SP.season.guests().includes(k))); }, // event guests visit
     /* Voices you can pick: secret ones only once you've earned them. */
     available() { return Object.keys(VOICES).filter((k) => this.unlocked(k)); },
     key() { const k = this._override || SP.store.state.voice; return VOICES[k] && this.unlocked(k) ? k : 'neutral'; },
     current() { return VOICES[this.key()]; },
+    /* Whose lines voice k says right now: itself, except on Opposite Day (js/season.js). */
+    speaker(k) { k = k || this.key(); return SP.season ? SP.season.speaker(k) : k; },
     /* Run fn with another voice in charge (used for Chaos mode cards). */
     as(k, fn) { const prev = this._override; this._override = k; try { return fn(); } finally { this._override = prev; } },
     /* Values can nest: a function may return an array of variations, and an array may hold functions.
@@ -726,11 +728,11 @@
     },
     /* A one-off line (a toast, a reaction): a fresh variation each time. */
     line(key, ctx, vk) {
-      const v = VOICES[vk || this.key()] || VOICES.neutral;
+      const v = VOICES[this.speaker(vk)] || VOICES.neutral;
       return this.resolve(v[key] !== undefined ? v[key] : VOICES.neutral[key], key, ctx, true);
     },
     t(key, ctx) {
-      const v = this.current();
+      const v = VOICES[this.speaker()] || VOICES.neutral;
       const val = this.resolve(v[key] !== undefined ? v[key] : VOICES.neutral[key], key, ctx);
       return val == null ? key : val;
     },

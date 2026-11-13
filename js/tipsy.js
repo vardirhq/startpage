@@ -100,7 +100,7 @@
   /* Called by SP.voice.resolve for every string it hands out. */
   function apply(s, key) {
     if (typeof s !== 'string' || !key || SOBER.test(key) || !DRUNK.test(key) || !active()) return s;
-    return slur(s, SP.voice.key());
+    return slur(s, SP.voice.speaker());
   }
 
   /* ---- arrival, and the morning after ---- */

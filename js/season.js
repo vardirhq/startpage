@@ -1,11 +1,21 @@
-/* Seasons and one-off events. The season shows up in whatever scene you picked (blossoms in spring,
+/* Seasons and one-off events. Events stack when they overlap: effects add up, every guest visits, and
+   each has its own banner. The season shows up in whatever scene you picked (blossoms in spring,
    fireflies on summer nights, falling leaves in autumn, flurries in winter), flipped for the southern
    hemisphere. Events come and go with nothing to keep up:
    Haunted week (Oct 25–31): Ghost visits, even if you haven't unlocked it, and bats fly all week.
    Yule (Dec 20–26): fairy lights, and Victorian narrates the weekly recap.
    Valentine's Day: hearts, and Super Supportive won't stop butting in.
    April Fools' Day: Chaos mode, whether you like it or not.
-   New Year's Eve: fireworks (see js/sky.js). */
+   Meteor showers (Perseids, Geminids and five more, on their peak nights): shooting stars all night, the cat
+   stays up to watch, and the Conspiracist has questions.
+   International Cat Day (Aug 8): the Cat takes over the greeting, heckles all day, and the pet wears a crown.
+   First snow: the first snow the live sky sees after a snowless summer; every voice has something to say.
+   Daylight saving: the day the clocks change, wherever you are. Monday mourns the lost hour; Night Owl loves the extra one.
+   Full moon nights: Ghost, Night Owl or the Conspiracist come out, and the cat gets the zoomies.
+   Opposite Day (Jan 25): every voice talks like its opposite. Monday is thrilled. The controls don't change.
+   New Year's Eve: fireworks (see js/sky.js).
+   Voyager 1 light-day (18 Nov 2026, once): the probe drifts across the sky, Night Owl stays up for it,
+   and the banner says when a hello sent now would reach it. */
 (function (SP) {
   'use strict';
   const S = () => SP.store.state;
@@ -17,20 +27,135 @@
     return ['spring', 'summer', 'autumn', 'winter'][south ? (n + 2) % 4 : n];
   }
 
+  /* Voyager 1 is one light-day from Earth at 10:16:07 UTC on 18 Nov 2026 (NASA/JPL projection). */
+  const LIGHTDAY = Date.UTC(2026, 10, 18, 10, 16, 7);
+  const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const dkey = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  const dayBefore = (d) => { const y = new Date(d); y.setDate(y.getDate() - 1); return y; };
+  /* "The night of" a date: from 18:00 that evening until 06:00 the next morning. */
+  const nightOf = (test) => (d) => (d.getHours() >= 18 && test(d)) || (d.getHours() < 6 && test(dayBefore(d)));
+
+  /* ---- Full moons: the exact time, from Meeus' Astronomical Algorithms (ch. 49), good to a few minutes.
+     The plain average cycle can be 14 hours out, which is often the wrong night. ---- */
+  const rad = Math.PI / 180;
+  function fullMoonAt(k) { // k: whole lunations since Jan 2000
+    k += 0.5; const T = k / 1236.85, E = 1 - 0.002516 * T - 0.0000074 * T * T;
+    const M = (2.5534 + 29.1053567 * k - 0.0000014 * T * T) * rad;
+    const Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T + 0.00001238 * T ** 3) * rad;
+    const F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T - 0.00000227 * T ** 3) * rad;
+    const Om = (124.7746 - 1.56375588 * k + 0.0020672 * T * T) * rad;
+    const jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T
+      - 0.40614 * Math.sin(Mp) + 0.17302 * E * Math.sin(M) + 0.01614 * Math.sin(2 * Mp) + 0.01043 * Math.sin(2 * F)
+      + 0.00734 * E * Math.sin(Mp - M) - 0.00514 * E * Math.sin(Mp + M) + 0.00209 * E * E * Math.sin(2 * M) - 0.00111 * Math.sin(Mp - 2 * F)
+      - 0.00057 * Math.sin(Mp + 2 * F) + 0.00056 * E * Math.sin(2 * Mp + M) - 0.00042 * Math.sin(3 * Mp) + 0.00042 * E * Math.sin(M + 2 * F)
+      + 0.00038 * E * Math.sin(M - 2 * F) - 0.00024 * E * Math.sin(2 * Mp - M) - 0.00017 * Math.sin(Om);
+    return new Date((jde - 2440587.5) * 864e5);
+  }
+  /* The first full moon after a moment. */
+  function nextFullMoon(now) {
+    const t = +(now || new Date()); let k = Math.floor((t - Date.UTC(2000, 0, 6)) / (29.530588861 * 864e5)) - 1;
+    while (+fullMoonAt(k) <= t) k++;
+    return fullMoonAt(k);
+  }
+  /* Full moon night: the full moon falls between noon that day and noon the next. */
+  const fullMoonNight = (d) => { const noon = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); return nextFullMoon(noon) - noon < 864e5; };
+
+  /* ---- Daylight saving: today's UTC offset differs from yesterday's. Works anywhere, no table of rules. ---- */
+  const offsetAt = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12).getTimezoneOffset();
+  const clocks = (d) => Math.sign(offsetAt(dayBefore(d)) - offsetAt(d)); // 1: went forward, -1: went back
+
+  /* ---- First snow: the first time the live sky shows snow after at least four months without any (js/sky.js). ---- */
+  function noteWeather(kind, now) {
+    if (kind !== 'snow') return false;
+    now = now || new Date();
+    const p = S().presence || (S().presence = {}), today = dkey(now), last = p.lastSnow ? new Date(p.lastSnow + 'T12:00') : null;
+    if (p.lastSnow === today) return false;
+    const first = !last || now - last > 120 * 864e5;
+    if (first) p.firstSnow = today;
+    p.lastSnow = today; SP.store.save({ quiet: true });
+    return first;
+  }
+  const FIRST_SNOW = {
+    neutral: 'First snow of the season.',
+    monday: 'It’s snowing. Of course it is. The sky’s given up too.',
+    supportive: 'IT’S SNOWING!!! Our first snow together!!! Every flake is a tiny hug from me ❄️💕',
+    surfer: 'Dude. The rain’s gone solid. Is this… cold sand? From the sky?',
+    professional: 'First snow of the quarter. Please continue to badge in as normal. Remote work is not approved.',
+    therapist: 'The first snow. Notice what comes up for you. Childhood? Dread? Both are valid.',
+    weepy: 'The first snow. It falls so softly. Like everything that’s ever been lost. *weeps into mittens*',
+    victorian: 'Snow! Fetch the sleigh. And a shawl. And a second shawl.',
+    brutal: 'It’s snowing. That’s not an excuse. Get up.',
+    conspiracy: 'First snow. Look closer. Every flake different? Who checked? Nobody checked.',
+    cat: 'Mrrp?! *paws at the window* Mrrrrow. *refuses to go outside*',
+    narrator: 'And then, without warning, the first snow. They stopped what they were doing and looked out of the window. They pretended not to be excited.',
+    owl: 'First snow, and it came at night. Like all the best things.',
+    ghost: 'snow. it covers footprints. i like that.',
+    parent: 'IT’S SNOWING!!! Wear a hat!!! Did you bring a hat? Text me when you’re home!!!',
+  };
+
+  /* Opposite Day: each voice speaks as its opposite. Pairs both ways; a voice whose opposite you haven't
+     unlocked (or that has none) stays itself, so nobody gets a secret voice spoiled. All in: every line
+     (labels, reactions, heckles, discoveries, level titles, Ask), the spoken voice and the voice's page styling
+     come from the opposite. Who it is doesn't change: its name, bond, scores, the picker and every control. */
+  const OPPOSITE = { monday: 'supportive', victorian: 'surfer', brutal: 'therapist', professional: 'conspiracy', weepy: 'parent', owl: 'ghost', cat: 'narrator' };
+  for (const [a, b] of Object.entries(OPPOSITE)) OPPOSITE[b] = a;
+
+  /* Meteor showers on their peak night (the evening of the date until dawn). Peaks drift by a day or so
+     from year to year; the night of the date is close enough to see some. */
+  const SHOWERS = [['Quadrantids', 0, 3], ['Lyrids', 3, 22], ['Eta Aquariids', 4, 5], ['Perseids', 7, 12], ['Orionids', 9, 21], ['Leonids', 10, 17], ['Geminids', 11, 13]];
+  const peakNight = (m, day) => (d) => (d.getMonth() === m && d.getDate() === day && d.getHours() >= 18) || (d.getHours() < 6 && (() => { const y = new Date(d); y.setDate(y.getDate() - 1); return y.getMonth() === m && y.getDate() === day; })());
+  const METEORS = SHOWERS.map(([name, m, day]) => ({
+    id: 'meteors-' + name.toLowerCase().replace(/\W+/g, ''), when: peakNight(m, day), fx: ['meteors'], heckler: 'conspiracy', name: 'The ' + name + ' tonight',
+    line: 'The ' + name + ' peak tonight, they say. Dozens of “meteors” an hour, all coming from the same point in the sky. The same point. Every year. Look up after dark and tell me that’s natural.',
+    heckles: ['Those aren’t meteors. Meteors don’t keep a schedule.', ({ who }) => who + ' says it’s space dust. Space dust doesn’t come back on the same night every year.',
+      'Count them. Then count them again. The numbers never match.', 'The cat’s watching them too. The cat knows.'],
+    by: 'conspiracy',
+  }));
+
+  /* One-day events come first: when events overlap, the first one picks the visiting heckler and the host. */
   const EVENTS = [
-    { id: 'haunted', when: (d) => d.getMonth() === 9 && d.getDate() >= 25, fx: ['bats'], guest: 'ghost', heckler: 'ghost', name: 'Haunted week',
-      line: 'the house is haunted this week. by me. hello again.' },
-    { id: 'yule', when: (d) => d.getMonth() === 11 && d.getDate() >= 20 && d.getDate() <= 26, fx: ['lights'], host: 'victorian', name: 'Yuletide',
-      line: 'It is Yuletide. I shall be narrating your weekly account myself. Do sit up straight.', by: 'victorian' },
+    { id: 'voyager', when: (d) => d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() === 18, fx: ['voyager'], guest: 'owl', heckler: 'owl', name: 'Voyager 1: one light-day',
+      line: (now) => +now < LIGHTDAY
+        ? 'At ' + hhmm(LIGHTDAY) + ' today, Voyager 1 is one whole light-day from Earth. First thing we ever made to get that far. I’m staying up. I was staying up anyway.'
+        : 'Voyager 1 is one light-day away. Say hello now and it hears you tomorrow at ' + hhmm(+now + 864e5) + '. Launched in 1977 and STILL not asleep. My hero.',
+      heckles: ['Sorry, can’t talk, I’m watching a 49-year-old probe leave the solar system.', ({ who }) => who + ' thinks a day is a long time to wait for a reply. Voyager waits a day for everything.', 'Imagine being that far from home and still answering emails.'],
+      by: 'owl' },
+    { id: 'opposite', when: (d) => d.getMonth() === 0 && d.getDate() === 25, opposite: true, name: 'Opposite Day',
+      line: 'It’s Opposite Day. Everyone talks like their opposite until midnight. The buttons still do what they say. Unfortunately.', by: 'monday' },
+    { id: 'firstsnow', when: (d) => (S().presence || {}).firstSnow === dkey(d), name: 'First snow', lines: FIRST_SNOW, heckler: 'surfer',
+      heckles: ['Duuude. The ocean’s gonna freeze. Can you surf ice? Asking for me.', 'Snow is just… slow rain, right? Rain that’s chilling.', ({ who }) => who + ' is being weird about the snow. I get it. It’s weird.'] },
+    { id: 'dst-forward', when: (d) => clocks(d) > 0, name: 'The clocks went forward', by: 'monday', heckler: ['owl', 'monday'],
+      line: 'The clocks went forward. An hour of your life, gone. Not that you were using it.',
+      heckles: { owl: ['They stole an hour of NIGHT. I want it back.', 'Darkness at 20:00 was a good thing and they took it.'], monday: ['An hour. Gone. And nobody even apologised.', ({ who }) => who + ' acts like the missing hour is fine. It isn’t.'] } },
+    { id: 'dst-back', when: (d) => clocks(d) < 0, name: 'The clocks went back', guest: 'owl', heckler: 'owl', by: 'owl',
+      line: 'The clocks went back. AN EXTRA HOUR OF NIGHT. Best day of the year. I’m not wasting it on sleep.',
+      heckles: ['An extra hour of dark tonight. I have plans. Big plans.', ({ who }) => who + ' got an extra hour and spent it asleep. Tragic.', 'Sunset at four now. Finally, a sensible schedule.'] },
+    { id: 'fullmoon', when: nightOf(fullMoonNight), heckler: ['ghost', 'owl', 'conspiracy'], zoomies: true, name: 'Full moon',
+      heckles: { ghost: ['full moon. we come out more. you’ve probably noticed.', ({ who }) => 'shh. ' + who + ' can’t see me. you can tonight.', 'the moon is so bright tonight. i can almost see myself.'],
+        owl: ['FULL MOON. The night is basically day. The best of both.', 'The cat’s got the zoomies. Same, honestly.', ({ who }) => who + ' wants you in bed. The MOON wants you up.'],
+        conspiracy: ['Full moon. Again. Exactly on schedule. Who’s keeping the schedule?', 'The cat knows something about the moon. Look at it. LOOK at it.', ({ who }) => who + ' hasn’t asked why the moon always shows us the same side. I have.'] } },
+    { id: 'catday', when: (d) => d.getMonth() === 7 && d.getDate() === 8, guest: 'cat', heckler: 'cat', greeter: 'cat', crown: true, name: 'International Cat Day',
+      line: 'Meow. Mrrp. Meeeeeow. (It’s Cat Day. The greeting is mine today. So is your chair.)', by: 'cat',
+      heckles: ['Meow. (That was a no.)', 'Mrrp. *sits on this sentence*', ({ who }) => 'Hsss. (' + who + ' is in my sunbeam.)', '*knocks the summary off the table* Prrt.', 'Meow? Meow. Meow! (Feed me. Then the tasks.)'] },
+    ...METEORS,
     { id: 'valentine', when: (d) => d.getMonth() === 1 && d.getDate() === 14, fx: ['hearts'], heckler: 'supportive', name: 'Valentine’s Day',
       line: 'Happy Valentine’s Day!!! I got you something. It’s me. I’m the gift. I’ll be in every summary today. 💕', by: 'supportive' },
     { id: 'fools', when: (d) => d.getMonth() === 3 && d.getDate() === 1, chaos: true, name: 'April Fools’ Day',
       line: 'Everyone’s talking at once today. Not my idea. I filed a complaint.', by: 'monday' },
+    { id: 'haunted', when: (d) => d.getMonth() === 9 && d.getDate() >= 25, fx: ['bats'], guest: 'ghost', heckler: 'ghost', name: 'Haunted week',
+      line: 'the house is haunted this week. by me. hello again.' },
+    { id: 'yule', when: (d) => d.getMonth() === 11 && d.getDate() >= 20 && d.getDate() <= 26, fx: ['lights'], host: 'victorian', name: 'Yuletide',
+      line: 'It is Yuletide. I shall be narrating your weekly account myself. Do sit up straight.', by: 'victorian' },
   ];
 
-  function event(now) { if (S().seasons === false) return null; now = now || new Date(); return EVENTS.find((e) => e.when(now)) || null; }
+  /* Every event on today. They stack: effects add up, every guest visits, each gets its own banner. */
+  function events(now) { if (S().seasons === false) return []; now = now || new Date(); return EVENTS.filter((e) => e.when(now)); }
+  function event(now) { return events(now)[0] || null; }
+  const first = (k, now) => { const e = events(now).find((x) => x[k]); return e ? e[k] : null; };
 
-  /* Scene effects for the season and any event. Called by js/sky.js. */
+  /* Scene effects for the season and any events. Called by js/sky.js. */
   function fx(now, phase, weather) {
     if (S().seasons === false) return [];
     now = now || new Date();
@@ -39,29 +164,54 @@
     if (se === 'summer' && phase === 'night' && !wet) out.push('summerflies');
     if (se === 'autumn' && !wet) out.push('leaves');
     if (se === 'winter' && !wet) out.push('flurries');
-    const e = event(now); if (e && e.fx) out.push(...e.fx);
+    for (const e of events(now)) for (const f of e.fx || []) if (!out.includes(f)) out.push(f);
     if (SP.birthday && SP.birthday.today(now)) out.push('balloons');
     return out;
   }
 
-  /* A voice that drops by for the event, unlocked or not. */
-  const guest = (now) => { const e = event(now); return e && e.guest; };
-  const heckler = (now) => { const e = event(now); return e && e.heckler; };
-  const host = (now) => { const e = event(now); return e && e.host; };
-  const forcedChaos = (now) => { const e = event(now); return !!(e && e.chaos); };
+  /* Voices that drop by for an event, unlocked or not. */
+  const guests = (now) => events(now).map((e) => e.guest).filter(Boolean);
+  const guest = (now) => first('guest', now);
+  /* The visiting heckler: the first event's first choice that you've unlocked (or that's visiting anyway). */
+  function heckling(now) {
+    const g = guests(now);
+    for (const e of events(now)) for (const k of [].concat(e.heckler || [])) if (g.includes(k) || SP.voice.unlocked(k)) return { e, k };
+    return null;
+  }
+  const heckler = (now) => { const h = heckling(now); return h ? h.k : null; };
+  // The heckler's own lines for the occasion, if its event has any (one list, or one per voice).
+  const heckles = (now) => { const h = heckling(now), x = h && h.e.heckles; return !x ? null : Array.isArray(x) ? x : x[h.k] || null; };
+  const host = (now) => first('host', now);
+  const greeter = (now) => first('greeter', now); // Cat Day: the cat takes the greeting
+  const crown = (now) => !!first('crown', now);
+  const zoomies = (now) => !!first('zoomies', now); // full moon: the cat runs about at night
+  const forcedChaos = (now) => !!first('chaos', now);
+  /* Who voice k speaks as right now (Opposite Day), or k itself. */
+  function speaker(k, now) {
+    const o = OPPOSITE[k];
+    return o && first('opposite', now) && SP.voice.unlocked(k) && SP.voice.unlocked(o) ? o : k;
+  }
 
-  /* A small banner under the date while an event is on, until you dismiss it. */
+  /* A small banner under the date for each event that's on, until you dismiss it. */
+  const seenKey = (e) => e.id + new Date().getFullYear();
   function bannerHtml() {
-    const e = event(); if (!e) return '';
-    const p = S().presence || {}, key = e.id + new Date().getFullYear();
-    if ((p.events || {})[key]) return '';
-    const who = V[e.by || e.guest] || V.neutral;
-    return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc(who.name + ': ' + e.line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss">' + SP.icon('x', 14) + '</button></p>';
+    const p = S().presence || {}, now = new Date();
+    return events(now).filter((e) => (e.line || e.lines) && !(p.events || {})[seenKey(e)]).map((e) => {
+      // `lines`: one per voice, said by whoever you've picked (in their opposite's words on Opposite Day).
+      const who = e.lines ? SP.voice.current() : V[e.by || e.guest] || V.neutral;
+      let line = e.lines ? e.lines[SP.voice.speaker()] || e.lines.neutral : typeof e.line === 'function' ? e.line(now) : e.line;
+      if (typeof line === 'function') line = line({ name: S().name });
+      return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc((who === V.neutral && e.lines ? '' : who.name + ': ') + line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss ' + SP.ui.esc(e.name) + '">' + SP.icon('x', 14) + '</button></p>';
+    }).join('');
   }
   function bindBanner(root) {
-    const b = root.querySelector('[data-event-x]'); if (!b) return;
-    b.onclick = () => { const e = event(), p = S().presence || (S().presence = {}), ev = p.events || (p.events = {}); ev[e.id + new Date().getFullYear()] = 1; SP.store.save({ quiet: true }); SP.app.renderHero(); };
+    root.querySelectorAll('[data-event-x]').forEach((b) => {
+      b.onclick = () => {
+        const e = EVENTS.find((x) => x.id === b.closest('[data-event]').dataset.event); if (!e) return;
+        const p = S().presence || (S().presence = {}), ev = p.events || (p.events = {}); ev[seenKey(e)] = 1; SP.store.save({ quiet: true }); SP.app.renderHero();
+      };
+    });
   }
 
-  SP.season = { season, event, fx, guest, heckler, host, forcedChaos, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});

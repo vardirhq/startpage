@@ -113,7 +113,7 @@
      Stored as which lines to say (key, context, a pick), not the words, so switching voices re-voices it. */
   const aside = (st, parts) => { st.aside = parts.map(([k, c]) => [k, c || {}, Math.floor(Math.random() * 1e6)]); };
   function say([key, ctx, pick]) {
-    let val = V[SP.voice.key()] && V[SP.voice.key()][key] !== undefined ? V[SP.voice.key()][key] : V.neutral[key];
+    const sk = SP.voice.speaker(); let val = V[sk] && V[sk][key] !== undefined ? V[sk][key] : V.neutral[key];
     for (let d = 0; d < 4; d++) { if (typeof val === 'function') val = val(ctx); else if (Array.isArray(val)) val = val[(pick + d * 7) % val.length]; else break; }
     return SP.voice.resolve(val, key, ctx); // the swearing mask and Friday nights still apply
   }

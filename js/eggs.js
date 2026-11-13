@@ -27,7 +27,7 @@
     const s = S(), got = s.eggs || (s.eggs = {});
     if (!EGGS[id] || got[id]) return false;
     got[id] = Date.now(); SP.store.save();
-    const k = SP.voice.key(), e = EGGS[id], line = e[k] || e.neutral, n = Object.keys(got).length;
+    const k = SP.voice.key(), e = EGGS[id], line = e[SP.voice.speaker()] || e.neutral, n = Object.keys(got).length;
     SP.ui.toast(line + '\n' + n + ' of ' + COUNT + ' discoveries found.', { who: (k === 'neutral' ? '' : voiceName() + ' · ') + 'discovery', ms: 7000 });
     if (SP.achieve) SP.achieve.check();
     if (SP.panel.isOpen()) SP.panel.render();
@@ -64,7 +64,7 @@
     const k = Object.keys(V).find((x) => SP.voice.unlocked(x) && (V[x].name.toLowerCase() === want || x === want || V[x].name.toLowerCase().split(' ').includes(want)));
     if (!k) return null;
     const e = EGGS.hello;
-    return { who: V[k].name, text: SP.voice.as(k, () => e[SP.voice.key()] || e.neutral) };
+    return { who: V[k].name, text: SP.voice.as(k, () => e[SP.voice.speaker()] || e.neutral) };
   }
 
   /* Checks that run on load, each minute and on renders. */

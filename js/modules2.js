@@ -82,7 +82,7 @@
     const name = names[Math.floor(((f * 8) + 0.5) % 8)];
     const cycle = Math.floor(days / SYN);
     const at = (x) => { let d = REF + (cycle + x) * SYN * 864e5; if (d < (now || Date.now())) d += SYN * 864e5; return new Date(d); };
-    return { age, f, illum, name, nextFull: at(0.5), nextNew: at(1) };
+    return { age, f, illum, name, nextFull: SP.season ? SP.season.nextFullMoon(new Date(now || Date.now())) : at(0.5), nextNew: at(1) }; // the exact full moon (js/season.js)
   }
   function drawMoon(canvas, f, south) {
     const g = canvas.getContext('2d'), N = 32, r = 14, c = 15.5;
@@ -284,7 +284,7 @@
     const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
     const cur = SP.voice.key(), mix = shuffle(pool);
     const a = pool.includes(cur) && Math.random() < 0.75 ? cur : mix[0], b = mix.find((k) => k !== a);
-    const one = (k) => ({ k, text: V[k].wyr_opts[Math.floor(Math.random() * V[k].wyr_opts.length)] });
+    const one = (k) => { const o = (V[SP.voice.speaker(k)].wyr_opts || []).length ? V[SP.voice.speaker(k)].wyr_opts : V[k].wyr_opts; return { k, text: o[Math.floor(Math.random() * o.length)] }; };
     return Math.random() < 0.5 ? { a: one(a), b: one(b) } : { a: one(b), b: one(a) };
   }
   const opts = () => (S().decideOpts || '').split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);

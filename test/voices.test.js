@@ -196,8 +196,135 @@ test('seasons: northern and southern hemisphere, event calendar', () => {
   assert.equal(Se.event(new Date(2026, 5, 10)), null);
   assert.ok(Se.fx(new Date(2026, 1, 14), 'day', null).includes('hearts'));
   assert.ok(!Se.fx(new Date(2026, 9, 10), 'day', 'rain').includes('petals'), 'no blossoms in the rain');
+  assert.equal(Se.event(new Date(2026, 10, 18, 12)).id, 'voyager');
+  assert.equal(Se.guest(new Date(2026, 10, 18, 12)), 'owl');
+  assert.ok(Se.fx(new Date(2026, 10, 18, 12), 'night', null).includes('voyager'));
+  assert.equal(Se.event(new Date(2027, 10, 18, 12)), null, 'Voyager is a one-off');
+  assert.ok(!Se.events(new Date(2026, 10, 17, 23)).some((e) => e.id === 'voyager'), 'not the day before');
+  const vy = Se.EVENTS.find((e) => e.id === 'voyager');
+  assert.match(vy.line(new Date(Se.LIGHTDAY - 1)), /^At \d\d:\d\d today/);
+  assert.match(vy.line(new Date(Se.LIGHTDAY + 1)), /hears you tomorrow at \d\d:\d\d/);
   window.SP.store.state.seasons = false;
   assert.equal(Se.event(new Date(2026, 9, 28)), null, 'can be turned off');
+});
+
+test('events stack: effects add up, every guest visits, one banner each', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  const extra = { id: 'test', when: (d) => d.getMonth() === 9 && d.getDate() === 31, fx: ['meteors', 'bats'], guest: 'parent', name: 'Test', line: 'hi' };
+  Se.EVENTS.push(extra);
+  try {
+    const d = new Date(2026, 9, 31, 12);
+    assert.deepEqual(Se.events(d).map((e) => e.id), ['haunted', 'test']);
+    assert.deepEqual(Se.guests(d), ['ghost', 'parent']);
+    assert.equal(Se.heckler(d), 'ghost', 'the first event with a heckler wins');
+    const fx = Se.fx(d, 'night', null);
+    assert.ok(fx.includes('meteors') && fx.filter((f) => f === 'bats').length === 1, 'effects merge without duplicates');
+  } finally { Se.EVENTS.splice(Se.EVENTS.indexOf(extra), 1); }
+});
+
+test('meteor nights: peak evening until dawn; Cat Day; both stack with others', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  const ids = (d) => Se.events(d).map((e) => e.id);
+  assert.deepEqual(ids(new Date(2026, 7, 12, 22)), ['meteors-perseids']);
+  assert.deepEqual(ids(new Date(2026, 7, 13, 3)), ['meteors-perseids'], 'still on after midnight');
+  assert.deepEqual(ids(new Date(2026, 7, 12, 14)), [], 'not in the afternoon');
+  assert.deepEqual(ids(new Date(2026, 7, 13, 7)), [], 'over by morning');
+  assert.deepEqual(ids(new Date(2027, 0, 4, 2)), ['meteors-quadrantids'], 'across a year boundary is fine too');
+  assert.ok(Se.fx(new Date(2026, 11, 13, 23), 'night', null).includes('meteors'));
+  assert.equal(Se.heckler(new Date(2026, 7, 12, 22)), 'conspiracy');
+  assert.equal(Se.SHOWERS.length, Se.EVENTS.filter((e) => e.id.startsWith('meteors-')).length);
+  // The Leonids run into Voyager day, 2026.
+  assert.deepEqual(ids(new Date(2026, 10, 18, 2)), ['voyager', 'meteors-leonids']);
+  const cat = new Date(2026, 7, 8, 9);
+  assert.equal(Se.event(cat).id, 'catday');
+  assert.equal(Se.greeter(cat), 'cat');
+  assert.ok(Se.crown(cat) && !Se.crown(new Date(2026, 7, 9, 9)));
+  assert.equal(Se.heckler(cat), 'cat');
+});
+
+test('full moons: exact to minutes, one night each; the moon widget agrees', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  for (const [from, want] of [['2024-01-20', '2024-01-25T17:54Z'], ['2025-12-01', '2025-12-04T23:14Z'], ['2026-11-20', '2026-11-24T14:53Z']])
+    assert.ok(Math.abs(Se.nextFullMoon(new Date(from)) - new Date(want)) < 5 * 6e4, want);
+  const full = Se.nextFullMoon(new Date(2026, 10, 20)), eve = new Date(full); if (eve.getHours() < 12) eve.setDate(eve.getDate() - 1); eve.setHours(22, 0, 0, 0);
+  assert.ok(Se.events(eve).some((e) => e.id === 'fullmoon'), 'on the night');
+  const after = new Date(eve); after.setDate(after.getDate() + 1);
+  const before = new Date(eve); before.setDate(before.getDate() - 1);
+  assert.ok(!Se.events(after).some((e) => e.id === 'fullmoon') && !Se.events(before).some((e) => e.id === 'fullmoon'), 'one night only');
+  assert.ok(Se.zoomies(eve));
+  assert.equal(Se.heckler(eve), 'conspiracy', 'Ghost and Night Owl only once you have them');
+  window.SP.store.state.unlocked = ['owl'];
+  assert.equal(Se.heckler(eve), 'owl');
+  assert.ok(Se.heckles(eve).some((x) => typeof x === 'string' && /FULL MOON/.test(x)), 'the heckler’s own lines');
+  assert.equal(+window.SP.moon(+new Date(2026, 10, 20)).nextFull, +full);
+});
+
+test('daylight saving: found from the UTC offset, wherever you are', () => {
+  const Se = window.SP.season, tz = process.env.TZ;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  const changes = (zone) => { process.env.TZ = zone; const out = []; for (let d = new Date(2026, 0, 1); d.getFullYear() === 2026; d.setDate(d.getDate() + 1)) { const c = Se.clocks(d); if (c) out.push((d.getMonth() + 1) + '/' + d.getDate() + (c > 0 ? '+' : '-')); } return out; };
+  try {
+    assert.deepEqual(changes('Europe/Oslo'), ['3/29+', '10/25-']);
+    assert.deepEqual(changes('Australia/Sydney'), ['4/5-', '10/4+']);
+    assert.deepEqual(changes('Asia/Tokyo'), []);
+    process.env.TZ = 'Europe/Oslo';
+    assert.ok(Se.events(new Date(2026, 9, 25, 12)).some((e) => e.id === 'dst-back'));
+    // Haunted week starts the same day: both visit, and the one-day event heckles.
+    assert.deepEqual(Se.guests(new Date(2026, 9, 25, 12)).sort(), ['ghost', 'owl']);
+    assert.equal(Se.heckler(new Date(2026, 9, 25, 12)), 'owl');
+  } finally { if (tz === undefined) delete process.env.TZ; else process.env.TZ = tz; }
+});
+
+test('first snow: once per winter, from the live sky; each voice says its own line', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  const d = new Date(2026, 10, 20, 9);
+  assert.ok(!Se.noteWeather('rain', d));
+  assert.ok(Se.noteWeather('snow', d), 'first snow');
+  assert.ok(!Se.noteWeather('snow', d), 'once');
+  assert.ok(Se.events(d).some((e) => e.id === 'firstsnow'));
+  assert.ok(!Se.events(new Date(2026, 10, 21, 9)).some((e) => e.id === 'firstsnow'), 'just the day');
+  assert.ok(!Se.noteWeather('snow', new Date(2027, 0, 10, 9)), 'not again the same winter');
+  assert.ok(Se.noteWeather('snow', new Date(2027, 10, 2, 9)), 'next winter');
+  const e = Se.EVENTS.find((x) => x.id === 'firstsnow');
+  for (const k of Object.keys(window.SP.voice.list)) if (!window.SP.voice.list[k].custom) assert.ok(e.lines[k], k + ' has a first-snow line');
+});
+
+test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {
+  const Se = window.SP.season, d = new Date(2027, 0, 25, 12);
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  for (const [a, b] of Object.entries(Se.OPPOSITE)) { assert.ok(V.list[a] && V.list[b], a + ' and ' + b + ' exist'); assert.equal(Se.OPPOSITE[b], a, 'pairs go both ways'); }
+  assert.equal(Se.event(d).id, 'opposite');
+  assert.equal(Se.speaker('monday', d), 'supportive');
+  assert.equal(Se.speaker('neutral', d), 'neutral', 'Neutral has no opposite');
+  assert.equal(Se.speaker('monday', new Date(2027, 0, 26, 12)), 'monday', 'only on the day');
+  assert.equal(Se.speaker('weepy', d), 'weepy', 'a locked opposite is not spoiled');
+  window.SP.store.state.unlocked = ['parent'];
+  assert.equal(Se.speaker('weepy', d), 'parent');
+  // t() follows the swap; the voice's identity does not.
+  const real = Se.speaker; Se.speaker = (k) => real(k, d);
+  try {
+    assert.equal(V.key(), 'monday');
+    assert.equal(V.current().name, 'Monday');
+    assert.equal(V.t('tgl_seasons'), V.list.supportive.tgl_seasons);
+    assert.equal(V.speaker(), 'supportive');
+    // Lines read outside t() swap too: level titles, reactions, heckles, the AI persona.
+    assert.equal(window.SP.levels.title(1), V.list.supportive.lvl_titles[0]);
+    assert.equal(window.SP.levels.title(1, 'supportive'), V.list.monday.lvl_titles[0], 'both ways');
+    const r = window.SP.react.line('unlock', { name: 'X' });
+    assert.ok(r && !/^Ugh|^Fine/.test(r), 'Monday reacts like Super Supportive: ' + r);
+    window.SP.store.state._heckleAlways = true; window.SP.store.state.unlocked = ['parent', 'owl', 'ghost'];
+    const said = (k, cur) => { const v = V.list[k]; return [].concat((v.heckle_at && v.heckle_at[cur]) || v.heckle || []).map((x) => typeof x === 'function' ? x({ who: V.list[cur].name }) : x); };
+    const h = window.SP.react.heckle();
+    assert.ok(h, 'someone heckles');
+    const o = Se.speaker(h.key, d);
+    assert.equal(h.who, V.list[h.key].name, 'the heckler keeps its name');
+    assert.ok(said(o, 'monday').includes(h.text), h.who + ' heckles in ' + V.list[o].name + '’s words: ' + h.text);
+  } finally { Se.speaker = real; }
+
 });
 
 test('bond levels: 7, 30 and 90 days; softer lines from level 2', () => {

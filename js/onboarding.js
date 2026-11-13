@@ -18,7 +18,7 @@
   }
   /* What a voice would actually say to you, using the name from step 1. */
   function preview(k) {
-    const V = SP.voice.list, v = V[k], n = V.neutral;
+    const V = SP.voice.list, v = V[SP.voice.speaker(k)], n = V.neutral;
     const g = SP.voice.resolve(v.greet || n.greet, 'greet', period());
     const a = SP.voice.resolve(v.addr || n.addr, 'addr', { name: S().name });
     return '“' + g + (/[?!…]$/.test(g) ? ' ' : ', ') + a + '.”'; // no comma after "?"
