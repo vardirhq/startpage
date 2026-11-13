@@ -573,6 +573,13 @@ dialog#dlg::backdrop { background: rgba(5, 3, 15, 0.55); backdrop-filter: blur(3
   background: rgba(var(--accent-rgb), 0.14); border: 1px solid rgba(var(--accent-rgb), 0.35); }
 .g-event b { flex: none; color: var(--accent); }
 .g-event span { flex: 1; min-width: 0; }
+/* Voyager 1 (js/voyager.js): live numbers, your hello on its way */
+.voy-live { margin-top: 4px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted, inherit); opacity: .85; }
+.voy-send { margin-top: 6px; font-size: 12px; padding: 4px 10px; }
+.voy-hello { margin-top: 6px; }
+.voy-hello small { display: block; margin-top: 3px; font-size: 12px; font-variant-numeric: tabular-nums; opacity: .85; overflow-wrap: anywhere; }
+.voy-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden; }
+.voy-bar i { display: block; height: 100%; background: var(--accent); }
 .g-heckle { margin: 6px 0 0; font-size: 13px; font-style: italic; color: rgba(244, 242, 255, 0.55); max-width: 60ch; }
 .g-heckle b { font-style: normal; font-weight: 700; color: var(--accent); margin-right: 2px; }
 #bg-anim { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; pointer-events: none; }
