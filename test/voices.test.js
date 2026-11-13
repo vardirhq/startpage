@@ -208,6 +208,42 @@ test('seasons: northern and southern hemisphere, event calendar', () => {
   assert.equal(Se.event(new Date(2026, 9, 28)), null, 'can be turned off');
 });
 
+test('events stack: effects add up, every guest visits, one banner each', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  const extra = { id: 'test', when: (d) => d.getMonth() === 9 && d.getDate() === 31, fx: ['meteors', 'bats'], guest: 'parent', name: 'Test', line: 'hi' };
+  Se.EVENTS.push(extra);
+  try {
+    const d = new Date(2026, 9, 31, 12);
+    assert.deepEqual(Se.events(d).map((e) => e.id), ['haunted', 'test']);
+    assert.deepEqual(Se.guests(d), ['ghost', 'parent']);
+    assert.equal(Se.heckler(d), 'ghost', 'the first event with a heckler wins');
+    const fx = Se.fx(d, 'night', null);
+    assert.ok(fx.includes('meteors') && fx.filter((f) => f === 'bats').length === 1, 'effects merge without duplicates');
+  } finally { Se.EVENTS.splice(Se.EVENTS.indexOf(extra), 1); }
+});
+
+test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {
+  const Se = window.SP.season, d = new Date(2027, 0, 25, 12);
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  for (const [a, b] of Object.entries(Se.OPPOSITE)) { assert.ok(V.list[a] && V.list[b], a + ' and ' + b + ' exist'); assert.equal(Se.OPPOSITE[b], a, 'pairs go both ways'); }
+  assert.equal(Se.event(d).id, 'opposite');
+  assert.equal(Se.speaker('monday', d), 'supportive');
+  assert.equal(Se.speaker('neutral', d), 'neutral', 'Neutral has no opposite');
+  assert.equal(Se.speaker('monday', new Date(2027, 0, 26, 12)), 'monday', 'only on the day');
+  assert.equal(Se.speaker('weepy', d), 'weepy', 'a locked opposite is not spoiled');
+  window.SP.store.state.unlocked = ['parent'];
+  assert.equal(Se.speaker('weepy', d), 'parent');
+  // t() follows the swap; the voice's identity does not.
+  const real = Se.speaker; Se.speaker = (k) => real(k, d);
+  try {
+    assert.equal(V.key(), 'monday');
+    assert.equal(V.current().name, 'Monday');
+    assert.equal(V.t('tgl_seasons'), V.list.supportive.tgl_seasons);
+  } finally { Se.speaker = real; }
+
+});
+
 test('bond levels: 7, 30 and 90 days; softer lines from level 2', () => {
   window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday', presence: { rel: { monday: { days: 29 } } } });
   const B = window.SP.bonds;
