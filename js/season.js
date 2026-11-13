@@ -14,8 +14,7 @@
    Full moon nights: Ghost, Night Owl or the Conspiracist come out, and the cat gets the zoomies.
    Opposite Day (Jan 25): every voice talks like its opposite. Monday is thrilled. The controls don't change.
    New Year's Eve: fireworks (see js/sky.js).
-   Voyager 1 light-day (18 Nov 2026, once): the probe drifts across the sky, Night Owl stays up for it,
-   and the banner says when a hello sent now would reach it. */
+   Voyager 1 light-day (18 Nov 2026, once): see js/voyager.js. */
 (function (SP) {
   'use strict';
   const S = () => SP.store.state;
@@ -26,10 +25,6 @@
     const n = m >= 2 && m <= 4 ? 0 : m >= 5 && m <= 7 ? 1 : m >= 8 && m <= 10 ? 2 : 3;
     return ['spring', 'summer', 'autumn', 'winter'][south ? (n + 2) % 4 : n];
   }
-
-  /* Voyager 1 is one light-day from Earth at 10:16:07 UTC on 18 Nov 2026 (NASA/JPL projection). */
-  const LIGHTDAY = Date.UTC(2026, 10, 18, 10, 16, 7);
-  const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 
   const pad2 = (n) => String(n).padStart(2, '0');
   const dkey = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
@@ -116,12 +111,6 @@
 
   /* One-day events come first: when events overlap, the first one picks the visiting heckler and the host. */
   const EVENTS = [
-    { id: 'voyager', when: (d) => d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() === 18, fx: ['voyager'], guest: 'owl', heckler: 'owl', name: 'Voyager 1: one light-day',
-      line: (now) => +now < LIGHTDAY
-        ? 'At ' + hhmm(LIGHTDAY) + ' today, Voyager 1 is one whole light-day from Earth. First thing we ever made to get that far. I’m staying up. I was staying up anyway.'
-        : 'Voyager 1 is one light-day away. Say hello now and it hears you tomorrow at ' + hhmm(+now + 864e5) + '. Launched in 1977 and STILL not asleep. My hero.',
-      heckles: ['Sorry, can’t talk, I’m watching a 49-year-old probe leave the solar system.', ({ who }) => who + ' thinks a day is a long time to wait for a reply. Voyager waits a day for everything.', 'Imagine being that far from home and still answering emails.'],
-      by: 'owl' },
     { id: 'opposite', when: (d) => d.getMonth() === 0 && d.getDate() === 25, opposite: true, name: 'Opposite Day',
       line: 'It’s Opposite Day. Everyone talks like their opposite until midnight. The buttons still do what they say. Unfortunately.', by: 'monday' },
     { id: 'firstsnow', when: (d) => (S().presence || {}).firstSnow === dkey(d), name: 'First snow', lines: FIRST_SNOW, heckler: 'surfer',
@@ -201,10 +190,13 @@
       const who = e.lines ? SP.voice.current() : V[e.by || e.guest] || V.neutral;
       let line = e.lines ? e.lines[SP.voice.speaker()] || e.lines.neutral : typeof e.line === 'function' ? e.line(now) : e.line;
       if (typeof line === 'function') line = line({ name: S().name });
-      return '<p class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc((who === V.neutral && e.lines ? '' : who.name + ': ') + line) + '</span><button class="icon-btn" data-event-x aria-label="Dismiss ' + SP.ui.esc(e.name) + '">' + SP.icon('x', 14) + '</button></p>';
+      // anon: nobody's saying it, it's just news. html: live extras under the line (js/voyager.js).
+      const said = e.anon || (who === V.neutral && e.lines) ? line : who.name + ': ' + line;
+      return '<div class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc(said) + (e.html ? e.html(now) : '') + '</span><button class="icon-btn" data-event-x aria-label="Dismiss ' + SP.ui.esc(e.name) + '">' + SP.icon('x', 14) + '</button></div>'; // a div: the live extras are blocks, which a <p> can't hold
     }).join('');
   }
   function bindBanner(root) {
+    root.querySelectorAll('.g-event[data-event]').forEach((el) => { const e = EVENTS.find((x) => x.id === el.dataset.event); if (e && e.bind) e.bind(el); });
     root.querySelectorAll('[data-event-x]').forEach((b) => {
       b.onclick = () => {
         const e = EVENTS.find((x) => x.id === b.closest('[data-event]').dataset.event); if (!e) return;
@@ -213,5 +205,5 @@
     });
   }
 
-  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});

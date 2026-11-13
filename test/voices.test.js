@@ -201,9 +201,6 @@ test('seasons: northern and southern hemisphere, event calendar', () => {
   assert.ok(Se.fx(new Date(2026, 10, 18, 12), 'night', null).includes('voyager'));
   assert.equal(Se.event(new Date(2027, 10, 18, 12)), null, 'Voyager is a one-off');
   assert.ok(!Se.events(new Date(2026, 10, 17, 23)).some((e) => e.id === 'voyager'), 'not the day before');
-  const vy = Se.EVENTS.find((e) => e.id === 'voyager');
-  assert.match(vy.line(new Date(Se.LIGHTDAY - 1)), /^At \d\d:\d\d today/);
-  assert.match(vy.line(new Date(Se.LIGHTDAY + 1)), /hears you tomorrow at \d\d:\d\d/);
   window.SP.store.state.seasons = false;
   assert.equal(Se.event(new Date(2026, 9, 28)), null, 'can be turned off');
 });
@@ -291,6 +288,31 @@ test('first snow: once per winter, from the live sky; each voice says its own li
   assert.ok(Se.noteWeather('snow', new Date(2027, 10, 2, 9)), 'next winter');
   const e = Se.EVENTS.find((x) => x.id === 'firstsnow');
   for (const k of Object.keys(window.SP.voice.list)) if (!window.SP.voice.list[k].custom) assert.ok(e.lines[k], k + ' has a first-snow line');
+});
+
+test('Voyager 1: a week of countdown, the day, every voice, and a hello that takes a day', () => {
+  const Se = window.SP.season, Vy = window.SP.voyager;
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  const ids = (d) => Se.events(d).map((e) => e.id);
+  assert.deepEqual(ids(new Date(2026, 10, 13, 12)), ['voyager-soon']);
+  assert.match(Se.EVENTS.find((e) => e.id === 'voyager-soon').line(new Date(2026, 10, 13, 12)), /^In 5 days, Voyager 1/);
+  assert.match(Se.EVENTS.find((e) => e.id === 'voyager-soon').line(new Date(2026, 10, 17, 12)), /^Tomorrow, Voyager 1/);
+  assert.ok(Se.fx(new Date(2026, 10, 15, 22), 'night', null).includes('voyager'), 'the probe is already on its way');
+  assert.deepEqual(ids(new Date(2026, 10, 10, 12)), []);
+  assert.equal(Math.round(Vy.LD_KM), 25902068371, 'one light-day in km');
+  for (const k of Object.keys(V.list)) if (!V.list[k].custom) assert.ok(Vy.LINES[k], k + ' has something to say');
+  // The countdown, then the distance and the signal time.
+  assert.match(Vy.liveText(Vy.LIGHTDAY - 3723e3), /^One light-day in 01:02:03 · /);
+  assert.match(Vy.liveText(Vy.LIGHTDAY + 1000), /its signal takes 24 h 00 min 00 s to get here$/);
+  // Light chasing the probe needs a few seconds more than a day.
+  const extra = (Vy.arrival(Vy.LIGHTDAY) - Vy.LIGHTDAY) / 1000 - 86400;
+  assert.ok(extra > 4 && extra < 6, 'about 5 s longer: ' + extra);
+  // A hello in flight shows up the day after, then it's done.
+  window.SP.store.state.voyager = { msg: 'hi', sent: Vy.LIGHTDAY, arrives: Vy.arrival(Vy.LIGHTDAY) };
+  assert.deepEqual(ids(new Date(2026, 10, 19, 8)), ['voyager-hello']);
+  window.SP.store.state.voyager.delivered = Date.now();
+  assert.deepEqual(ids(new Date(2026, 10, 19, 8)), []);
+  assert.ok(window.SP.eggs.EGGS.voyager, 'a discovery for writing to it');
 });
 
 test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {

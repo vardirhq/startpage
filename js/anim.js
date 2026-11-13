@@ -95,16 +95,33 @@
       ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(x - 1, y + 1, 1, 1);
       ctx.fillStyle = 'rgba(230,230,240,0.55)'; for (let i = 0; i < 6; i++) ctx.fillRect(x + Math.round(Math.sin(t * 2 + b.ph + i * 0.7) * 0.8), y + 5 + i, 1, 1);
     }
-    if (fx.includes('voyager')) { // a tiny probe crawls across the sky over ~10 minutes, dish towards home, light blinking
-      const x = Math.round(W + 8 - ((t / 600) % 1) * (W + 16)), y = Math.round(horizon * 0.22 + Math.sin(t / 90) * 3);
-      ctx.fillStyle = 'rgba(205,205,215,0.9)'; ctx.fillRect(x, y, 3, 2); ctx.fillRect(x + 3, y, 4, 1); ctx.fillRect(x - 3, y + 1, 3, 1); ctx.fillRect(x + 1, y + 2, 1, 2);
-      ctx.fillStyle = 'rgba(240,240,250,0.95)'; ctx.fillRect(x - 1, y - 2, 1, 4); ctx.fillRect(x - 2, y - 1, 1, 2);
-      if ((t % 2.5) < 0.25) { ctx.fillStyle = 'rgba(255,90,80,0.95)'; ctx.fillRect(x + 6, y - 1, 1, 1); }
-    }
+    if (fx.includes('voyager')) drawVoyager(t, W, horizon);
     for (const b of bats) {
       b.x += b.v * dt; b.y += Math.sin(t * 3 + b.ph) * 6 * dt; if (b.x > W + 4) { b.x = -4; b.y = 20 + Math.random() * horizon * 0.5; }
       const up = Math.sin(t * 14 + b.ph) > 0, x = Math.round(b.x), y = Math.round(b.y);
       ctx.fillStyle = 'rgba(12,6,20,0.95)'; ctx.fillRect(x, y, 1, 1); ctx.fillRect(x - 2, y + (up ? -1 : 1), 2, 1); ctx.fillRect(x + 1, y + (up ? -1 : 1), 2, 1);
+    }
+  }
+
+  /* Voyager 1: a probe twice the usual pixel size crawls across the sky over half an hour, dish towards home,
+     sending a radio pulse home every couple of seconds, with a faint trail of where it's been. */
+  function drawVoyager(t, W, horizon) {
+    const P = 2, span = W + 40, x = Math.round(W + 20 - ((Date.now() / 1800e3) % 1) * span), // by the wall clock, so a new tab doesn't start it off-screen
+      y = Math.round(horizon * 0.2 + Math.sin(t / 120) * 4);
+    for (let i = 1; i <= 14; i++) { ctx.fillStyle = 'rgba(200,210,255,' + (0.22 * (1 - i / 14)).toFixed(3) + ')'; ctx.fillRect(x + 12 + i * 4, y + 1, 1, 1); } // trail
+    const px = (c, i, j, w, h) => { ctx.fillStyle = c; ctx.fillRect(x + i * P, y + j * P, (w || 1) * P, (h || 1) * P); };
+    const body = 'rgba(205,205,215,0.95)', dish = 'rgba(245,245,252,1)', gold = 'rgba(230,190,90,0.95)';
+    px(dish, -1, -3, 1, 7); px(dish, -2, -2, 1, 5); px(dish, -3, -1, 1, 3);           // the big dish, facing home
+    px(body, 0, 0, 3, 2); px(gold, 1, 0);                                             // the bus, with the Golden Record
+    px(body, 3, 0, 5, 1);                                                             // magnetometer boom
+    px(body, 1, 2, 1, 3); px(body, 0, 4, 3, 1);                                       // power source on its boom
+    px(body, 2, -1, 1, 1); px(body, 3, -2, 3, 1);                                     // science boom
+    if ((t % 2.5) < 0.3) px('rgba(255,90,80,1)', 8, 0);                               // the light blinks
+    // A radio pulse every 2 s: an arc travelling from the dish down towards Earth, fading as it spreads.
+    for (let k = 0; k < 3; k++) {
+      const age = (t + k * 2) % 6, r = 6 + age * 14, a = 0.55 * (1 - age / 6); if (a <= 0.02) continue;
+      ctx.fillStyle = 'rgba(160,200,255,' + a.toFixed(3) + ')';
+      for (let ang = 100; ang <= 170; ang += 50 / r + 1) { const rad = ang * Math.PI / 180; ctx.fillRect(Math.round(x - 4 + Math.cos(rad) * r), Math.round(y + 1 + Math.sin(rad) * r), 1, 1); }
     }
   }
 

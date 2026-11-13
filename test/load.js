@@ -2,7 +2,7 @@
 // index.html), for the tests and scripts/voices.js. A new voice file is picked up automatically once it has
 // its <script> tag. SUPPORT: files without lines that the others need.
 const fs = require('fs'), path = require('path');
-const SUPPORT = ['voices.js', 'speak.js', 'season.js', 'maker.js', 'eggs.js', 'panel.js', 'puzzles.js'];
+const SUPPORT = ['voices.js', 'speak.js', 'season.js', 'voyager.js', 'maker.js', 'eggs.js', 'panel.js', 'puzzles.js'];
 const LINES_RE = /Object\.assign\(V\[k\]|SP\.voice\.list\.\w+ = \{|V\[k\]\.\w+ = /;
 const root = path.join(__dirname, '..');
 const FILES = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="js\/([^"]+)"/g)].map((m) => m[1])

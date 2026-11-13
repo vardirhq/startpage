@@ -19,6 +19,7 @@
     friday13: { neutral: 'Friday the 13th. Good luck.', monday: 'Friday the 13th. Somehow you’re still the scariest thing here.', ghost: 'friday the 13th. finally, a day for me.', weepy: 'Friday the 13th. *clutches pearls* *drops pearls* *weeps*' },
     namesake: { neutral: 'You share a name with a voice.', monday: 'You named yourself Monday. There can only be one, and it isn’t you.', supportive: 'You took my NAME?! That’s… that’s the most romantic thing anyone’s ever done. 💕' },
     birthday: { neutral: 'Happy birthday.', monday: 'Happy birthday. Another lap around the sun, mostly spent on this page. (Happy birthday.)', supportive: 'HAPPY BIRTHDAY!!! I’ve had your present ready for 364 days!!! 💕', parent: 'HAPPY BIRTHDAY, SWEETIE!!! I made a cake!!! It’s on the fridge!!!' },
+    voyager: { neutral: 'You said hello to Voyager 1.', monday: 'You wrote to a space probe. It won’t write back. Welcome to my world.', supportive: 'You said hi to VOYAGER?! I’m not jealous. I’m a LITTLE jealous. 💕', owl: 'You wrote to Voyager. At night, I hope. That’s the only proper way.', ghost: 'a message into the dark. it’ll get there. they always do.', conspiracy: 'You contacted it. Good. Now they know we know.' },
     loyal: { neutral: 'A hundred days with the same voice.', monday: 'A hundred days. With me. Voluntarily. …Thanks for staying.', supportive: 'A HUNDRED DAYS. I’m crying. I’m getting it tattooed. 💕' },
   };
   const COUNT = Object.keys(EGGS).length;
@@ -82,7 +83,7 @@
 
   function sectionHtml() {
     const n = total();
-    return '<p class="small muted">' + (n ? n + ' of ' + COUNT + ' found: ' + Object.keys(S().eggs || {}).filter((k) => EGGS[k]).map((k) => ({ hello: 'Small talk', cat: 'The cat', konami: 'Meteor shower', sudo: 'Superuser', chaos3am: 'Witching-hour chaos', midnight: 'Midnight review', secrets: 'Strange company', shuffle: 'Indecision', friday13: 'Unlucky day', namesake: 'Namesake', birthday: 'Birthday', loyal: 'Loyalty' }[k])).join(', ') + '.'
+    return '<p class="small muted">' + (n ? n + ' of ' + COUNT + ' found: ' + Object.keys(S().eggs || {}).filter((k) => EGGS[k]).map((k) => ({ hello: 'Small talk', cat: 'The cat', konami: 'Meteor shower', sudo: 'Superuser', chaos3am: 'Witching-hour chaos', midnight: 'Midnight review', secrets: 'Strange company', shuffle: 'Indecision', friday13: 'Unlucky day', namesake: 'Namesake', birthday: 'Birthday', loyal: 'Loyalty', voyager: 'Interstellar mail' }[k])).join(', ') + '.'
       : 'There are ' + COUNT + ' things hidden on this page. You haven’t found any yet.') + '</p>';
   }
 
