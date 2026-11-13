@@ -48,7 +48,7 @@
   const need = (n) => 50 * n * (n - 1);
   const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
   function title(level, k) {
-    const v = V[k || SP.voice.key()] || V.neutral, list = v.lvl_titles || V.neutral.lvl_titles, i = Math.min(level, list.length) - 1;
+    const v = V[SP.voice.speaker(k)] || V.neutral, list = v.lvl_titles || V.neutral.lvl_titles, i = Math.min(level, list.length) - 1;
     return list[i] + (level > list.length ? ' ' + (ROMAN[level - list.length + 1] || level - list.length + 1) : '');
   }
   function info() { const p = xp(), l = levelOf(p); return { xp: p, level: l, title: title(l), from: need(l), to: need(l + 1) }; }

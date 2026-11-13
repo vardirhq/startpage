@@ -26,8 +26,9 @@
   const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 
   /* Opposite Day: each voice speaks as its opposite. Pairs both ways; a voice whose opposite you haven't
-     unlocked (or that has none) stays itself, so nobody gets a secret voice spoiled. Only the words swap:
-     names, the voice picker and every control behave exactly as usual. */
+     unlocked (or that has none) stays itself, so nobody gets a secret voice spoiled. All in: every line
+     (labels, reactions, heckles, discoveries, level titles, Ask), the spoken voice and the voice's page styling
+     come from the opposite. Who it is doesn't change: its name, bond, scores, the picker and every control. */
   const OPPOSITE = { monday: 'supportive', victorian: 'surfer', brutal: 'therapist', professional: 'conspiracy', weepy: 'parent', owl: 'ghost', cat: 'narrator' };
   for (const [a, b] of Object.entries(OPPOSITE)) OPPOSITE[b] = a;
 

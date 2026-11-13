@@ -32,7 +32,7 @@
     if (!ok() || (!S().speak && !force)) return false;
     const line = clean(text);
     if (!line) return false;
-    const k = voiceKey || SP.voice.key(), base = PROFILES[k] || (SP.voice.list[k] && SP.voice.list[k].speech) || PROFILES.neutral;
+    const k = SP.voice.speaker(voiceKey), base = PROFILES[k] || (SP.voice.list[k] && SP.voice.list[k].speech) || PROFILES.neutral;
     const p = SP.tipsy && SP.tipsy.active() ? Object.assign({}, base, { rate: base.rate * 0.82, pitch: base.pitch * 0.95 }) : base; // Friday night: a bit slower, a bit lower
     const u = new SpeechSynthesisUtterance(line);
     u.pitch = p.pitch; u.rate = p.rate;

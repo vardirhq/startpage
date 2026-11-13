@@ -284,7 +284,7 @@
     const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
     const cur = SP.voice.key(), mix = shuffle(pool);
     const a = pool.includes(cur) && Math.random() < 0.75 ? cur : mix[0], b = mix.find((k) => k !== a);
-    const one = (k) => ({ k, text: V[k].wyr_opts[Math.floor(Math.random() * V[k].wyr_opts.length)] });
+    const one = (k) => { const o = (V[SP.voice.speaker(k)].wyr_opts || []).length ? V[SP.voice.speaker(k)].wyr_opts : V[k].wyr_opts; return { k, text: o[Math.floor(Math.random() * o.length)] }; };
     return Math.random() < 0.5 ? { a: one(a), b: one(b) } : { a: one(b), b: one(a) };
   }
   const opts = () => (S().decideOpts || '').split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);

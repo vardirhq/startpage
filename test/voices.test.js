@@ -240,6 +240,19 @@ test('Opposite Day: voices swap words with their opposite, names and controls st
     assert.equal(V.key(), 'monday');
     assert.equal(V.current().name, 'Monday');
     assert.equal(V.t('tgl_seasons'), V.list.supportive.tgl_seasons);
+    assert.equal(V.speaker(), 'supportive');
+    // Lines read outside t() swap too: level titles, reactions, heckles, the AI persona.
+    assert.equal(window.SP.levels.title(1), V.list.supportive.lvl_titles[0]);
+    assert.equal(window.SP.levels.title(1, 'supportive'), V.list.monday.lvl_titles[0], 'both ways');
+    const r = window.SP.react.line('unlock', { name: 'X' });
+    assert.ok(r && !/^Ugh|^Fine/.test(r), 'Monday reacts like Super Supportive: ' + r);
+    window.SP.store.state._heckleAlways = true; window.SP.store.state.unlocked = ['parent', 'owl', 'ghost'];
+    const said = (k, cur) => { const v = V.list[k]; return [].concat((v.heckle_at && v.heckle_at[cur]) || v.heckle || []).map((x) => typeof x === 'function' ? x({ who: V.list[cur].name }) : x); };
+    const h = window.SP.react.heckle();
+    assert.ok(h, 'someone heckles');
+    const o = Se.speaker(h.key, d);
+    assert.equal(h.who, V.list[h.key].name, 'the heckler keeps its name');
+    assert.ok(said(o, 'monday').includes(h.text), h.who + ' heckles in ' + V.list[o].name + '’s words: ' + h.text);
   } finally { Se.speaker = real; }
 
 });
