@@ -6,6 +6,9 @@
    Yule (Dec 20–26): fairy lights, and Victorian narrates the weekly recap.
    Valentine's Day: hearts, and Super Supportive won't stop butting in.
    April Fools' Day: Chaos mode, whether you like it or not.
+   Meteor showers (Perseids, Geminids and five more, on their peak nights): shooting stars all night, the cat
+   stays up to watch, and the Conspiracist has questions.
+   International Cat Day (Aug 8): the Cat takes over the greeting, heckles all day, and the pet wears a crown.
    Opposite Day (Jan 25): every voice talks like its opposite. Monday is thrilled. The controls don't change.
    New Year's Eve: fireworks (see js/sky.js).
    Voyager 1 light-day (18 Nov 2026, once): the probe drifts across the sky, Night Owl stays up for it,
@@ -32,6 +35,18 @@
   const OPPOSITE = { monday: 'supportive', victorian: 'surfer', brutal: 'therapist', professional: 'conspiracy', weepy: 'parent', owl: 'ghost', cat: 'narrator' };
   for (const [a, b] of Object.entries(OPPOSITE)) OPPOSITE[b] = a;
 
+  /* Meteor showers on their peak night (the evening of the date until dawn). Peaks drift by a day or so
+     from year to year; the night of the date is close enough to see some. */
+  const SHOWERS = [['Quadrantids', 0, 3], ['Lyrids', 3, 22], ['Eta Aquariids', 4, 5], ['Perseids', 7, 12], ['Orionids', 9, 21], ['Leonids', 10, 17], ['Geminids', 11, 13]];
+  const peakNight = (m, day) => (d) => (d.getMonth() === m && d.getDate() === day && d.getHours() >= 18) || (d.getHours() < 6 && (() => { const y = new Date(d); y.setDate(y.getDate() - 1); return y.getMonth() === m && y.getDate() === day; })());
+  const METEORS = SHOWERS.map(([name, m, day]) => ({
+    id: 'meteors-' + name.toLowerCase().replace(/\W+/g, ''), when: peakNight(m, day), fx: ['meteors'], heckler: 'conspiracy', name: 'The ' + name + ' tonight',
+    line: 'The ' + name + ' peak tonight, they say. Dozens of “meteors” an hour, all coming from the same point in the sky. The same point. Every year. Look up after dark and tell me that’s natural.',
+    heckles: ['Those aren’t meteors. Meteors don’t keep a schedule.', ({ who }) => who + ' says it’s space dust. Space dust doesn’t come back on the same night every year.',
+      'Count them. Then count them again. The numbers never match.', 'The cat’s watching them too. The cat knows.'],
+    by: 'conspiracy',
+  }));
+
   /* One-day events come first: when events overlap, the first one picks the visiting heckler and the host. */
   const EVENTS = [
     { id: 'voyager', when: (d) => d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() === 18, fx: ['voyager'], guest: 'owl', heckler: 'owl', name: 'Voyager 1: one light-day',
@@ -42,6 +57,10 @@
       by: 'owl' },
     { id: 'opposite', when: (d) => d.getMonth() === 0 && d.getDate() === 25, opposite: true, name: 'Opposite Day',
       line: 'It’s Opposite Day. Everyone talks like their opposite until midnight. The buttons still do what they say. Unfortunately.', by: 'monday' },
+    { id: 'catday', when: (d) => d.getMonth() === 7 && d.getDate() === 8, guest: 'cat', heckler: 'cat', greeter: 'cat', crown: true, name: 'International Cat Day',
+      line: 'Meow. Mrrp. Meeeeeow. (It’s Cat Day. The greeting is mine today. So is your chair.)', by: 'cat',
+      heckles: ['Meow. (That was a no.)', 'Mrrp. *sits on this sentence*', ({ who }) => 'Hsss. (' + who + ' is in my sunbeam.)', '*knocks the summary off the table* Prrt.', 'Meow? Meow. Meow! (Feed me. Then the tasks.)'] },
+    ...METEORS,
     { id: 'valentine', when: (d) => d.getMonth() === 1 && d.getDate() === 14, fx: ['hearts'], heckler: 'supportive', name: 'Valentine’s Day',
       line: 'Happy Valentine’s Day!!! I got you something. It’s me. I’m the gift. I’ll be in every summary today. 💕', by: 'supportive' },
     { id: 'fools', when: (d) => d.getMonth() === 3 && d.getDate() === 1, chaos: true, name: 'April Fools’ Day',
@@ -78,6 +97,8 @@
   // The visiting heckler's own lines for the occasion, if its event has any.
   const heckles = (now) => { const e = events(now).find((x) => x.heckler); return (e && e.heckles) || null; };
   const host = (now) => first('host', now);
+  const greeter = (now) => first('greeter', now); // Cat Day: the cat takes the greeting
+  const crown = (now) => !!first('crown', now);
   const forcedChaos = (now) => !!first('chaos', now);
   /* Who voice k speaks as right now (Opposite Day), or k itself. */
   function speaker(k, now) {
@@ -103,5 +124,5 @@
     });
   }
 
-  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, speaker, OPPOSITE, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, speaker, SHOWERS, OPPOSITE, LIGHTDAY, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});

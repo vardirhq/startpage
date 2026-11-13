@@ -64,7 +64,8 @@
       for (let i = 0, x = 4; x < W; i++, x += 12) { const y = 4 + Math.round(Math.sin(x / 24) * 2 + 2), on = Math.sin(t * 2 + i * 1.7) > -0.3;
         ctx.fillStyle = 'rgba(20,20,30,0.8)'; ctx.fillRect(x - 6, y - 1, 6, 1); ctx.fillStyle = rgba(cols[i % 4], on ? 0.95 : 0.35); ctx.fillRect(x, y, 1, 2); }
     }
-    if (performance.now() < meteorUntil && Math.random() < dt * 6) meteors.push({ x: W * (0.3 + Math.random() * 0.8), y: Math.random() * horizon * 0.4, vx: -(110 + Math.random() * 60), vy: 40 + Math.random() * 30, life: 0.8 });
+    if ((performance.now() < meteorUntil ? Math.random() < dt * 6 : fx.includes('meteors') && Math.random() < dt * 0.3)) // a burst (the Konami code), or a steady shower on a peak night
+      meteors.push({ x: W * (0.3 + Math.random() * 0.8), y: Math.random() * horizon * 0.4, vx: -(110 + Math.random() * 60), vy: 40 + Math.random() * 30, life: 0.8 });
     meteors = meteors.filter((s) => (s.life -= dt) > 0);
     for (const s of meteors) { for (let i = 0; i < 8; i++) { ctx.fillStyle = 'rgba(255,250,235,' + (0.9 * (1 - i / 8) * Math.min(1, s.life * 2)).toFixed(3) + ')'; ctx.fillRect(Math.round(s.x - s.vx * i * 0.012), Math.round(s.y - s.vy * i * 0.012), 1, 1); } s.x += s.vx * dt; s.y += s.vy * dt; }
     for (const f of fogs) { f.x += f.v * dt; if (f.x > W) f.x = -f.w; ctx.fillStyle = 'rgba(225,225,240,' + f.a.toFixed(3) + ')'; ctx.fillRect(Math.round(f.x), Math.round(f.y), Math.round(f.w), Math.round(f.h)); ctx.fillRect(Math.round(f.x + 14), Math.round(f.y - 3), Math.round(f.w - 28), 3); }

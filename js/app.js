@@ -81,8 +81,9 @@
     g.hidden = !s.showGreeting;
     if (s.showGreeting) {
       const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
-      const hello = SP.birthday.today() ? SP.voice.t('bday_greet') : greet(); // no comma after a greeting that ends in "?" or "!"
-      g.innerHTML = '<p class="g-date">' + esc(date) + ' <span class="g-lvl" title="' + esc(SP.levels.info().title) + '">· Level ' + SP.levels.info().level + '</span></p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(SP.voice.t('addr', { name: s.name })) + '.<span class="caret" aria-hidden="true"></span></h1>' +
+      const gk = SP.season.greeter(), steal = (fn) => (gk && SP.voice.unlocked(gk) ? SP.voice.as(gk, fn) : fn()); // Cat Day: the cat says hello
+      const hello = SP.birthday.today() ? SP.voice.t('bday_greet') : steal(greet); // no comma after a greeting that ends in "?" or "!"
+      g.innerHTML = '<p class="g-date">' + esc(date) + ' <span class="g-lvl" title="' + esc(SP.levels.info().title) + '">· Level ' + SP.levels.info().level + '</span></p><h1>' + esc(hello) + (/[?!…]$/.test(hello) ? '' : ',') + '<br>' + esc(steal(() => SP.voice.t('addr', { name: s.name }))) + '.<span class="caret" aria-hidden="true"></span></h1>' +
         (s.tagline ? '<p class="g-tag">' + esc(s.tagline) + '</p>' : '') +
         (s.showSummary ? '<p class="g-sub">' + esc(SP.faceoff.sulk() || SP.voice.t('heroSub', { open: s.tasks.filter((x) => !x.done).length, focus: s.focusLog[todayKey()] || 0 })) + '</p>' + heckleHtml() : '') + SP.birthday.bannerHtml() + SP.faceoff.html() + SP.dares.html() + SP.season.bannerHtml();
       SP.season.bindBanner(g); SP.dares.bind(g); SP.birthday.bind(g); SP.faceoff.bind(g);

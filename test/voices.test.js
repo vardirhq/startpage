@@ -200,7 +200,7 @@ test('seasons: northern and southern hemisphere, event calendar', () => {
   assert.equal(Se.guest(new Date(2026, 10, 18, 12)), 'owl');
   assert.ok(Se.fx(new Date(2026, 10, 18, 12), 'night', null).includes('voyager'));
   assert.equal(Se.event(new Date(2027, 10, 18, 12)), null, 'Voyager is a one-off');
-  assert.equal(Se.event(new Date(2026, 10, 17, 23)), null);
+  assert.ok(!Se.events(new Date(2026, 10, 17, 23)).some((e) => e.id === 'voyager'), 'not the day before');
   const vy = Se.EVENTS.find((e) => e.id === 'voyager');
   assert.match(vy.line(new Date(Se.LIGHTDAY - 1)), /^At \d\d:\d\d today/);
   assert.match(vy.line(new Date(Se.LIGHTDAY + 1)), /hears you tomorrow at \d\d:\d\d/);
@@ -221,6 +221,27 @@ test('events stack: effects add up, every guest visits, one banner each', () => 
     const fx = Se.fx(d, 'night', null);
     assert.ok(fx.includes('meteors') && fx.filter((f) => f === 'bats').length === 1, 'effects merge without duplicates');
   } finally { Se.EVENTS.splice(Se.EVENTS.indexOf(extra), 1); }
+});
+
+test('meteor nights: peak evening until dawn; Cat Day; both stack with others', () => {
+  const Se = window.SP.season;
+  window.SP.store.state = JSON.parse(JSON.stringify(empty));
+  const ids = (d) => Se.events(d).map((e) => e.id);
+  assert.deepEqual(ids(new Date(2026, 7, 12, 22)), ['meteors-perseids']);
+  assert.deepEqual(ids(new Date(2026, 7, 13, 3)), ['meteors-perseids'], 'still on after midnight');
+  assert.deepEqual(ids(new Date(2026, 7, 12, 14)), [], 'not in the afternoon');
+  assert.deepEqual(ids(new Date(2026, 7, 13, 7)), [], 'over by morning');
+  assert.deepEqual(ids(new Date(2027, 0, 4, 2)), ['meteors-quadrantids'], 'across a year boundary is fine too');
+  assert.ok(Se.fx(new Date(2026, 11, 13, 23), 'night', null).includes('meteors'));
+  assert.equal(Se.heckler(new Date(2026, 7, 12, 22)), 'conspiracy');
+  assert.equal(Se.SHOWERS.length, Se.EVENTS.filter((e) => e.id.startsWith('meteors-')).length);
+  // The Leonids run into Voyager day, 2026.
+  assert.deepEqual(ids(new Date(2026, 10, 18, 2)), ['voyager', 'meteors-leonids']);
+  const cat = new Date(2026, 7, 8, 9);
+  assert.equal(Se.event(cat).id, 'catday');
+  assert.equal(Se.greeter(cat), 'cat');
+  assert.ok(Se.crown(cat) && !Se.crown(new Date(2026, 7, 9, 9)));
+  assert.equal(Se.heckler(cat), 'cat');
 });
 
 test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {
