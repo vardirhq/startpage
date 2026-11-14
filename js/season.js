@@ -12,6 +12,8 @@
    First snow: the first snow the live sky sees after a snowless summer; every voice has something to say.
    Daylight saving: the day the clocks change, wherever you are. Monday mourns the lost hour; Night Owl loves the extra one.
    Full moon nights: Ghost, Night Owl or the Conspiracist come out, and the cat gets the zoomies.
+   Your countdown day: a countdown you added reaches zero, and every voice makes a fuss.
+   Grand Theft Auto VI (19 Nov 2026, gamer setup only): a week's countdown, then every voice has a take.
    Opposite Day (Jan 25): every voice talks like its opposite. Monday is thrilled. The controls don't change.
    New Year's Eve: fireworks (see js/sky.js).
    Voyager 1 light-day (18 Nov 2026, once): see js/voyager.js. */
@@ -90,6 +92,52 @@
     parent: 'IT’S SNOWING!!! Wear a hat!!! Did you bring a hat? Text me when you’re home!!!',
   };
 
+  /* ---- Grand Theft Auto VI: out 19 Nov 2026, thirteen years after the last one (Sep 2013). For the gamer starting
+     setup only: a week's countdown, then every voice has a take on the day. Nobody else needs a game launch on their page.
+     Just the name: no art, no look, nothing borrowed from the game. ---- */
+  const gamer = () => S().profile === 'gamer'; // a game launch is a taste, not a holiday: only for those who said they care
+  const GTA_DAY = (d) => gamer() && d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() === 19;
+  const GTA_SOON = (d) => gamer() && d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() >= 12 && d.getDate() <= 18;
+  const GTA = {
+    neutral: 'Grand Theft Auto VI comes out today, thirteen years after the last one. Expect a quiet internet and a lot of sick days.',
+    monday: 'Grand Theft Auto VI is out. Half the planet called in sick. The other half is pretending it didn’t. I’m here. Unfortunately.',
+    supportive: 'GTA VI is out!!! If you’re playing, I’ll wait right here for you!!! If you’re not, we can hang out instead!!! Either way you win!!! 💕',
+    surfer: 'Dude, GTA VI dropped. Thirteen years of waiting. Longest anyone’s ever waited for a set. Including me.',
+    professional: 'Grand Theft Auto VI launches today. HR has received an unusual number of dentist appointments. All approved. None believed.',
+    therapist: 'GTA VI is out. Thirteen years of anticipation is a lot to put on one day. Whatever you feel about it, playing or not, is valid.',
+    weepy: 'Grand Theft Auto VI is finally here. Thirteen years. Some of the people who waited for it are all grown up now. *weeps into a controller*',
+    victorian: 'I am told a moving-picture game of motorcar larceny is released today, and that the whole of society has taken to its bed. Scandalous.',
+    brutal: 'GTA VI is out. People waited thirteen years for it. You can’t wait thirteen minutes before checking your phone.',
+    conspiracy: 'Thirteen years. THIRTEEN. And it comes out the day after Voyager reached a light-day. Coincidence? Nothing is a coincidence.',
+    cat: 'Mrrp. *sits on the controller* Meow. (No.)',
+    narrator: 'Today, all over the world, millions of people told their employers they were unwell. They were not unwell. They had been waiting thirteen years.',
+    owl: 'GTA VI is out. Finally, the whole world is going to be up as late as I am tonight.',
+    ghost: 'everyone is inside today. the streets are empty. it feels like home.',
+    parent: 'Is this the car game you’ve been talking about since you were little?! It’s OUT?! Don’t forget to eat!!! And sleep!!! And call us!!!',
+  };
+
+  /* ---- Your countdown day: when a countdown you added reaches zero, every voice makes a fuss about it. A game
+     launch, a concert, moving day: it's yours because you chose it. (Unless a bigger event already covers it.) ---- */
+  const covered = (title, d) => EVENTS.some((e) => e.covers && e.covers.test(title) && e.when(d));
+  const cdToday = (d) => (S().countdowns || []).filter((c) => c.date === dkey(d) && c.title && !covered(c.title, d));
+  const CD = {
+    neutral: ({ title }) => title + ' is today.',
+    monday: ({ title }) => 'You’ve been counting down to ' + title + '. It’s today. Congratulations, I suppose. Try to enjoy it. Someone should.',
+    supportive: ({ title }) => 'IT’S TODAY!!! ' + title + '!!! We counted down TOGETHER!!! Every single day!!! I’m so happy for you!!! 💕',
+    surfer: ({ title }) => title + ' is today, dude. All that waiting and it just… showed up. Like a wave. Go ride it.',
+    professional: ({ title }) => 'Milestone reached: ' + title + '. Delivered on schedule, which is more than most projects manage. Well done.',
+    therapist: ({ title }) => title + ' is finally here. Notice the anticipation turning into something else. Let yourself enjoy it. That’s allowed.',
+    weepy: ({ title }) => title + ' is today. After all that waiting. And tomorrow it’ll be a memory. *already weeping*',
+    victorian: ({ title }) => 'The day of ' + title + ' has arrived at last. I trust you are suitably dressed.',
+    brutal: ({ title }) => title + ' is today. You counted down to it. Now show up for it.',
+    conspiracy: ({ title }) => title + '. Today. Exactly when you said it would be. Who told you the date? Think about it.',
+    cat: ({ title }) => 'Mrrp! ' + title + '! *knocks the countdown off the table* Prrt.',
+    narrator: ({ title }) => 'For days, they had watched the number get smaller. Today it reached zero. ' + title + ' had arrived.',
+    owl: ({ title }) => title + ' is today! I’ve been up counting the hours. Literally. All of them.',
+    ghost: ({ title }) => title + ' is today. i hope it’s everything you waited for. waiting is the hard part. i would know.',
+    parent: ({ title }) => title + ' is TODAY?! Sweetie!!! Have fun!!! Take pictures!!! Send them to us!!!',
+  };
+
   /* Opposite Day: each voice speaks as its opposite. Pairs both ways; a voice whose opposite you haven't
      unlocked (or that has none) stays itself, so nobody gets a secret voice spoiled. All in: every line
      (labels, reactions, heckles, discoveries, level titles, Ask), the spoken voice and the voice's page styling
@@ -111,6 +159,13 @@
 
   /* One-day events come first: when events overlap, the first one picks the visiting heckler and the host. */
   const EVENTS = [
+    { id: 'gta6-soon', when: GTA_SOON, anon: true, name: 'Grand Theft Auto VI',
+      line: (now) => { const n = 19 - now.getDate(); return n === 1 ? 'Tomorrow. Charge the controller. Clear the calendar. Thirteen years, and it’s nearly over.' : 'In ' + n + ' days. You’ve waited thirteen years. You can wait ' + n + ' more.'; } },
+    { id: 'gta6', when: GTA_DAY, name: 'Grand Theft Auto VI', lines: GTA, covers: /\bgta\b|grand theft auto/i, heckler: ['brutal', 'professional'],
+      heckles: { brutal: ['Nobody’s working today. That isn’t permission.', ({ who }) => who + ' thinks you’ll get things done today. Cute.', 'Yesterday humanity reached a light-day. Today it’s calling in sick to drive around fake Florida.'],
+        professional: ['Reminder: “playtesting” is not a recognised form of leave.', 'Calendar update: all of today’s meetings have quietly cancelled themselves.', 'Yesterday a probe reached one light-day on 22 watts. Today the whole team is offline. Interesting priorities.'] } },
+    { id: 'countdown', when: (d) => cdToday(d).length > 0, daily: true, name: 'It’s today', lines: CD,
+      ctx: (now) => ({ title: SP.voice._h.list(cdToday(now).map((c) => c.title)) }) },
     { id: 'opposite', when: (d) => d.getMonth() === 0 && d.getDate() === 25, opposite: true, name: 'Opposite Day',
       line: 'It’s Opposite Day. Everyone talks like their opposite until midnight. The buttons still do what they say. Unfortunately.', by: 'monday' },
     { id: 'firstsnow', when: (d) => (S().presence || {}).firstSnow === dkey(d), name: 'First snow', lines: FIRST_SNOW, heckler: 'surfer',
@@ -182,14 +237,14 @@
   }
 
   /* A small banner under the date for each event that's on, until you dismiss it. */
-  const seenKey = (e) => e.id + new Date().getFullYear();
+  const seenKey = (e) => e.id + (e.daily ? dkey(new Date()) : new Date().getFullYear()); // daily: dismissing one countdown day doesn't hide the next
   function bannerHtml() {
     const p = S().presence || {}, now = new Date();
     return events(now).filter((e) => (e.line || e.lines) && !(p.events || {})[seenKey(e)]).map((e) => {
       // `lines`: one per voice, said by whoever you've picked (in their opposite's words on Opposite Day).
       const who = e.lines ? SP.voice.current() : V[e.by || e.guest] || V.neutral;
       let line = e.lines ? e.lines[SP.voice.speaker()] || e.lines.neutral : typeof e.line === 'function' ? e.line(now) : e.line;
-      if (typeof line === 'function') line = line({ name: S().name });
+      if (typeof line === 'function') line = line(Object.assign({ name: S().name }, e.ctx ? e.ctx(now) : {}));
       // anon: nobody's saying it, it's just news. html: live extras under the line (js/voyager.js).
       const said = e.anon || (who === V.neutral && e.lines) ? line : who.name + ': ' + line;
       return '<div class="g-event" data-event="' + e.id + '"><b>' + SP.ui.esc(e.name) + '</b> <span>' + SP.ui.esc(said) + (e.html ? e.html(now) : '') + '</span><button class="icon-btn" data-event-x aria-label="Dismiss ' + SP.ui.esc(e.name) + '">' + SP.icon('x', 14) + '</button></div>'; // a div: the live extras are blocks, which a <p> can't hold
@@ -205,5 +260,5 @@
     });
   }
 
-  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, GTA, CD, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});
