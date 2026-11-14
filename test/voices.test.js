@@ -309,10 +309,30 @@ test('Voyager 1: a week of countdown, the day, every voice, and a hello that tak
   assert.ok(extra > 4 && extra < 6, 'about 5 s longer: ' + extra);
   // A hello in flight shows up the day after, then it's done.
   window.SP.store.state.voyager = { msg: 'hi', sent: Vy.LIGHTDAY, arrives: Vy.arrival(Vy.LIGHTDAY) };
-  assert.deepEqual(ids(new Date(2026, 10, 19, 8)), ['voyager-hello']);
+  const vy = (d) => ids(d).filter((x) => x.startsWith('voyager')); // (other things happen on the 19th)
+  assert.deepEqual(vy(new Date(2026, 10, 19, 8)), ['voyager-hello']);
   window.SP.store.state.voyager.delivered = Date.now();
-  assert.deepEqual(ids(new Date(2026, 10, 19, 8)), []);
+  assert.deepEqual(vy(new Date(2026, 10, 19, 8)), []);
   assert.ok(window.SP.eggs.EGGS.voyager, 'a discovery for writing to it');
+});
+
+test('Grand Theft Auto VI: gamers only, a week of countdown, and it knows about Voyager', () => {
+  const Se = window.SP.season, ids = (d) => Se.events(d).map((e) => e.id);
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
+  assert.ok(!ids(new Date(2026, 10, 19, 12)).includes('gta6'), 'nothing unless you’re a gamer');
+  assert.ok(!ids(new Date(2026, 10, 15, 12)).includes('gta6-soon'));
+  window.SP.store.state.profile = 'gamer';
+  assert.ok(ids(new Date(2026, 10, 19, 12)).includes('gta6'));
+  assert.ok(!ids(new Date(2027, 10, 19, 12)).includes('gta6'), 'once');
+  for (const k of Object.keys(V.list)) if (!V.list[k].custom) assert.ok(Se.GTA[k], k + ' has a take');
+  assert.equal(Se.heckler(new Date(2026, 10, 19, 12)), 'brutal');
+  assert.ok(ids(new Date(2026, 10, 15, 12)).includes('gta6-soon'));
+  const soon = Se.EVENTS.find((e) => e.id === 'gta6-soon');
+  assert.match(soon.line(new Date(2026, 10, 15, 12)), /^In 4 days/);
+  assert.match(soon.line(new Date(2026, 10, 18, 12)), /^Tomorrow/);
+  assert.ok(!ids(new Date(2026, 10, 19, 12)).includes('gta6-soon'), 'the countdown ends when the day comes');
+  // The day before is Voyager day: both, for a gamer.
+  assert.deepEqual(ids(new Date(2026, 10, 18, 12)).filter((x) => /voyager|gta/.test(x)), ['voyager', 'gta6-soon']);
 });
 
 test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {

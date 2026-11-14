@@ -12,6 +12,7 @@
    First snow: the first snow the live sky sees after a snowless summer; every voice has something to say.
    Daylight saving: the day the clocks change, wherever you are. Monday mourns the lost hour; Night Owl loves the extra one.
    Full moon nights: Ghost, Night Owl or the Conspiracist come out, and the cat gets the zoomies.
+   Grand Theft Auto VI (19 Nov 2026, gamer setup only): a week's countdown, then every voice has a take.
    Opposite Day (Jan 25): every voice talks like its opposite. Monday is thrilled. The controls don't change.
    New Year's Eve: fireworks (see js/sky.js).
    Voyager 1 light-day (18 Nov 2026, once): see js/voyager.js. */
@@ -90,6 +91,30 @@
     parent: 'IT’S SNOWING!!! Wear a hat!!! Did you bring a hat? Text me when you’re home!!!',
   };
 
+  /* ---- Grand Theft Auto VI: out 19 Nov 2026, thirteen years after the last one (Sep 2013). For the gamer starting
+     setup only: a week's countdown, then every voice has a take on the day. Nobody else needs a game launch on their page.
+     Just the name: no art, no look, nothing borrowed from the game. ---- */
+  const gamer = () => S().profile === 'gamer'; // a game launch is a taste, not a holiday: only for those who said they care
+  const GTA_DAY = (d) => gamer() && d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() === 19;
+  const GTA_SOON = (d) => gamer() && d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() >= 12 && d.getDate() <= 18;
+  const GTA = {
+    neutral: 'Grand Theft Auto VI comes out today, thirteen years after the last one. Expect a quiet internet and a lot of sick days.',
+    monday: 'Grand Theft Auto VI is out. Half the planet called in sick. The other half is pretending it didn’t. I’m here. Unfortunately.',
+    supportive: 'GTA VI is out!!! If you’re playing, I’ll wait right here for you!!! If you’re not, we can hang out instead!!! Either way you win!!! 💕',
+    surfer: 'Dude, GTA VI dropped. Thirteen years of waiting. Longest anyone’s ever waited for a set. Including me.',
+    professional: 'Grand Theft Auto VI launches today. HR has received an unusual number of dentist appointments. All approved. None believed.',
+    therapist: 'GTA VI is out. Thirteen years of anticipation is a lot to put on one day. Whatever you feel about it, playing or not, is valid.',
+    weepy: 'Grand Theft Auto VI is finally here. Thirteen years. Some of the people who waited for it are all grown up now. *weeps into a controller*',
+    victorian: 'I am told a moving-picture game of motorcar larceny is released today, and that the whole of society has taken to its bed. Scandalous.',
+    brutal: 'GTA VI is out. People waited thirteen years for it. You can’t wait thirteen minutes before checking your phone.',
+    conspiracy: 'Thirteen years. THIRTEEN. And it comes out the day after Voyager reached a light-day. Coincidence? Nothing is a coincidence.',
+    cat: 'Mrrp. *sits on the controller* Meow. (No.)',
+    narrator: 'Today, all over the world, millions of people told their employers they were unwell. They were not unwell. They had been waiting thirteen years.',
+    owl: 'GTA VI is out. Finally, the whole world is going to be up as late as I am tonight.',
+    ghost: 'everyone is inside today. the streets are empty. it feels like home.',
+    parent: 'Is this the car game you’ve been talking about since you were little?! It’s OUT?! Don’t forget to eat!!! And sleep!!! And call us!!!',
+  };
+
   /* Opposite Day: each voice speaks as its opposite. Pairs both ways; a voice whose opposite you haven't
      unlocked (or that has none) stays itself, so nobody gets a secret voice spoiled. All in: every line
      (labels, reactions, heckles, discoveries, level titles, Ask), the spoken voice and the voice's page styling
@@ -111,6 +136,11 @@
 
   /* One-day events come first: when events overlap, the first one picks the visiting heckler and the host. */
   const EVENTS = [
+    { id: 'gta6-soon', when: GTA_SOON, anon: true, name: 'Grand Theft Auto VI',
+      line: (now) => { const n = 19 - now.getDate(); return n === 1 ? 'Tomorrow. Charge the controller. Clear the calendar. Thirteen years, and it’s nearly over.' : 'In ' + n + ' days. You’ve waited thirteen years. You can wait ' + n + ' more.'; } },
+    { id: 'gta6', when: GTA_DAY, name: 'Grand Theft Auto VI', lines: GTA, heckler: ['brutal', 'professional'],
+      heckles: { brutal: ['Nobody’s working today. That isn’t permission.', ({ who }) => who + ' thinks you’ll get things done today. Cute.', 'Yesterday humanity reached a light-day. Today it’s calling in sick to drive around fake Florida.'],
+        professional: ['Reminder: “playtesting” is not a recognised form of leave.', 'Calendar update: all of today’s meetings have quietly cancelled themselves.', 'Yesterday a probe reached one light-day on 22 watts. Today the whole team is offline. Interesting priorities.'] } },
     { id: 'opposite', when: (d) => d.getMonth() === 0 && d.getDate() === 25, opposite: true, name: 'Opposite Day',
       line: 'It’s Opposite Day. Everyone talks like their opposite until midnight. The buttons still do what they say. Unfortunately.', by: 'monday' },
     { id: 'firstsnow', when: (d) => (S().presence || {}).firstSnow === dkey(d), name: 'First snow', lines: FIRST_SNOW, heckler: 'surfer',
@@ -205,5 +235,5 @@
     });
   }
 
-  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, bannerHtml, bindBanner, EVENTS };
+  SP.season = { season, events, event, fx, guests, guest, heckler, heckles, host, forcedChaos, greeter, crown, zoomies, speaker, noteWeather, nextFullMoon, fullMoonAt, clocks, SHOWERS, OPPOSITE, GTA, bannerHtml, bindBanner, EVENTS };
 })(window.SP = window.SP || {});
