@@ -335,6 +335,25 @@ test('Grand Theft Auto VI: gamers only, a week of countdown, and it knows about 
   assert.deepEqual(ids(new Date(2026, 10, 18, 12)).filter((x) => /voyager|gta/.test(x)), ['voyager', 'gta6-soon']);
 });
 
+test('your countdown day: every voice makes a fuss, a bigger event can cover it, dismissing is per day', () => {
+  const Se = window.SP.season, ids = (d) => Se.events(d).map((e) => e.id);
+  window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday',
+    countdowns: [{ id: 'a', title: 'Concert', date: '2026-12-05' }, { id: 'b', title: 'Moving day', date: '2026-12-05' }, { id: 'c', title: 'GTA VI', date: '2026-11-19' }] });
+  const d = new Date(2026, 11, 5, 12);
+  assert.ok(ids(d).includes('countdown'));
+  assert.ok(!ids(new Date(2026, 11, 6, 12)).includes('countdown'));
+  for (const k of Object.keys(V.list)) if (!V.list[k].custom) assert.equal(typeof Se.CD[k], 'function', k + ' has something to say');
+  const e = Se.EVENTS.find((x) => x.id === 'countdown');
+  assert.equal(e.ctx(d).title, '“Concert” and “Moving day”');
+  assert.match(Se.CD.monday(e.ctx(d)), /^You’ve been counting down to “Concert” and “Moving day”/);
+  // GTA VI, without the gamer setup: it's your countdown, so it's celebrated as one.
+  assert.ok(ids(new Date(2026, 10, 19, 12)).includes('countdown'));
+  // With the gamer setup the bigger event covers it, so it isn't said twice.
+  window.SP.store.state.profile = 'gamer';
+  assert.deepEqual(ids(new Date(2026, 10, 19, 12)).filter((x) => x === 'countdown' || x === 'gta6'), ['gta6']);
+  assert.ok(e.daily, 'dismissed per day, not per year');
+});
+
 test('Opposite Day: voices swap words with their opposite, names and controls stay', () => {
   const Se = window.SP.season, d = new Date(2027, 0, 25, 12);
   window.SP.store.state = Object.assign(JSON.parse(JSON.stringify(empty)), { voice: 'monday' });
